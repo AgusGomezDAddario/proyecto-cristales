@@ -7,11 +7,18 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', function () {
-        return Inertia::render('Dashboard'); // 👈 Nombre del componente, con D mayúscula
+        $user = Auth::user();
+
+        if ($user->role_id == 1) {
+            return Inertia::render('Administrador/Dashboard'); // 👈 resources/js/Pages/Admin/Dashboard.tsx
+        }
+
+        return Inertia::render('Empleado/Dashboard'); // 👈 resources/js/Pages/Empleado/Dashboard.tsx
     })->name('dashboard');
 });
+
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
