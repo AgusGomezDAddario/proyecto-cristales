@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory; 
 use Illuminate\Database\Eloquent\Model;
 
 class Titular extends Model
 {
+    use HasFactory;
     protected $table = 'titular';
     public function vehiculos()
     {
@@ -15,5 +17,5 @@ class Titular extends Model
     {
         return $this->hasMany(OrdenDeTrabajo::class, 'titular_id');
     }
-    
+
 }

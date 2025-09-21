@@ -1,12 +1,13 @@
 <?php
 
 namespace App\Models;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class OrdenDeTrabajo extends Model
 {
     protected $table = 'orden_de_trabajo';
+    use HasFactory;
     public function titular()
     {
         return $this->belongsTo(Titular::class, 'titular_id');
@@ -19,5 +20,5 @@ class OrdenDeTrabajo extends Model
     {
         return $this->belongsTo(MedioDePago::class, 'medio_de_pago_id');
     }
-    
+
 }

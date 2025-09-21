@@ -1,12 +1,13 @@
 <?php
 
 namespace App\Models;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Precio extends Model
 {
     protected $table = 'precio';
+    use HasFactory;
     public function medioDePago()
     {
         return $this->belongsTo(MedioDePago::class, 'medio_de_pago_id');
