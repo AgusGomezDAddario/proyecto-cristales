@@ -6,5 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class DetalleOrdenDeTrabajo extends Model
 {
-    //
+    protected $table = 'detalle_orden_de_trabajo';
+    public function ordenDeTrabajo()
+    {
+        return $this->belongsTo(OrdenDeTrabajo::class, 'orden_de_trabajo_id');
+    }
 }
