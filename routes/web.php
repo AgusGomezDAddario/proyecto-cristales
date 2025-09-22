@@ -15,6 +15,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 });
 
+Route::get('/conceptos', function () {
+    return Inertia::render('conceptos/Page');
+});
+
 Route::resource('conceptos', ConceptoController::class);
 Route::resource('movimiento', MovimientoController::class);
 

@@ -1,36 +1,61 @@
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
-import AppLayout from '@/layouts/app-layout';
-import { dashboard } from '@/routes';
-import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { useState } from "react"
+import {EgresosScreen} from "./../components/egresos-screen"
+import {IngresosScreen} from "@/components/ingresos-screen"
+import {OrdenesScreen} from "@/components/ordenes-screen"
+import {DashboardScreen} from "@/components/dashboard-screen"
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard().url,
-    },
-];
+export default function Page() {
+  const [activeScreen, setActiveScreen] = useState<"dashboard" | "egresos" | "ingresos" | "ordenes">("dashboard")
 
-export default function Dashboard() {
-    return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                </div>
-                <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                </div>
-            </div>
-        </AppLayout>
-    );
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation */}
+      <nav className="bg-white shadow-sm border-b">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="flex space-x-1 py-4">
+            <button
+              onClick={() => setActiveScreen("dashboard")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeScreen === "dashboard" ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              Panel de Control
+            </button>
+            <button
+              onClick={() => setActiveScreen("egresos")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeScreen === "egresos" ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              Carga de Egresos
+            </button>
+            <button
+              onClick={() => setActiveScreen("ingresos")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeScreen === "ingresos" ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              Carga de Ingresos
+            </button>
+            <button
+              onClick={() => setActiveScreen("ordenes")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeScreen === "ordenes" ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              Órdenes de Trabajo
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Content */}
+      <main className="max-w-4xl mx-auto px-4 py-6">
+        {activeScreen === "dashboard" && <DashboardScreen setActiveScreen={setActiveScreen} />}
+        {activeScreen === "egresos" && <EgresosScreen />}
+        {activeScreen === "ingresos" && <IngresosScreen />}
+        {activeScreen === "ordenes" && <OrdenesScreen />}
+      </main>
+    </div>
+  )
 }
