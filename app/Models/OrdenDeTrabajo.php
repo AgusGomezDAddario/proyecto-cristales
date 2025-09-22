@@ -7,6 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class OrdenDeTrabajo extends Model
 {
     protected $table = 'orden_de_trabajo';
+        protected $fillable = [
+        'titular_id',
+        'medio_de_pago_id',
+        'estado_id',
+        'fecha',
+        'observacion',
+    ];
+
     use HasFactory;
     public function titular()
     {
