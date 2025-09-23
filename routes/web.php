@@ -2,9 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers;
-use App\Http\Controllers\ConceptoController;
-use App\Http\Controllers\MovimientoController;
+use App\Http\Controllers\OrdenDeTrabajoController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -16,8 +14,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 });
 
-Route::resource('conceptos', ConceptoController::class);
-Route::resource('movimiento', MovimientoController::class);
+
+Route::resource('ordenes', OrdenDeTrabajoController::class)
+    ->parameters([
+        'ordenes' => 'orden'
+    ]);
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
