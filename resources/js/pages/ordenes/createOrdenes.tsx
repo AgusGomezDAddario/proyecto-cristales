@@ -77,6 +77,7 @@ export default function CreateOrdenes() {
         if (!formData.precioUnitario) newErrors.precioUnitario = true;
         if (!formData.patente) newErrors.patente = true;
         if (formData.email && !formData.email.includes('@')) newErrors.email = true;
+        if (formData.anio && (formData.anio < 1900 || formData.anio > new Date().getFullYear())) newErrors.anio = true;
 
         setErrors(newErrors);
 
@@ -206,7 +207,7 @@ export default function CreateOrdenes() {
                             <div className="relative">
                                 <Mail className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
                                 <input
-                                    type="email"
+                                    type="text"
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     className={`h-10 w-full rounded-md border pr-3 pl-9 focus:border-primary focus:ring-2 focus:ring-primary ${
@@ -215,7 +216,11 @@ export default function CreateOrdenes() {
                                     placeholder="Ej: juan@email.com"
                                 />
                             </div>
-                            {errors.email && <p className="mt-1 text-sm text-destructive">Ingrese un email válido</p>}
+                            {errors.email && (
+                                <p className="mt-1 text-sm text-destructive">
+                                    El correo electrónico debe contener un <strong>@</strong>. Ejemplo: usuario@dominio.com
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -270,13 +275,16 @@ export default function CreateOrdenes() {
                             <label className="mb-2 block text-sm font-medium text-foreground">Año (opcional)</label>
                             <input
                                 type="number"
-                                min="1900"
-                                max={new Date().getFullYear()}
                                 value={formData.anio}
                                 onChange={(e) => setFormData({ ...formData, anio: Number(e.target.value) || 1 })}
-                                className="h-10 w-full rounded-md border border-input px-3 focus:border-primary focus:ring-2 focus:ring-primary"
+                                className={`h-10 w-full rounded-md border border-input px-3 focus:border-primary focus:ring-2 focus:ring-primary ${
+                                    errors.anio ? 'border-destructive' : ''
+                                }`}
                                 placeholder="Ej: 2020"
                             />
+                            {errors.anio && (
+                                <p className="mt-1 text-sm text-destructive">El año debe estar entre 1900 y {new Date().getFullYear()}</p>
+                            )}
                         </div>
                     </div>
                 </div>
