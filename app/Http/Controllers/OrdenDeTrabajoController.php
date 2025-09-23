@@ -25,7 +25,7 @@ class OrdenDeTrabajoController extends Controller
 
     public function create()
     {
-        return Inertia::render('ordenes/create');
+        return Inertia::render('ordenes/createOrdenes');
     }
 
     public function store(Request $request)

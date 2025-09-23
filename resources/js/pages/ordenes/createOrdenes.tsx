@@ -7,7 +7,7 @@ interface PaymentMethod {
   monto: number;
 }
 
-export default function OrdenesScreen() {
+export default function CreateOrdenes() {
   const [formData, setFormData] = useState({
     // Datos del Cliente
     nombreCliente: "",
