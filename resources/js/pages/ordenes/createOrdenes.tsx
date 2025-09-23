@@ -1,5 +1,6 @@
 import { Car, DollarSign, FileText, Mail, Phone, Plus, Printer, Trash2, User } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import AppearanceToggleDropdown from '../../components/appearance-dropdown';
 
 interface PaymentMethod {
     id: string;
@@ -150,6 +151,7 @@ export default function CreateOrdenes() {
 
     return (
         <div className="rounded-lg border bg-background">
+            <AppearanceToggleDropdown />
             <div className="border-b p-6">
                 <h1 className="text-2xl font-semibold text-foreground">📋 Nueva Orden de Trabajo</h1>
                 <p className="mt-1 text-muted-foreground">Complete todos los campos obligatorios marcados con *</p>
