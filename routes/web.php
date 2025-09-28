@@ -12,10 +12,10 @@ Route::middleware(['auth'])->group(function () {
         $user = Auth::user();
 
         if ($user->role_id == 1) {
-            return Inertia::render('Administrador/main'); // 👈 resources/js/Pages/Admin/Dashboard.tsx
+            return Inertia::render('Administrador/Dashboard'); // 👈 resources/js/Pages/Admin/Dashboard.tsx
         }
 
-        return Inertia::render('Empleado/main'); // 👈 resources/js/Pages/Empleado/Dashboard.tsx
+        return Inertia::render('Empleado/Dashboard'); // 👈 resources/js/Pages/Empleado/Dashboard.tsx
     })->name('dashboard');
 });
 
