@@ -14,6 +14,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function Dashboard() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
+            <div className="p-6">
+                <h1 className="text-2xl font-bold">Panel de Empleado</h1>
+                <p>Acá ves solo lo que necesitás para trabajar.</p>
+            </div>
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">

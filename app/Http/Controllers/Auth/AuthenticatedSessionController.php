@@ -37,7 +37,7 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Destroy an authenticated session.
+     * Para cerrar sesion
      */
     public function destroy(Request $request): RedirectResponse
     {
