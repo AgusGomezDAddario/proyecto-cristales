@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\OrdenDeTrabajoController;
 use App\Http\Controllers\Administrador\UserController;
 
 Route::get('/', function () {
