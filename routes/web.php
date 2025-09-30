@@ -32,10 +32,12 @@ Route::middleware(['auth'])->group(function () {
             ->name('admin.users.destroy');
     });
 
-    
-
 });
 
+Route::resource('ordenes', OrdenDeTrabajoController::class)
+    ->parameters([
+        'ordenes' => 'orden'
+    ]);
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
