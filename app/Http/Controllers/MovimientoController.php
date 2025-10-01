@@ -19,10 +19,16 @@ class MovimientoController extends Controller
         ]);
     }
  
-    public function create()
-    {
-        return Inertia::render('movimientos/create');
-    }
+public function create()
+{
+    $conceptos = \App\Models\Concepto::orderBy('nombre', 'asc')->get();
+    $mediosDePago = \App\Models\MedioDePago::orderBy('nombre', 'asc')->get();
+
+    return Inertia::render('movimientos/create', [
+        'conceptos' => $conceptos,
+        'mediosDePago' => $mediosDePago,
+    ]);
+}
 
     public function store(Request $request)
     {
@@ -36,8 +42,8 @@ class MovimientoController extends Controller
 
         Movimiento::create($data);
 
-        return redirect()->route('movimientos.index')
-                         ->with('success', 'Movimiento creado correctamente');
+return redirect()->route('movimientos.index')
+    ->with('success', 'Movimiento creado correctamente');
     }
 
     public function show(Movimiento $movimiento)

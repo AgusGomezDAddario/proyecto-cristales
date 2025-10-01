@@ -20,7 +20,7 @@ Route::get('/conceptos', function () {
 });
 
 Route::resource('conceptos', ConceptoController::class);
-Route::resource('movimiento', MovimientoController::class);
+Route::resource('movimientos', MovimientoController::class);
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
