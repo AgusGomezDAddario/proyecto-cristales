@@ -16,7 +16,6 @@ class Vehiculo extends Model
         'marca',
         'modelo',
         'anio',
-        'color',
     ];
 
     // 🔹 Relación muchos a muchos con titulares
