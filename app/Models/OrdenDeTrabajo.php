@@ -1,32 +1,39 @@
 <?php
 
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class OrdenDeTrabajo extends Model
 {
+    use HasFactory;
+
     protected $table = 'orden_de_trabajo';
-        protected $fillable = [
-        'titular_id',
+
+    protected $fillable = [
+        'titular_vehiculo_id',
         'medio_de_pago_id',
         'estado_id',
         'fecha',
         'observacion',
     ];
 
-    use HasFactory;
-    public function titular()
+    // 🔹 Relación con la asociativa titular-vehículo
+    public function titularVehiculo()
     {
-        return $this->belongsTo(Titular::class, 'titular_id');
+        return $this->belongsTo(TitularVehiculo::class, 'titular_vehiculo_id');
     }
+
+    // 🔹 Relación con estado
     public function estado()
     {
         return $this->belongsTo(Estado::class, 'estado_id');
     }
+
+    // 🔹 Relación con medio de pago
     public function medioDePago()
     {
         return $this->belongsTo(MedioDePago::class, 'medio_de_pago_id');
     }
-
 }
