@@ -30,18 +30,22 @@ class OrdenDeTrabajoController extends Controller
         ]);
     }
 
-    public function create()
-    {
-        $titulares = Titular::select('id', 'nombre', 'apellido', 'telefono', 'email')->get();
-        $estados = Estado::select('id', 'nombre')->get();
-        $mediosDePago = MedioDePago::select('id', 'nombre')->get();
+public function create()
+{
+    $titulares = Titular::with('vehiculos:id,patente,marca,modelo,anio')
+        ->select('id', 'nombre', 'apellido', 'telefono', 'email')
+        ->get();
 
-        return Inertia::render('ordenes/createOrdenes', [
-            'titulares'    => $titulares,
-            'estados'      => $estados,
-            'mediosDePago' => $mediosDePago,
-        ]);
-    }
+    $estados = Estado::select('id', 'nombre')->get();
+    $mediosDePago = MedioDePago::select('id', 'nombre')->get();
+
+    return Inertia::render('ordenes/createOrdenes', [
+        'titulares'    => $titulares,
+        'estados'      => $estados,
+        'mediosDePago' => $mediosDePago,
+    ]);
+}
+
 
 
     public function store(Request $request)
