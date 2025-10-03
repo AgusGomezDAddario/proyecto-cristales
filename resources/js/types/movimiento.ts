@@ -18,7 +18,7 @@ export interface Movimiento {
     medio_de_pago_id: number | null;
     comprobante: string | null;
     concepto?: Concepto;
-    medio_de_pago?: MedioDePago;  // Cambiar de medioDePago a medio_de_pago
+    medio_de_pago?: MedioDePago;  // Cambiado de medioDePago a medio_de_pago
     created_at: string;
     updated_at: string;
 }
