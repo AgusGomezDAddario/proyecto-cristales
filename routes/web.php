@@ -22,14 +22,10 @@ Route::middleware(['auth'])->group(function () {
 
     // 👉 ABM de usuarios (solo admins)
      Route::middleware('is_admin')->group(function () {
-        Route::get('admin/users', [UserController::class, 'index'])
-            ->name('admin.users.index');
-        Route::post('admin/users', [UserController::class, 'store'])
-            ->name('admin.users.store');
-        Route::put('admin/users/{user}', [UserController::class, 'update'])
-            ->name('admin.users.update');
-        Route::delete('admin/users/{user}', [UserController::class, 'destroy'])
-            ->name('admin.users.destroy');
+        Route::get('admin/users', [UserController::class, 'index'])->name('admin.users.index');
+        Route::post('admin/users', [UserController::class, 'store'])->name('admin.users.store');
+        Route::put('admin/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
+        Route::delete('admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
     });
 
 });
