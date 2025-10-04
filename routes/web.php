@@ -4,11 +4,17 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\OrdenDeTrabajoController;
 use App\Http\Controllers\Administrador\UserController;
+use App\Http\Controllers\IngresoController; // Asegúrate de tener este controller
 
 Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
+// Rutas públicas (sin autenticación)
+Route::get('/ingresos', [IngresoController::class, 'index'])->name('ingresos.index');
+Route::get('/ingresos/create', [IngresoController::class, 'create'])->name('ingresos.create');
+
+// Rutas protegidas (requieren autenticación)
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', function () {
         $user = Auth::user();
@@ -32,12 +38,13 @@ Route::middleware(['auth'])->group(function () {
             ->name('admin.users.destroy');
     });
 
-});
+    // 👉 Rutas para Órdenes (requieren autenticación)
+    Route::resource('ordenes', OrdenDeTrabajoController::class)
+        ->parameters([
+            'ordenes' => 'orden'
+        ]);
 
-Route::resource('ordenes', OrdenDeTrabajoController::class)
-    ->parameters([
-        'ordenes' => 'orden'
-    ]);
+});
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
