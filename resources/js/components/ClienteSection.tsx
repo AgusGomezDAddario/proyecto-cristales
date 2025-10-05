@@ -17,7 +17,12 @@ interface Props {
   errors: Record<string, string>;
 }
 
-export default function ClienteSection({ titulares, formData, setFormData, errors }: Props) {
+export default function ClienteSection({
+  titulares,
+  formData,
+  setFormData,
+  errors,
+}: Props) {
   const [showNew, setShowNew] = useState(false);
   const [nuevoTitular, setNuevoTitular] = useState({
     nombre: "",
@@ -57,18 +62,18 @@ export default function ClienteSection({ titulares, formData, setFormData, error
   };
 
   const handleSaveNew = () => {
-    // si está vacío, metemos un titular de prueba
-    const cliente = nuevoTitular.nombre
-      ? { ...nuevoTitular }
-      : { nombre: "Cliente", apellido: "Prueba", telefono: "099999999", email: "cliente@prueba.com" };
+    if (!nuevoTitular.nombre || !nuevoTitular.apellido) {
+      alert("Por favor completá el nombre y apellido del cliente");
+      return;
+    }
 
     setFormData({
       ...formData,
       titular_id: null,
-      nombreCliente: `${cliente.nombre} ${cliente.apellido}`,
-      telefono: cliente.telefono,
-      email: cliente.email,
-      nuevo_titular: cliente,
+      nombreCliente: `${nuevoTitular.nombre} ${nuevoTitular.apellido}`,
+      telefono: nuevoTitular.telefono,
+      email: nuevoTitular.email,
+      nuevo_titular: nuevoTitular,
     });
 
     setShowNew(false);
@@ -117,13 +122,29 @@ export default function ClienteSection({ titulares, formData, setFormData, error
             { field: "email", label: "Email (opcional)" },
           ].map(({ field, label }) => (
             <div key={field} className="flex flex-col gap-1">
-              <label className="text-lg font-medium text-foreground">{label}</label>
+              <label className="text-lg font-medium text-foreground">
+                {label}
+              </label>
               <input
                 type={field === "email" ? "email" : "text"}
                 value={(nuevoTitular as any)[field]}
-                onChange={(e) => setNuevoTitular({ ...nuevoTitular, [field]: e.target.value })}
-                className="h-12 w-full rounded-lg border px-4 text-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                onChange={(e) =>
+                  setNuevoTitular({
+                    ...nuevoTitular,
+                    [field]: e.target.value,
+                  })
+                }
+                className={`h-12 w-full rounded-lg border px-4 text-lg focus:outline-none focus:ring-2 focus:ring-primary ${
+                  errors[`nuevo_titular.${field}`]
+                    ? "border-red-500"
+                    : "border-input"
+                }`}
               />
+              {errors[`nuevo_titular.${field}`] && (
+                <p className="text-sm text-red-600 mt-1">
+                  {errors[`nuevo_titular.${field}`]}
+                </p>
+              )}
             </div>
           ))}
           <div className="flex gap-3">
@@ -147,7 +168,8 @@ export default function ClienteSection({ titulares, formData, setFormData, error
         // Cliente seleccionado / creado
         <div className="rounded-md bg-muted/60 p-5 space-y-3 border text-lg text-muted-foreground">
           <p className="flex items-center">
-            <User className="mr-2 h-5 w-5 text-primary" /> {formData.nombreCliente}
+            <User className="mr-2 h-5 w-5 text-primary" />{" "}
+            {formData.nombreCliente}
           </p>
           <p className="flex items-center">
             <Phone className="mr-2 h-5 w-5 text-primary" /> {formData.telefono}
@@ -162,19 +184,44 @@ export default function ClienteSection({ titulares, formData, setFormData, error
         // Seleccionar existente o crear nuevo
         <div className="flex items-end gap-3">
           <div className="flex flex-col flex-1 gap-1">
-            <label className="text-lg font-medium text-foreground">Seleccionar titular</label>
+            <label className="text-lg font-medium text-foreground">
+              Seleccionar titular
+            </label>
             <Select
               options={options}
               placeholder="Buscar o seleccionar cliente..."
               isClearable
-              value={options.find((opt) => opt.value === formData.titular_id) || null}
+              value={
+                options.find((opt) => opt.value === formData.titular_id) || null
+              }
               onChange={handleSelect}
               styles={{
-                control: (base) => ({ ...base, minHeight: "48px", fontSize: "16px" }),
+                control: (base, state) => ({
+                  ...base,
+                  minHeight: "48px",
+                  fontSize: "16px",
+                  borderColor: errors.titular_id
+                    ? "#ef4444"
+                    : state.isFocused
+                    ? "#2563eb"
+                    : base.borderColor,
+                  boxShadow: state.isFocused
+                    ? "0 0 0 1px #2563eb"
+                    : "none",
+                  "&:hover": {
+                    borderColor: errors.titular_id
+                      ? "#ef4444"
+                      : "#2563eb",
+                  },
+                }),
                 option: (base, state) => ({
                   ...base,
                   fontSize: "16px",
-                  backgroundColor: state.isSelected ? "#2563eb" : state.isFocused ? "#e0e7ff" : "white",
+                  backgroundColor: state.isSelected
+                    ? "#2563eb"
+                    : state.isFocused
+                    ? "#e0e7ff"
+                    : "white",
                   color: state.isSelected ? "white" : "black",
                 }),
               }}
@@ -191,7 +238,7 @@ export default function ClienteSection({ titulares, formData, setFormData, error
         </div>
       )}
 
-      {/* Error */}
+      {/* Error global */}
       {errors.titular_id && !formData.nuevo_titular && (
         <p className="mt-1 text-base text-red-600">
           {errors.titular_id || "Debe seleccionar o crear un cliente"}
