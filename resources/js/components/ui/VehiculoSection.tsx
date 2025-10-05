@@ -8,7 +8,6 @@ interface Vehiculo {
   marca: string;
   modelo: string;
   anio: number;
-  color?: string;
 }
 
 interface Props {
@@ -29,7 +28,6 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
       marca: "",
       modelo: "",
       anio: new Date().getFullYear(),
-      color: "",
     });
     const [localErrors, setLocalErrors] = useState<Record<string, string>>({});
 
@@ -59,35 +57,23 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
       marca: v.marca,
       modelo: v.modelo,
       anio: v.anio,
-      color: v.color,
     }));
 
     // Limpieza de error en vivo
-  const handleChange = (field: string, value: string) => {
-    setNuevoVehiculo({ ...nuevoVehiculo, [field]: value });
+    const handleChange = (field: string, value: string) => {
+      setNuevoVehiculo({ ...nuevoVehiculo, [field]: value });
 
-    // 🔹 Validación inmediata en vivo
-    setLocalErrors((prev) => {
-      const updated = { ...prev };
-
-      // Si el campo se vacía → muestra el error
-      if (
-        ["patente", "marca", "modelo"].includes(field) &&
-        value.trim() === ""
-      ) {
-        updated[field] = `${
-          field.charAt(0).toUpperCase() + field.slice(1)
-        } es obligatorio.`;
-      }
-      // Si antes tenía error y ahora se completó → quita el error
-      else if (prev[field] && value.trim() !== "") {
-        delete updated[field];
-      }
-
-      return updated;
-    });
-  };
-
+      // 🔹 Validación inmediata en vivo
+      setLocalErrors((prev) => {
+        const updated = { ...prev };
+        if (["patente", "marca", "modelo"].includes(field) && value.trim() === "") {
+          updated[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} es obligatorio.`;
+        } else if (prev[field] && value.trim() !== "") {
+          delete updated[field];
+        }
+        return updated;
+      });
+    };
 
     const handleSelect = (option: any) => {
       if (!option) {
@@ -133,7 +119,6 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
         marca: "",
         modelo: "",
         anio: new Date().getFullYear(),
-        color: "",
       });
       setLocalErrors({});
     };
@@ -169,12 +154,10 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
         {/* 📄 Formulario de nuevo vehículo */}
         {showNew ? (
           <div className="space-y-5">
-            {["patente", "marca", "modelo", "anio", "color"].map((field) => (
+            {["patente", "marca", "modelo", "anio"].map((field) => (
               <div key={field} className="flex flex-col gap-1">
                 <label className="text-lg font-medium">
-                  {field === "color"
-                    ? "Color (opcional)"
-                    : field.charAt(0).toUpperCase() + field.slice(1)}
+                  {field.charAt(0).toUpperCase() + field.slice(1)}
                 </label>
                 <input
                   type={field === "anio" ? "number" : "text"}
