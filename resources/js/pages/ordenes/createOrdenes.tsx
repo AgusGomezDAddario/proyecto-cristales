@@ -2,8 +2,9 @@ import React, { useEffect } from "react";
 import { useForm } from "@inertiajs/react";
 import ClienteSection from "../../components/ClienteSection";
 import VehiculoSection from "../../components/ui/VehiculoSection";
-import EstadoSelect from "../../components/EstadoSelect";
-import MedioPagoSelect from "../../components/MedioPagoSelect";
+import DetallesSection from "@/components/DetallesSection";
+import EstadoSection from "../../components/EstadoSection";
+import MedioPagoSection from "../../components/MedioPagoSection";
 
 interface Vehiculo {
   id: number;
@@ -33,6 +34,13 @@ interface MedioDePago {
   nombre: string;
 }
 
+interface Detalle {
+  descripcion: string;
+  valor: number;
+  cantidad: number;
+  colocacion_incluida: boolean;
+}
+
 interface FormData {
   titular_id: number | null;
   nuevo_titular: {
@@ -59,6 +67,7 @@ interface FormData {
 
   observacion: string;
   fecha: string;
+  detalles: Detalle[];
 }
 
 export default function CreateOrdenes({
@@ -85,9 +94,12 @@ export default function CreateOrdenes({
 
     observacion: "",
     fecha: "",
+
+    detalles: [
+      { descripcion: "", valor: 0, cantidad: 1, colocacion_incluida: false },
+    ],
   });
 
-  // precargar fecha actual
   useEffect(() => {
     if (!data.fecha) {
       const hoy = new Date().toISOString().split("T")[0];
@@ -100,7 +112,10 @@ export default function CreateOrdenes({
     post("/ordenes");
   };
 
-  // vehículos del titular seleccionado
+  const handleCancel = () => {
+    window.location.href = "/ordenes";
+  };
+
   const vehiculosDelTitular =
     titulares.find((t) => t.id === data.titular_id)?.vehiculos || [];
 
@@ -126,7 +141,7 @@ export default function CreateOrdenes({
         />
 
         {/* Estado */}
-        <EstadoSelect
+        <EstadoSection
           estados={estados}
           formData={data}
           setFormData={(newData: any) => setData({ ...data, ...newData })}
@@ -134,30 +149,48 @@ export default function CreateOrdenes({
         />
 
         {/* Medio de Pago */}
-        <MedioPagoSelect
+        <MedioPagoSection
           mediosDePago={mediosDePago}
           formData={data}
           setFormData={(newData: any) => setData({ ...data, ...newData })}
           errors={errors as any}
         />
 
+        {/* Detalles */}
+        <DetallesSection
+          detalles={data.detalles}
+          setDetalles={(nuevos) => setData("detalles", nuevos)}
+        />
+
         {/* Observación */}
         <div>
-          <label className="block mb-1 font-medium">Observación</label>
+          <label className="block mb-1 font-medium text-lg">Observación</label>
           <textarea
             value={data.observacion}
             onChange={(e) => setData("observacion", e.target.value)}
-            className="border rounded-md p-2 w-full"
+            className="border rounded-md p-3 w-full text-lg focus:ring-2 focus:ring-primary focus:outline-none"
+            placeholder="Agregar alguna nota o aclaración..."
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={processing}
-          className="px-4 py-2 rounded-md bg-primary text-white hover:bg-primary/90"
-        >
-          Guardar Orden
-        </button>
+        {/* Botones de acción */}
+        <div className="flex justify-between pt-4">
+          <button
+            type="submit"
+            disabled={processing}
+            className="px-5 py-3 rounded-lg bg-primary text-white text-lg font-semibold hover:bg-primary/90 transition"
+          >
+            Guardar Orden
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="px-5 py-3 rounded-lg bg-red-600 text-white text-lg font-semibold hover:bg-red-700 transition"
+          >
+            Cancelar
+          </button>
+        </div>
       </form>
     </div>
   );

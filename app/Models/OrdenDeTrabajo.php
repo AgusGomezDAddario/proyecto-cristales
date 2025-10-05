@@ -36,4 +36,10 @@ class OrdenDeTrabajo extends Model
     {
         return $this->belongsTo(MedioDePago::class, 'medio_de_pago_id');
     }
+
+        public function detalles()
+    {
+        return $this->hasMany(DetalleOrdenDeTrabajo::class, 'orden_de_trabajo_id');
+    }
+
 }
