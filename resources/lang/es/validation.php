@@ -63,7 +63,7 @@ return [
     'required_unless'      => 'El campo :attribute es obligatorio a menos que :other esté en :values.',
     'required_with'        => 'El campo :attribute es obligatorio cuando :values está presente.',
     'required_with_all'    => 'El campo :attribute es obligatorio cuando :values están presentes.',
-    'required_without'     => 'El campo :attribute es obligatorio cuando :values no está presente.',
+    'required_without'     => 'El campo :attribute es obligatorio cuando :values no existe..',
     'required_without_all' => 'El campo :attribute es obligatorio cuando ninguno de :values está presente.',
     'same'                 => 'Los campos :attribute y :other deben coincidir.',
     'size'                 => [
@@ -86,6 +86,18 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'nuevo_titular.nombre' => 'nombre del cliente',
+        'nuevo_titular.apellido' => 'apellido del cliente',
+        'nuevo_titular.telefono' => 'teléfono del cliente',
+        'nuevo_titular.email' => 'correo electrónico del cliente',
+        'nuevo_vehiculo.patente' => 'patente del vehículo',
+        'nuevo_vehiculo.marca' => 'marca del vehículo',
+        'nuevo_vehiculo.modelo' => 'modelo del vehículo',
+        'estado_id' => 'estado de la orden',
+        'medio_de_pago_id' => 'medio de pago',
+        'observacion' => 'observación',
+        'vehiculo_id' => 'vehículo',
+    ],
 
 ];

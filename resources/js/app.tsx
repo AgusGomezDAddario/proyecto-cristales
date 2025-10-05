@@ -3,6 +3,7 @@ import '../css/app.css';
 import { createInertiaApp } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
+import {Toaster} from "react-hot-toast";
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -14,8 +15,25 @@ createInertiaApp({
     },
     setup({ el, App, props }) {
         const root = createRoot(el);
-
-        root.render(<App {...props} />);
+        return root.render(
+            <>
+                <App {...props} />
+                <Toaster
+                    position="top-center"
+                    toastOptions={{
+                        style: {
+                        fontSize: "17px",
+                        padding: "16px 24px",
+                        borderRadius: "10px",
+                        maxWidth: "800px",
+                        whiteSpace: "nowrap", // 👈 todo en una línea
+                        },
+                        success: { iconTheme: { primary: "#22c55e", secondary: "white" } },
+                        error: { iconTheme: { primary: "#dc2626", secondary: "white" } },
+                    }}
+                />  
+            </>
+        );  
     },
     progress: {
         color: '#4B5563',

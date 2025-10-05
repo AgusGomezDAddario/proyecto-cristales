@@ -75,15 +75,15 @@ public function create()
             'vehiculo_id'      => 'nullable|integer|exists:vehiculo,id',
 
             'nuevo_titular'              => 'nullable|array',
-            'nuevo_titular.nombre'       => 'required_without:titular_id|string|max:255',
-            'nuevo_titular.apellido'     => 'required_without:titular_id|string|max:255',
+            'nuevo_titular.nombre'       => 'required_without:titular_id|string|max:48',
+            'nuevo_titular.apellido'     => 'required_without:titular_id|string|max:48',
             'nuevo_titular.telefono'     => 'nullable|string|max:20',
-            'nuevo_titular.email'        => 'nullable|email|max:255',
+            'nuevo_titular.email'        => 'nullable|email|max:48',
 
             'nuevo_vehiculo'             => 'nullable|array',
             'nuevo_vehiculo.patente'     => 'required_without:vehiculo_id|string|max:10',
-            'nuevo_vehiculo.marca'       => 'nullable|string|max:255',
-            'nuevo_vehiculo.modelo'      => 'nullable|string|max:255',
+            'nuevo_vehiculo.marca'       => 'nullable|string|max:48',
+            'nuevo_vehiculo.modelo'      => 'nullable|string|max:48',
             'nuevo_vehiculo.anio'        => 'nullable|integer|min:1900|max:' . date('Y'),
 
 
@@ -129,7 +129,6 @@ public function create()
                 'marca'   => $data['nuevo_vehiculo']['marca'] ?? '',
                 'modelo'  => $data['nuevo_vehiculo']['modelo'] ?? '',
                 'anio'    => $data['nuevo_vehiculo']['anio'] ?? null,
-                'color'   => $data['nuevo_vehiculo']['color'] ?? null,
             ]);
             $data['vehiculo_id'] = $nuevoVehiculo->id;
         }
