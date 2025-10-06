@@ -1,8 +1,8 @@
 // resources/js/pages/ingresos/create.tsx
 
 import { Head, Link, router } from '@inertiajs/react';
-import { useState } from 'react';
-import { Camera, Upload, DollarSign } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Camera, Upload, DollarSign, Search, X } from 'lucide-react';
 
 // Definimos MainLayout inline o usamos un contenedor base
 const MainLayout = ({ children }: { children: React.ReactNode }) => (
@@ -11,50 +11,124 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => (
     </div>
 );
 
+// Definimos tipos
+interface OrdenTrabajo {
+    id: number;
+    numero: string;
+    cliente: string;
+    patente: string;
+    total: number;
+    total_pagado: number;
+    pendiente: number;
+    con_factura: boolean;
+}
+
 interface FormData {
     fecha: string;
-    concepto: string;
     monto: string;
     metodoPago: string;
     comprobante: File | null;
+    concepto: string;
+    ordenesSeleccionadas: OrdenTrabajo[];
+    busqueda: string;
 }
 
 export default function CreateIngreso() {
-    const [activeTab, setActiveTab] = useState<"caja" | "vales">("caja");
     const [formData, setFormData] = useState<FormData>({
         fecha: new Date().toISOString().split("T")[0],
-        concepto: "",
         monto: "",
         metodoPago: "efectivo",
         comprobante: null,
+        concepto: "Cobro OT",
+        ordenesSeleccionadas: [],
+        busqueda: "",
     });
+    const [ordenesDisponibles, setOrdenesDisponibles] = useState<OrdenTrabajo[]>([]);
     const [errors, setErrors] = useState<Record<string, boolean>>({});
+    const [loading, setLoading] = useState(false);
 
-    const conceptosCaja = ["Ventas", "Reparaciones", "Servicios", "Otros"];
-    const empleados = ["Juan Pérez", "María González", "Carlos López", "Ana Martínez"];
+    const conceptos = ["Cobro OT", "Cobro FC", "Anticipo", "Otro"];
     const metodosPago = ["Efectivo", "Transferencia", "Cheque", "Tarjeta de Crédito", "Tarjeta de Débito"];
 
+    // Buscar órdenes de trabajo pendientes
+    const buscarOrdenes = () => {
+        if (!formData.busqueda.trim()) {
+            setOrdenesDisponibles([]);
+            return;
+        }
+
+        setLoading(true);
+
+        // Simulamos una llamada API. Reemplazar con `axios` o `fetch` real si es necesario
+        // Por ahora usamos datos de ejemplo
+        const ejemplo: OrdenTrabajo[] = [
+            { id: 1, numero: "OT-001", cliente: "Juan Pérez", patente: "AB123CD", total: 100000, total_pagado: 40000, pendiente: 60000, con_factura: false },
+            { id: 2, numero: "FC-002", cliente: "Ana López", patente: "XY987ZW", total: 150000, total_pagado: 0, pendiente: 150000, con_factura: true },
+            { id: 3, numero: "OT-003", cliente: "Carlos Díaz", patente: "JK456LM", total: 80000, total_pagado: 80000, pendiente: 0, con_factura: false }, // Pagada
+        ];
+
+        // Filtramos por número, cliente o patente
+        const resultados = ejemplo.filter(ot => {
+            const busca = formData.busqueda.toLowerCase();
+            return (
+                ot.numero.toLowerCase().includes(busca) ||
+                ot.cliente.toLowerCase().includes(busca) ||
+                ot.patente.toLowerCase().includes(busca)
+            ) && ot.pendiente > 0; // Solo órdenes con saldo pendiente
+        });
+
+        setOrdenesDisponibles(resultados);
+        setLoading(false);
+    };
+
+    // Agregar orden a la lista de seleccionadas
+    const agregarOrden = (orden: OrdenTrabajo) => {
+        if (!formData.ordenesSeleccionadas.some(o => o.id === orden.id)) {
+            setFormData({
+                ...formData,
+                ordenesSeleccionadas: [...formData.ordenesSeleccionadas, orden],
+            });
+        }
+        setOrdenesDisponibles([]); // Limpiar búsqueda
+        setFormData({...formData, busqueda: ''});
+    };
+
+    // Remover orden de la lista
+    const removerOrden = (id: number) => {
+        setFormData({
+            ...formData,
+            ordenesSeleccionadas: formData.ordenesSeleccionadas.filter(ot => ot.id !== id),
+        });
+    };
+
+    // Calcular total pendiente de las órdenes seleccionadas
+    const totalPendiente = formData.ordenesSeleccionadas.reduce((sum, ot) => sum + ot.pendiente, 0);
+
+    // Calcular total pagado de las órdenes seleccionadas
+    const totalPagado = formData.ordenesSeleccionadas.reduce((sum, ot) => sum + ot.total_pagado, 0);
+
+    // Manejar submit
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const newErrors: Record<string, boolean> = {};
 
-        if (!formData.concepto) newErrors.concepto = true;
+        if (formData.ordenesSeleccionadas.length === 0) {
+            newErrors.ordenes = true;
+        }
         if (!formData.monto) newErrors.monto = true;
+        if (Number.parseFloat(formData.monto) <= 0) newErrors.monto = true;
 
         setErrors(newErrors);
 
         if (Object.keys(newErrors).length === 0) {
-            // Aquí enviarías los datos al backend
-            // Por ahora solo mostramos un alert
             alert(`Ingreso guardado correctamente
 
-Tipo: ${activeTab === "caja" ? "Caja Chica" : "Vale del Personal"}
-Concepto: ${formData.concepto}
+Fecha: ${formData.fecha}
 Monto: $${Number.parseFloat(formData.monto).toLocaleString()}
 Método de Pago: ${formData.metodoPago}
-Fecha: ${formData.fecha}`);
+Concepto: ${formData.concepto}
+Órdenes asociadas: ${formData.ordenesSeleccionadas.map(ot => ot.numero).join(', ')}`);
 
-            // Redirigir a la lista de ingresos después de guardar
             router.visit('/ingresos');
         }
     };
@@ -65,6 +139,17 @@ Fecha: ${formData.fecha}`);
             setFormData({ ...formData, comprobante: file });
         }
     };
+
+    useEffect(() => {
+        if (formData.busqueda) {
+            const timeout = setTimeout(() => {
+                buscarOrdenes();
+            }, 500);
+            return () => clearTimeout(timeout);
+        } else {
+            setOrdenesDisponibles([]);
+        }
+    }, [formData.busqueda]);
 
     return (
         <MainLayout>
@@ -81,32 +166,9 @@ Fecha: ${formData.fecha}`);
                 </div>
 
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                    <div className="border-b">
-                        <div className="flex">
-                            <button
-                                onClick={() => setActiveTab("caja")}
-                                className={`flex-1 py-4 px-6 text-center font-medium border-b-2 transition-colors ${
-                                    activeTab === "caja"
-                                        ? "border-green-600 text-green-600 bg-green-50"
-                                        : "border-transparent text-gray-600 hover:text-gray-800"
-                                }`}
-                            >
-                                💰 Caja Chica
-                            </button>
-                            <button
-                                onClick={() => setActiveTab("vales")}
-                                className={`flex-1 py-4 px-6 text-center font-medium border-b-2 transition-colors ${
-                                    activeTab === "vales"
-                                        ? "border-green-600 text-green-600 bg-green-50"
-                                        : "border-transparent text-gray-600 hover:text-gray-800"
-                                }`}
-                            >
-                                📋 Vales del Personal
-                            </button>
-                        </div>
-                    </div>
-
                     <div className="p-6">
+                        <h2 className="text-xl font-semibold text-gray-800 mb-6">Registrar Nuevo Ingreso</h2>
+
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Fecha */}
                             <div>
@@ -117,7 +179,7 @@ Fecha: ${formData.fecha}`);
                                     type="date"
                                     value={formData.fecha}
                                     onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
-                                    className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    className="h-10 w-full rounded-md border border-input bg-white text-foreground px-3 focus:border-primary focus:ring-2 focus:ring-primary"
                                 />
                             </div>
 
@@ -129,24 +191,104 @@ Fecha: ${formData.fecha}`);
                                 <select
                                     value={formData.concepto}
                                     onChange={(e) => setFormData({ ...formData, concepto: e.target.value })}
-                                    className={`w-full h-12 px-4 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
-                                        errors.concepto ? "border-red-500" : "border-gray-300"
-                                    }`}
+                                    className="h-10 w-full rounded-md border border-input bg-white text-foreground px-3 focus:border-primary focus:ring-2 focus:ring-primary appearance-none"
                                 >
-                                    <option value="">Seleccionar concepto...</option>
-                                    {activeTab === "caja"
-                                        ? conceptosCaja.map((concepto) => (
-                                            <option key={concepto} value={concepto}>
-                                                {concepto}
-                                            </option>
-                                        ))
-                                        : empleados.map((empleado) => (
-                                            <option key={empleado} value={`Adelanto ${empleado}`}>
-                                                Adelanto {empleado}
-                                            </option>
-                                        ))}
+                                    {conceptos.map((c) => (
+                                        <option key={c} value={c} className="bg-white text-foreground">
+                                            {c}
+                                        </option>
+                                    ))}
                                 </select>
-                                {errors.concepto && <p className="text-red-500 text-sm mt-1">Este campo es obligatorio</p>}
+                            </div>
+
+                            {/* Búsqueda de Órdenes */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Buscar Órdenes de Trabajo
+                                </label>
+                                <div className="relative">
+                                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
+                                    <input
+                                        type="text"
+                                        value={formData.busqueda}
+                                        onChange={(e) => setFormData({ ...formData, busqueda: e.target.value })}
+                                        placeholder="Buscar por número, cliente o patente..."
+                                        className="h-10 w-full rounded-md border border-input bg-white text-foreground pr-3 pl-9 focus:border-primary focus:ring-2 focus:ring-primary"
+                                    />
+                                </div>
+
+                                {/* Resultados de búsqueda */}
+                                {ordenesDisponibles.length > 0 && (
+                                    <div className="mt-3 border border-gray-200 rounded-lg max-h-40 overflow-y-auto">
+                                        {ordenesDisponibles.map((ot) => (
+                                            <div
+                                                key={ot.id}
+                                                className="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer flex justify-between items-center"
+                                                onClick={() => agregarOrden(ot)}
+                                            >
+                                                <div>
+                                                    <div className="font-medium">{ot.numero}</div>
+                                                    <div className="text-sm text-gray-600">{ot.cliente} - {ot.patente}</div>
+                                                </div>
+                                                <div className="text-sm font-semibold text-green-600">
+                                                    Pendiente: ${ot.pendiente.toLocaleString()}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Órdenes seleccionadas */}
+                            {formData.ordenesSeleccionadas.length > 0 && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Órdenes Seleccionadas
+                                    </label>
+                                    <div className="space-y-2">
+                                        {formData.ordenesSeleccionadas.map((ot) => (
+                                            <div key={ot.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                                                <div>
+                                                    <div className="font-medium">{ot.numero}</div>
+                                                    <div className="text-sm text-gray-600">
+                                                        Cliente: {ot.cliente} - Pendiente: ${ot.pendiente.toLocaleString()}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removerOrden(ot.id)}
+                                                    className="text-red-600 hover:text-red-800"
+                                                >
+                                                    <X className="w-5 h-5" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-3 text-sm text-gray-600">
+                                        Total pendiente de las órdenes seleccionadas: <span className="font-semibold">${totalPendiente.toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Monto */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Monto <span className="text-red-500">*</span>
+                                </label>
+                                <div className="relative">
+                                    <DollarSign className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="0.00"
+                                        value={formData.monto}
+                                        onChange={(e) => setFormData({ ...formData, monto: e.target.value })}
+                                        className={`h-10 w-full rounded-md border pr-3 pl-9 focus:border-primary focus:ring-2 focus:ring-primary bg-white text-foreground ${
+                                            errors.monto ? 'border-destructive' : 'border-input'
+                                        }`}
+                                    />
+                                </div>
+                                {errors.monto && <p className="text-sm text-destructive mt-1">Este campo es obligatorio</p>}
                             </div>
 
                             {/* Método de Pago */}
@@ -155,35 +297,14 @@ Fecha: ${formData.fecha}`);
                                 <select
                                     value={formData.metodoPago}
                                     onChange={(e) => setFormData({ ...formData, metodoPago: e.target.value })}
-                                    className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    className="h-10 w-full rounded-md border border-input bg-white text-foreground px-3 focus:border-primary focus:ring-2 focus:ring-primary appearance-none"
                                 >
                                     {metodosPago.map((metodo) => (
-                                        <option key={metodo} value={metodo.toLowerCase()}>
+                                        <option key={metodo} value={metodo.toLowerCase()} className="bg-white text-foreground">
                                             {metodo}
                                         </option>
                                     ))}
                                 </select>
-                            </div>
-
-                            {/* Monto */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Monto <span className="text-red-500">*</span>
-                                </label>
-                                <div className="relative">
-                                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="0.00"
-                                        value={formData.monto}
-                                        onChange={(e) => setFormData({ ...formData, monto: e.target.value })}
-                                        className={`w-full h-12 pl-10 pr-4 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
-                                            errors.monto ? "border-red-500" : "border-gray-300"
-                                        }`}
-                                    />
-                                </div>
-                                {errors.monto && <p className="text-red-500 text-sm mt-1">Este campo es obligatorio</p>}
                             </div>
 
                             {/* Comprobante */}
@@ -217,17 +338,17 @@ Fecha: ${formData.fecha}`);
                                 </div>
                             </div>
 
-                            {/* Botón Guardar */}
+                            {/* Botón Guardar y Cancelar */}
                             <div className="flex gap-3">
                                 <button
                                     type="submit"
-                                    className="flex-1 h-14 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center space-x-2"
+                                    className="flex-1 h-11 rounded-md bg-green-600 font-semibold text-primary-foreground transition-colors hover:bg-green-700"
                                 >
-                                    <span>💾 Guardar Ingreso</span>
+                                    💾 Guardar Ingreso
                                 </button>
                                 <Link
                                     href="/ingresos"
-                                    className="flex-1 h-14 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors flex items-center justify-center"
+                                    className="flex-1 h-11 rounded-md bg-red-600 px-4 font-semibold text-primary-foreground transition-colors hover:bg-red-700 flex items-center justify-center"
                                 >
                                     Cancelar
                                 </Link>
