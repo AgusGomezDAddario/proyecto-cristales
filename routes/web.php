@@ -10,26 +10,22 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('dashboard', function () {
+    Route::get('admin', function () {
         $user = Auth::user();
 
         if ($user->role_id == 1) {
-            return Inertia::render('Administrador/Dashboard'); // 👈 resources/js/Pages/Admin/Dashboard.tsx
+            return Inertia::render('Administrador/inicio'); // 👈 resources/js/Pages/Admin/Dashboard.tsx
         }
 
-        return Inertia::render('Empleado/Dashboard'); // 👈 resources/js/Pages/Empleado/Dashboard.tsx
+        return Inertia::render('Empleado/inicio'); // 👈 resources/js/Pages/Empleado/Dashboard.tsx
     })->name('dashboard');
 
     // 👉 ABM de usuarios (solo admins)
      Route::middleware('is_admin')->group(function () {
-        Route::get('admin/users', [UserController::class, 'index'])
-            ->name('admin.users.index');
-        Route::post('admin/users', [UserController::class, 'store'])
-            ->name('admin.users.store');
-        Route::put('admin/users/{user}', [UserController::class, 'update'])
-            ->name('admin.users.update');
-        Route::delete('admin/users/{user}', [UserController::class, 'destroy'])
-            ->name('admin.users.destroy');
+        Route::get('admin/users', [UserController::class, 'index'])->name('admin.users.index');
+        Route::post('admin/users', [UserController::class, 'store'])->name('admin.users.store');
+        Route::put('admin/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
+        Route::delete('admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
     });
 
 });
