@@ -11,12 +11,17 @@ Route::get('/', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('admin', function () {
-        $user = Auth::user();
+         $user = Auth::user();
 
         if ($user->role_id == 1) {
-            return Inertia::render('Administrador/inicio'); // 👈 resources/js/Pages/Admin/Dashboard.tsx
+            // 👇 Renderiza directamente la página de gestión de usuarios
+            return Inertia::render('Administrador/usuarios', [
+                'users' => \App\Models\User::with('role')->get(),
+                'roles' => \App\Models\Role::all(),
+            ]);
         }
 
+        // Si no es admin, lleva al dashboard de empleado
         return Inertia::render('Empleado/inicio'); // 👈 resources/js/Pages/Empleado/Dashboard.tsx
     })->name('dashboard');
 
