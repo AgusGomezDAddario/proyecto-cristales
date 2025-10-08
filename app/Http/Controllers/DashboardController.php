@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use Inertia\Inertia;
 use App\Models\Movimiento;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
         $hoy = Carbon::today();
 
         // Obtener todos los egresos del día (usando whereDate para comparar solo la fecha)
@@ -38,7 +40,17 @@ class DashboardController extends Controller
             'balanceDelDia' => (float) $balanceDelDia,
         ];
 
-        return Inertia::render('dashboard', [
+        // Renderizar vista según el rol del usuario
+        if ($user->role_id == 1) {
+            // Administrador - Dashboard completo
+            return Inertia::render('Administrador/inicio', [
+                'stats' => $stats,
+                'ultimosEgresos' => $ultimosEgresos,
+            ]);
+        }
+
+        // Empleado - Dashboard básico (sin gestión de usuarios)
+        return Inertia::render('Empleado/inicio', [
             'stats' => $stats,
             'ultimosEgresos' => $ultimosEgresos,
         ]);

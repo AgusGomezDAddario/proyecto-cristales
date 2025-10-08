@@ -1,8 +1,13 @@
-// resources/js/pages/dashboard.tsx
-
 import { Head, Link } from '@inertiajs/react';
-import MainLayout from '@/layouts/MainLayout';
-import { Movimiento } from '@/types/movimiento';
+import DashboardLayout from '@/layouts/DashboardLayout';
+
+interface Movimiento {
+    id: number;
+    monto: number;
+    created_at: string;
+    concepto?: { nombre: string };
+    medioDePago?: { nombre: string };
+}
 
 interface DashboardStats {
     totalEgresos: number;
@@ -16,7 +21,7 @@ interface Props {
     ultimosEgresos: Movimiento[];
 }
 
-export default function Dashboard({ stats, ultimosEgresos }: Props) {
+export default function AdminDashboard({ stats, ultimosEgresos }: Props) {
     const formatMoney = (amount: number) => {
         return new Intl.NumberFormat('es-AR', {
             style: 'currency',
@@ -41,18 +46,18 @@ export default function Dashboard({ stats, ultimosEgresos }: Props) {
     };
 
     return (
-        <MainLayout>
-            <Head title="Panel de Control" />
+        <DashboardLayout>
+            <Head title="Panel de Control - Administrador" />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="space-y-6">
                 {/* Header */}
-                <div className="mb-8">
+                <div>
                     <h1 className="text-3xl font-bold text-gray-900">Panel de Control</h1>
                     <p className="text-gray-600 mt-2">Resumen de actividad del día</p>
                 </div>
 
                 {/* Tarjetas de estadísticas */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Balance del día */}
                     <div className={`rounded-2xl shadow-lg p-6 text-white ${
                         stats.balanceDelDia >= 0 
@@ -114,14 +119,14 @@ export default function Dashboard({ stats, ultimosEgresos }: Props) {
                             </div>
                         </div>
                         <p className="text-3xl font-bold text-purple-600 mb-1">{stats.totalOrdenes}</p>
-                        <Link href="/ordenes-trabajo" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                        <Link href="/ordenes" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
                             Ver detalles →
                         </Link>
                     </div>
                 </div>
 
                 {/* Accesos rápidos */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Últimos Egresos */}
                     <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
                         <div className="flex items-center justify-between mb-4">
@@ -141,8 +146,8 @@ export default function Dashboard({ stats, ultimosEgresos }: Props) {
                                                 </p>
                                                 <p className="text-sm text-gray-500">
                                                     {formatTimeAgo(egreso.created_at)}
-                                                    {egreso.medio_de_pago && (
-                                                        <span className="ml-2">• {egreso.medio_de_pago.nombre}</span>
+                                                    {egreso.medioDePago && (
+                                                        <span className="ml-2">• {egreso.medioDePago.nombre}</span>
                                                     )}
                                                 </p>
                                             </div>
@@ -187,12 +192,11 @@ export default function Dashboard({ stats, ultimosEgresos }: Props) {
                     <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-xl font-bold text-gray-900">Últimas OT</h2>
-                            <Link href="/ordenes-trabajo" className="text-sm text-blue-600 hover:text-blue-700 font-semibold">
+                            <Link href="/ordenes" className="text-sm text-blue-600 hover:text-blue-700 font-semibold">
                                 Ver todas →
                             </Link>
                         </div>
                         <div className="space-y-3">
-                            {/* Placeholder - cuando implementes OT, reemplaza esto */}
                             <div className="text-center py-8">
                                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
                                     <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,6 +210,6 @@ export default function Dashboard({ stats, ultimosEgresos }: Props) {
                     </div>
                 </div>
             </div>
-        </MainLayout>
+        </DashboardLayout>
     );
 }

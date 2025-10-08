@@ -20,5 +20,14 @@ class MedioDePago extends Model
     {
         return $this->hasMany(Movimiento::class, 'medio_de_pago_id');
     }
+
+    public function ordenesDeTrabajo()
+    {
+        return $this->hasMany(OrdenDeTrabajo::class, 'medio_de_pago_id');
+    }
+    public function precios()
+    {
+        return $this->hasMany(Precio::class, 'medio_de_pago_id');
+    }
     
 }

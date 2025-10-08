@@ -2,32 +2,38 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\ConceptoController;
-use App\Http\Controllers\MovimientoController;
+use App\Http\Controllers\OrdenDeTrabajoController;
+use App\Http\Controllers\Administrador\UserController;
+use App\Http\Controllers\IngresoController;
 use App\Http\Controllers\DashboardController;
 
-// Ruta principal redirige al dashboard
 Route::get('/', function () {
-    return redirect('/dashboard');
+    return redirect()->route('login');
 })->name('home');
 
-// Dashboard (Panel de Control)
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+// Rutas públicas (sin autenticación)
+Route::get('/ingresos', [IngresoController::class, 'index'])->name('ingresos.index');
+Route::get('/ingresos/create', [IngresoController::class, 'create'])->name('ingresos.create');
+
+// Rutas protegidas (requieren autenticación)
+Route::middleware(['auth'])->group(function () {
+    // Dashboard principal (redirige según rol)
+    Route::get('admin', [DashboardController::class, 'index'])->name('dashboard');
+
+    // 👉 ABM de usuarios (solo admins)
+    Route::middleware('is_admin')->group(function () {
+        Route::get('admin/users', [UserController::class, 'index'])->name('admin.users.index');
+        Route::post('admin/users', [UserController::class, 'store'])->name('admin.users.store');
+        Route::put('admin/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
+        Route::delete('admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+    });
+
+    // 👉 Rutas para Órdenes (requieren autenticación)
+    Route::resource('ordenes', OrdenDeTrabajoController::class)
+        ->parameters([
+            'ordenes' => 'orden'
+        ]);
 });
-
-// Rutas de recursos
-Route::resource('conceptos', ConceptoController::class);
-Route::resource('movimientos', MovimientoController::class);
-
-// Rutas placeholder para las secciones en desarrollo
-Route::get('/ingresos', function () {
-    return Inertia::render('ingresos/index');
-})->name('ingresos.index');
-
-Route::get('/ordenes-trabajo', function () {
-    return Inertia::render('ordenes-trabajo/index');
-})->name('ordenes-trabajo.index');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

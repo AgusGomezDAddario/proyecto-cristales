@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AuthLayout from '@/layouts/auth-layout';
+import AuthLayout from '@/layouts/Auth-layout';
 import { register } from '@/routes';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
+
 
 interface LoginProps {
     status?: string;
@@ -18,7 +19,7 @@ interface LoginProps {
 
 export default function Login({ status, canResetPassword }: LoginProps) {
     return (
-        <AuthLayout title="Log in to your account" description="Enter your email and password below to log in">
+        <AuthLayout title="Bienvenido" description="Ingrese su nombre de usuario y contraseña, luego presione el boton Iniciar Sesión">
             <Head title="Log in" />
 
             <Form {...AuthenticatedSessionController.store.form()} resetOnSuccess={['password']} className="flex flex-col gap-6">
@@ -26,29 +27,31 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="name" className="font-semibold text-gray-800">
+                                    Nombre de usuario
+                                </Label>
                                 <Input
-                                    id="email"
-                                    type="email"
-                                    name="email"
+                                    id="name"
+                                    type="text"
+                                    name="name"
                                     required
                                     autoFocus
                                     tabIndex={1}
-                                    autoComplete="email"
-                                    placeholder="email@example.com"
-                                />
-                                <InputError message={errors.email} />
+                                    autoComplete="username"
+                                    placeholder="Usuario"
+                                    className="border border-gray-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-400 placeholder:text-gray-500 text-gray-900 transition-all"
+                                    />
+                                <InputError message={errors.name} />
                             </div>
 
                             <div className="grid gap-2">
+                                
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
-                                    {canResetPassword && (
-                                        <TextLink href={request()} className="ml-auto text-sm" tabIndex={5}>
-                                            Forgot password?
-                                        </TextLink>
-                                    )}
+                                     <Label htmlFor="password" className="font-semibold text-gray-800">
+                                        Contraseña
+                                    </Label>
                                 </div>
+                                
                                 <Input
                                     id="password"
                                     type="password"
@@ -56,28 +59,23 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"
-                                    placeholder="Password"
-                                />
+                                    placeholder="Contraseña"
+                                    className="border border-gray-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-400 placeholder:text-gray-500 text-gray-900 transition-all"
+                                    />
                                 <InputError message={errors.password} />
-                            </div>
-
-                            <div className="flex items-center space-x-3">
-                                <Checkbox id="remember" name="remember" tabIndex={3} />
-                                <Label htmlFor="remember">Remember me</Label>
                             </div>
 
                             <Button type="submit" className="mt-4 w-full" tabIndex={4} disabled={processing}>
                                 {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                                Log in
+                                Iniciar Sesión
                             </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            Don't have an account?{' '}
-                            <TextLink href={register()} tabIndex={5}>
-                                Sign up
-                            </TextLink>
+                        <div className="text-center text-sm text-gray-700 font-semibold">
+                            © 2025 Yets Solutions - Todos los derechos reservados{' '}
+                            <TextLink href={register()} tabIndex={5}></TextLink>
                         </div>
+
                     </>
                 )}
             </Form>
