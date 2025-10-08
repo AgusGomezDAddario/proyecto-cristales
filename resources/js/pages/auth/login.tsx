@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AuthLayout from '@/layouts/auth-layout';
+import AuthLayout from '@/layouts/Auth-layout';
 import { register } from '@/routes';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
+
 
 interface LoginProps {
     status?: string;
@@ -26,29 +27,29 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="Nombre de usuario">Nombre de usuario</Label>
+                                <Label htmlFor="name" className="font-semibold text-gray-800">
+                                    Nombre de usuario
+                                </Label>
                                 <Input
-                                id="name"
-                                type="text"
-                                name="name"
-                                required
-                                autoFocus
-                                tabIndex={1}
-                                autoComplete="username"
-                                placeholder="Usuario"
-                                />
+                                    id="name"
+                                    type="text"
+                                    name="name"
+                                    required
+                                    autoFocus
+                                    tabIndex={1}
+                                    autoComplete="username"
+                                    placeholder="Usuario"
+                                    className="border border-gray-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-400 placeholder:text-gray-500 text-gray-900 transition-all"
+                                    />
                                 <InputError message={errors.name} />
                             </div>
 
                             <div className="grid gap-2">
                                 
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Contraseña</Label>
-                                    {/*{canResetPassword && (
-                                        <TextLink href={request()} className="ml-auto text-sm" tabIndex={5}>
-                                            Forgot password?
-                                        </TextLink>
-                                    )}*/}
+                                     <Label htmlFor="password" className="font-semibold text-gray-800">
+                                        Contraseña
+                                    </Label>
                                 </div>
                                 
                                 <Input
@@ -58,8 +59,9 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"
-                                    placeholder="Simon1234"
-                                />
+                                    placeholder="Contraseña"
+                                    className="border border-gray-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-400 placeholder:text-gray-500 text-gray-900 transition-all"
+                                    />
                                 <InputError message={errors.password} />
                             </div>
 
@@ -69,12 +71,11 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            Yets Solutions - Todos los derechos reservados ©{' '}
-                            <TextLink href={register()} tabIndex={5}>
-                                
-                            </TextLink>
+                        <div className="text-center text-sm text-gray-700 font-semibold">
+                            © 2025 Yets Solutions - Todos los derechos reservados{' '}
+                            <TextLink href={register()} tabIndex={5}></TextLink>
                         </div>
+
                     </>
                 )}
             </Form>
