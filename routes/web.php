@@ -6,14 +6,11 @@ use App\Http\Controllers\OrdenDeTrabajoController;
 use App\Http\Controllers\Administrador\UserController;
 use App\Http\Controllers\IngresoController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MovimientoController;
 
 Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
-
-// Rutas públicas (sin autenticación)
-Route::get('/ingresos', [IngresoController::class, 'index'])->name('ingresos.index');
-Route::get('/ingresos/create', [IngresoController::class, 'create'])->name('ingresos.create');
 
 // Rutas protegidas (requieren autenticación)
 Route::middleware(['auth'])->group(function () {
@@ -28,7 +25,19 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
     });
 
-    // 👉 Rutas para Órdenes (requieren autenticación)
+    // 👉 Rutas para Movimientos (Egresos)
+    Route::resource('movimientos', MovimientoController::class);
+
+    // 👉 Rutas para Ingresos
+    Route::get('ingresos', [IngresoController::class, 'index'])->name('ingresos.index');
+    Route::get('ingresos/create', [IngresoController::class, 'create'])->name('ingresos.create');
+    Route::post('ingresos', [IngresoController::class, 'store'])->name('ingresos.store');
+    Route::get('ingresos/{ingreso}', [IngresoController::class, 'show'])->name('ingresos.show');
+    Route::get('ingresos/{ingreso}/edit', [IngresoController::class, 'edit'])->name('ingresos.edit');
+    Route::put('ingresos/{ingreso}', [IngresoController::class, 'update'])->name('ingresos.update');
+    Route::delete('ingresos/{ingreso}', [IngresoController::class, 'destroy'])->name('ingresos.destroy');
+
+    // 👉 Rutas para Órdenes de Trabajo
     Route::resource('ordenes', OrdenDeTrabajoController::class)
         ->parameters([
             'ordenes' => 'orden'

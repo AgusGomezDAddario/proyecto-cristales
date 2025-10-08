@@ -2,7 +2,7 @@
 
 import { Head, Link } from '@inertiajs/react';
 import { Movimiento } from '@/types/movimiento';
-import MainLayout from '@/layouts/MainLayout';
+import DashboardLayout from '@/layouts/DashboardLayout';
 
 interface Props {
     movimientos: Movimiento[];
@@ -25,7 +25,7 @@ export default function Index({ movimientos }: Props) {
     };
 
     return (
-        <MainLayout>
+        <DashboardLayout>
             <Head title="Egresos" />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -140,6 +140,6 @@ export default function Index({ movimientos }: Props) {
                     </div>
                 )}
             </div>
-        </MainLayout>
+        </DashboardLayout>
     );
 }

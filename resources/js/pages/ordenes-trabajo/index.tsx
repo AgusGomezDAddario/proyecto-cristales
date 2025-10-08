@@ -1,11 +1,11 @@
 // resources/js/pages/ordenes-trabajo/index.tsx
 
 import { Head } from '@inertiajs/react';
-import MainLayout from '@/layouts/MainLayout';
+import DashboardLayout from '@/layouts/DashboardLayout';
 
 export default function OrdenesTrabajo() {
     return (
-        <MainLayout>
+        <DashboardLayout>
             <Head title="Órdenes de Trabajo" />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -40,6 +40,6 @@ export default function OrdenesTrabajo() {
                     </div>
                 </div>
             </div>
-        </MainLayout>
+        </DashboardLayout>
     );
 }

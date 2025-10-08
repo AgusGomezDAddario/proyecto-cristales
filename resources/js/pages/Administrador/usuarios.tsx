@@ -1,7 +1,7 @@
 import { usePage, useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
 import { PageProps as InertiaPageProps } from '@inertiajs/core';
-import MainLayout from '@/layouts/MainLayout';
+import DashboardLayout from '@/layouts/DashboardLayout';
 
 
 // 🔹 Interfaces para tipar datos que vienen del back
@@ -51,7 +51,7 @@ export default function UsersIndex() {
   };
 
   return (
-    <MainLayout title="Gestión de Usuarios">
+    <DashboardLayout title="Gestión de Usuarios">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Mensaje Flash */}
         {flash && (
@@ -176,6 +176,6 @@ export default function UsersIndex() {
           </table>
         </div>
       </div>
-    </MainLayout>
+    </DashboardLayout>
   );
 }

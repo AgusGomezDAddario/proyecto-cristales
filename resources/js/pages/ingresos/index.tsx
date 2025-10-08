@@ -1,6 +1,7 @@
 // resources/js/pages/ingresos/index.tsx
 
 import { Head, Link } from '@inertiajs/react';
+import DashboardLayout from '@/layouts/DashboardLayout';
 
 // Definimos el tipo Ingreso localmente para evitar el import
 interface Ingreso {
@@ -45,7 +46,7 @@ export default function IngresosIndex({ ingresos }: Props) {
     };
 
     return (
-        <MainLayout>
+        <DashboardLayout>
             <Head title="Ingresos" />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -160,6 +161,6 @@ export default function IngresosIndex({ ingresos }: Props) {
                     </div>
                 )}
             </div>
-        </MainLayout>
+        </DashboardLayout>
     );
 }
