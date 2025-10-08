@@ -5,11 +5,13 @@ interface Props extends PropsWithChildren {
   title?: string;
 }
 
-export default function MainLayout({ children, title }: Props) {
+export default function DashboardLayout({ children, title }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { url } = usePage(); // para saber la ruta actual y marcar activo
+  const { url } = usePage();
+  const { auth } = usePage().props as any;
 
   const isActive = (path: string) => url.startsWith(path);
+  const isAdmin = auth?.user?.role_id === 1;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
@@ -45,25 +47,29 @@ export default function MainLayout({ children, title }: Props) {
             {/* Menú de navegación (desktop) */}
             <div className="hidden md:flex items-center gap-2">
               <Link
-                href="/dashboard"
+                href="/admin"
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  isActive('/dashboard')
+                  isActive('/admin') && !isActive('/admin/users')
                     ? 'bg-blue-50 text-blue-700 shadow-sm'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
                 📊 Panel de Control
               </Link>
-              <Link
-                href="/admin/users"
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  isActive('/admin/users')
-                    ? 'bg-blue-50 text-blue-700 shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                👤 Usuarios
-              </Link>
+              
+              {isAdmin && (
+                <Link
+                  href="/admin/users"
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    isActive('/admin/users')
+                      ? 'bg-blue-50 text-blue-700 shadow-sm'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  👤 Gestión de Usuarios
+                </Link>
+              )}
+
               <Link
                 href="/movimientos"
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
@@ -72,7 +78,7 @@ export default function MainLayout({ children, title }: Props) {
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                💸 Carga de Egresos
+                💸 Egresos
               </Link>
               <Link
                 href="/ingresos"
@@ -82,17 +88,27 @@ export default function MainLayout({ children, title }: Props) {
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                💰 Carga de Ingresos
+                💰 Ingresos
               </Link>
               <Link
-                href="/ordenes-trabajo"
+                href="/ordenes"
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  isActive('/ordenes-trabajo')
+                  isActive('/ordenes')
                     ? 'bg-purple-50 text-purple-700 shadow-sm'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
                 🚗 Órdenes de Trabajo
+              </Link>
+
+              {/* Botón de logout */}
+              <Link
+                href="/logout"
+                method="post"
+                as="button"
+                className="ml-4 px-4 py-2 rounded-lg text-sm font-semibold text-red-600 hover:bg-red-50 transition-all"
+              >
+                🚪 Salir
               </Link>
             </div>
 
@@ -134,25 +150,29 @@ export default function MainLayout({ children, title }: Props) {
           <div className="md:hidden border-t border-gray-200 bg-white">
             <div className="px-4 py-2 space-y-1">
               <Link
-                href="/dashboard"
+                href="/admin"
                 className={`block px-4 py-2 rounded-lg font-semibold ${
-                  isActive('/dashboard')
+                  isActive('/admin') && !isActive('/admin/users')
                     ? 'bg-blue-50 text-blue-700'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
                 📊 Panel de Control
               </Link>
-              <Link
-                href="/admin/users"
-                className={`block px-4 py-2 rounded-lg font-semibold ${
-                  isActive('/admin/users')
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                👤 Usuarios
-              </Link>
+              
+              {isAdmin && (
+                <Link
+                  href="/admin/users"
+                  className={`block px-4 py-2 rounded-lg font-semibold ${
+                    isActive('/admin/users')
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  👤 Gestión de Usuarios
+                </Link>
+              )}
+
               <Link
                 href="/movimientos"
                 className={`block px-4 py-2 rounded-lg font-semibold ${
@@ -161,7 +181,7 @@ export default function MainLayout({ children, title }: Props) {
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                💸 Carga de Egresos
+                💸 Egresos
               </Link>
               <Link
                 href="/ingresos"
@@ -171,17 +191,25 @@ export default function MainLayout({ children, title }: Props) {
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                💰 Carga de Ingresos
+                💰 Ingresos
               </Link>
               <Link
-                href="/ordenes-trabajo"
+                href="/ordenes"
                 className={`block px-4 py-2 rounded-lg font-semibold ${
-                  isActive('/ordenes-trabajo')
+                  isActive('/ordenes')
                     ? 'bg-purple-50 text-purple-700'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
                 🚗 Órdenes de Trabajo
+              </Link>
+              <Link
+                href="/logout"
+                method="post"
+                as="button"
+                className="block w-full text-left px-4 py-2 rounded-lg font-semibold text-red-600 hover:bg-red-50"
+              >
+                🚪 Salir
               </Link>
             </div>
           </div>

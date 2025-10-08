@@ -1,35 +1,14 @@
-// resources/js/pages/ingresos/index.tsx
+// resources/js/pages/movimientos/index.tsx
 
 import { Head, Link } from '@inertiajs/react';
+import { Movimiento } from '@/types/movimiento';
 import DashboardLayout from '@/layouts/DashboardLayout';
 
-// Definimos el tipo Ingreso localmente para evitar el import
-interface Ingreso {
-    id: number;
-    fecha: string;
-    concepto: {
-        nombre: string;
-    } | null;
-    medio_de_pago: {
-        nombre: string;
-    } | null;
-    comprobante: string | null;
-    monto: number;
-}
-
-// Definimos MainLayout inline o usamos un div base
-// Si no tenés MainLayout, usamos un contenedor base
-const MainLayout = ({ children }: { children: React.ReactNode }) => (
-    <div className="min-h-screen bg-gray-50">
-        {children}
-    </div>
-);
-
 interface Props {
-    ingresos: Ingreso[];
+    movimientos: Movimiento[];
 }
 
-export default function IngresosIndex({ ingresos }: Props) {
+export default function Index({ movimientos }: Props) {
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('es-AR', {
             year: 'numeric',
@@ -47,37 +26,37 @@ export default function IngresosIndex({ ingresos }: Props) {
 
     return (
         <DashboardLayout>
-            <Head title="Ingresos" />
+            <Head title="Egresos" />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Ingresos</h1>
-                        <p className="text-gray-600 mt-2">Listado de ingresos registrados</p>
+                        <h1 className="text-3xl font-bold text-gray-900">Egresos</h1>
+                        <p className="text-gray-600 mt-2">Listado de movimientos registrados</p>
                     </div>
                     <Link
-                        href="/ingresos/create"
-                        className="bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-6 rounded-lg transition shadow-lg hover:shadow-xl"
+                        href="/movimientos/create"
+                        className="bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 px-6 rounded-lg transition shadow-lg hover:shadow-xl"
                     >
-                        + Nuevo Ingreso
+                        + Nuevo Egreso
                     </Link>
                 </div>
 
                 {/* Tabla */}
                 <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                    {ingresos.length === 0 ? (
+                    {movimientos.length === 0 ? (
                         <div className="text-center py-12">
                             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                 </svg>
                             </div>
-                            <p className="text-gray-500 text-lg font-semibold mb-2">No hay ingresos registrados</p>
-                            <p className="text-gray-400 text-sm mb-4">Comienza registrando tu primer ingreso</p>
+                            <p className="text-gray-500 text-lg font-semibold mb-2">No hay egresos registrados</p>
+                            <p className="text-gray-400 text-sm mb-4">Comienza registrando tu primer egreso</p>
                             <Link
-                                href="/ingresos/create"
-                                className="inline-block mt-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg font-semibold transition"
+                                href="/movimientos/create"
+                                className="inline-block mt-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-semibold transition"
                             >
                                 Registrar el primero →
                             </Link>
@@ -108,33 +87,33 @@ export default function IngresosIndex({ ingresos }: Props) {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
-                                    {ingresos.map((ingreso) => (
-                                        <tr key={ingreso.id} className="hover:bg-gray-50 transition">
+                                    {movimientos.map((movimiento) => (
+                                        <tr key={movimiento.id} className="hover:bg-gray-50 transition">
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {formatDate(ingreso.fecha)}
+                                                {formatDate(movimiento.fecha)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {ingreso.concepto?.nombre || '-'}
+                                                {movimiento.concepto?.nombre || '-'}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                {ingreso.medio_de_pago?.nombre || '-'}
+                                                {movimiento.medio_de_pago?.nombre || '-'}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                {ingreso.comprobante || '-'}
+                                                {movimiento.comprobante || '-'}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 text-right">
-                                                {formatMoney(ingreso.monto)}
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-red-600 text-right">
+                                                {formatMoney(movimiento.monto)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                                                 <div className="flex justify-end gap-2">
                                                     <Link
-                                                        href={`/ingresos/${ingreso.id}`}
+                                                        href={`/movimientos/${movimiento.id}`}
                                                         className="text-blue-600 hover:text-blue-800 font-medium"
                                                     >
                                                         Ver
                                                     </Link>
                                                     <Link
-                                                        href={`/ingresos/${ingreso.id}/edit`}
+                                                        href={`/movimientos/${movimiento.id}/edit`}
                                                         className="text-green-600 hover:text-green-800 font-medium"
                                                     >
                                                         Editar
@@ -150,12 +129,12 @@ export default function IngresosIndex({ ingresos }: Props) {
                 </div>
 
                 {/* Resumen */}
-                {ingresos.length > 0 && (
+                {movimientos.length > 0 && (
                     <div className="mt-6 bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
                         <div className="flex justify-between items-center">
-                            <span className="text-gray-600 font-medium">Total de ingresos:</span>
-                            <span className="text-2xl font-bold text-green-600">
-                                {formatMoney(ingresos.reduce((sum, i) => sum + Number(i.monto), 0))}
+                            <span className="text-gray-600 font-medium">Total de egresos:</span>
+                            <span className="text-2xl font-bold text-red-600">
+                                {formatMoney(movimientos.reduce((sum, m) => sum + Number(m.monto), 0))}
                             </span>
                         </div>
                     </div>
