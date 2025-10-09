@@ -16,6 +16,7 @@ class OrdenDeTrabajo extends Model
         'medio_de_pago_id',
         'estado_id',
         'observacion',
+        'fecha',
     ];
 
     protected $casts = [
