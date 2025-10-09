@@ -1,15 +1,33 @@
 <?php
 
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Vehiculo extends Model
 {
     use HasFactory;
+
     protected $table = 'vehiculo';
-    public function titular()
+
+    protected $fillable = [
+        'patente',
+        'marca',
+        'modelo',
+        'anio',
+    ];
+
+    // 🔹 Relación muchos a muchos con titulares
+    public function titulares()
     {
-        return $this->belongsTo(Titular::class, 'titular_id');
+        return $this->belongsToMany(Titular::class, 'titular_vehiculo')
+                    ->withTimestamps();
+    }
+
+    // 🔹 Relación con pivot
+    public function titularVehiculos()
+    {
+        return $this->hasMany(TitularVehiculo::class);
     }
 }
