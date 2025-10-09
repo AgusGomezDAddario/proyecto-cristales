@@ -72,7 +72,7 @@ abstract class MovimientoController extends Controller
 
         Movimiento::create($data);
 
-        return redirect()->route($this->tipo . '.index')
+        return redirect()->route($this->tipo . 's.index')
             ->with('success', $this->label . ' registrado correctamente');
     }
 
@@ -118,7 +118,7 @@ abstract class MovimientoController extends Controller
 
         $movimiento->update($data);
 
-        return redirect()->route($this->tipo . '.index')
+        return redirect()->route($this->tipo . 's.index')
             ->with('success', $this->label . ' actualizado correctamente');
     }
 
@@ -129,7 +129,7 @@ abstract class MovimientoController extends Controller
     {
         $movimiento->delete();
 
-        return redirect()->route($this->tipo . '.index')
+        return redirect()->route($this->tipo . 's.index')
             ->with('success', $this->label . ' eliminado correctamente');
     }
 }

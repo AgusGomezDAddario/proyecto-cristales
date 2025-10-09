@@ -9,12 +9,13 @@ interface Props {
     conceptos: Concepto[];
     mediosDePago: MedioDePago[];
     tipo: string;   // 'ingreso' o 'egreso'
-    label: string;  // 'Ingresos' o 'Egresos'
+    label: string;  // 'Ingreso' o 'Egreso'
 }
 
 export default function Create({ conceptos, mediosDePago, tipo, label }: Props) {
-    const color = tipo === 'egresos' ? 'red' : 'green';
-    const plural = tipo.endsWith('s') ? label : `${tipo}s`;
+    const color = tipo === 'egreso' ? 'red' : 'green';
+    const labelPlural = label.endsWith('s') ? label : `${label}s`;
+    const tipoPlural = tipo.endsWith('s') ? tipo : `${tipo}s`;
 
     const colorClasses = {
         red: {
@@ -51,7 +52,7 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(`/${tipo}`);
+        post(`/${tipoPlural}`);
     };
 
     return (
@@ -63,7 +64,7 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                 <div className="mb-8">
                     <div className="flex items-center gap-3 mb-3">
                         <div className={`w-12 h-12 ${current.bg500} rounded-xl flex items-center justify-center shadow-lg`}>
-                            {tipo === 'egresos' ? (
+                            {tipo === 'egreso' ? (
                                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
                                 </svg>
@@ -238,7 +239,7 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                                 )}
                             </button>
                             <Link
-                                href={`/${tipo}`}
+                                href={`/${tipoPlural}`}
                                 className="px-8 py-3.5 border-2 border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all text-center shadow-sm hover:shadow"
                             >
                                 Cancelar

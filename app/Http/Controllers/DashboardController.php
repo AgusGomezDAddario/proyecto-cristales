@@ -15,27 +15,27 @@ class DashboardController extends Controller
         $hoy = Carbon::today();
 
         // Obtener todos los egresos del día (usando whereDate para comparar solo la fecha)
-        $egresosHoy = Movimiento::whereDate('fecha', $hoy)->where('tipo','=','egresos')->get();
+        $egresosHoy = Movimiento::whereDate('fecha', $hoy)->where('tipo','=','egreso')->get();
         
         // Calcular el total de egresos del día
         $totalEgresos = $egresosHoy->sum('monto');
         
         // Últimos 5 egresos (de cualquier fecha, ordenados por creación)
         $ultimosEgresos = Movimiento::with(['concepto', 'medioDePago'])
-            ->where('tipo','=','egresos')
+            ->where('tipo','=','egreso')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
 
         // Obtener todos los ingresos del día (usando whereDate para comparar solo la fecha)
-        $ingresosHoy = Movimiento::whereDate('fecha', $hoy)->where('tipo','=','ingresos')->get();
+        $ingresosHoy = Movimiento::whereDate('fecha', $hoy)->where('tipo','=','ingreso')->get();
         
         // Calcular el total de ingresos del día
         $totalIngresos = $ingresosHoy->sum('monto');
         
         // Últimos 5 ingresos (de cualquier fecha, ordenados por creación)
         $ultimosIngresos = Movimiento::with(['concepto', 'medioDePago'])
-            ->where('tipo','=','ingresos')
+            ->where('tipo','=','ingreso')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();

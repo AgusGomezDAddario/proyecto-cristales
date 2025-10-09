@@ -7,6 +7,6 @@ use Inertia\Inertia;
 
 class EgresoController extends MovimientoController
 {
-    protected string $tipo = 'egresos';
-    protected string $label = 'Egresos';
+    protected string $tipo = 'egreso';
+    protected string $label = 'Egreso';
 }
