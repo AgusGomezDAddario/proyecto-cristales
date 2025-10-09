@@ -18,6 +18,7 @@ class Movimiento extends Model
         'concepto_id',
         'medio_de_pago_id',
         'comprobante',
+        'tipo'
     ];
 
     protected $casts = [

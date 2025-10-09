@@ -8,19 +8,34 @@ use App\Models\Concepto;
 use App\Models\MedioDePago;
 use Illuminate\Http\Request;
 
-class MovimientoController extends Controller
+abstract class MovimientoController extends Controller
 {
+
     /**
-     * Listado de movimientos (egresos)
+     * Tipo de movimiento ('ingreso' o 'egreso').
+     * Cada subcontrolador va a definirlo.
+     */
+    protected string $tipo;
+
+    /**
+     * Nombre para mostrar en las vistas.
+     */
+    protected string $label;
+
+    /**
+     * Listado de movimientos según el tipo
      */
     public function index()
     {
         $movimientos = Movimiento::with(['concepto', 'medioDePago'])
+            ->where('tipo', $this->tipo)
             ->orderBy('fecha', 'desc')
             ->get();
 
         return Inertia::render('movimientos/index', [
-            'movimientos' => $movimientos
+            'movimientos' => $movimientos,
+            'tipo' => $this->tipo,
+            'label' => ucfirst($this->label)
         ]);
     }
 
@@ -35,6 +50,8 @@ class MovimientoController extends Controller
         return Inertia::render('movimientos/create', [
             'conceptos' => $conceptos,
             'mediosDePago' => $mediosDePago,
+            'tipo' => $this->tipo,
+            'label' => ucfirst($this->label)
         ]);
     }
 
@@ -48,13 +65,15 @@ class MovimientoController extends Controller
             'monto'            => 'required|numeric|min:0',
             'concepto_id'      => 'required|exists:concepto,id',
             'medio_de_pago_id' => 'nullable|exists:medio_de_pago,id',
-            'comprobante'      => 'nullable|string|max:255',
+            'comprobante'      => 'nullable|string|max:255'
         ]);
+
+        $data['tipo'] = $this->tipo;
 
         Movimiento::create($data);
 
-        return redirect()->route('movimientos.index')
-            ->with('success', 'Egreso registrado correctamente');
+        return redirect()->route($this->tipo . '.index')
+            ->with('success', $this->label . ' registrado correctamente');
     }
 
     /**
@@ -63,7 +82,8 @@ class MovimientoController extends Controller
     public function show(Movimiento $movimiento)
     {
         return Inertia::render('movimientos/show', [
-            'movimiento' => $movimiento->load(['concepto', 'medioDePago'])
+            'movimiento' => $movimiento->load(['concepto', 'medioDePago',]),
+            'label' => ucfirst($this->label),
         ]);
     }
 
@@ -79,6 +99,7 @@ class MovimientoController extends Controller
             'movimiento' => $movimiento->load(['concepto', 'medioDePago']),
             'conceptos' => $conceptos,
             'mediosDePago' => $mediosDePago,
+            'label' => ucfirst($this->label),
         ]);
     }
 
@@ -97,8 +118,8 @@ class MovimientoController extends Controller
 
         $movimiento->update($data);
 
-        return redirect()->route('movimientos.index')
-            ->with('success', 'Egreso actualizado correctamente');
+        return redirect()->route($this->tipo . '.index')
+            ->with('success', $this->label . ' actualizado correctamente');
     }
 
     /**
@@ -108,7 +129,7 @@ class MovimientoController extends Controller
     {
         $movimiento->delete();
 
-        return redirect()->route('movimientos.index')
-            ->with('success', 'Egreso eliminado correctamente');
+        return redirect()->route($this->tipo . '.index')
+            ->with('success', $this->label . ' eliminado correctamente');
     }
 }

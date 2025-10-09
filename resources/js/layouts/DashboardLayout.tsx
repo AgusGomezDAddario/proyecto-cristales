@@ -71,9 +71,9 @@ export default function DashboardLayout({ children, title }: Props) {
               )}
 
               <Link
-                href="/movimientos"
+                href="/egresos"
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  isActive('/movimientos')
+                  isActive('/egresos')
                     ? 'bg-red-50 text-red-700 shadow-sm'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
