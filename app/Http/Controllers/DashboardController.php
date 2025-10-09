@@ -15,19 +15,32 @@ class DashboardController extends Controller
         $hoy = Carbon::today();
 
         // Obtener todos los egresos del día (usando whereDate para comparar solo la fecha)
-        $egresosHoy = Movimiento::whereDate('fecha', $hoy)->get();
+        $egresosHoy = Movimiento::whereDate('fecha', $hoy)->where('tipo','=','egresos')->get();
         
         // Calcular el total de egresos del día
         $totalEgresos = $egresosHoy->sum('monto');
         
         // Últimos 5 egresos (de cualquier fecha, ordenados por creación)
         $ultimosEgresos = Movimiento::with(['concepto', 'medioDePago'])
+            ->where('tipo','=','egresos')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        // Obtener todos los ingresos del día (usando whereDate para comparar solo la fecha)
+        $ingresosHoy = Movimiento::whereDate('fecha', $hoy)->where('tipo','=','ingresos')->get();
+        
+        // Calcular el total de ingresos del día
+        $totalIngresos = $ingresosHoy->sum('monto');
+        
+        // Últimos 5 ingresos (de cualquier fecha, ordenados por creación)
+        $ultimosIngresos = Movimiento::with(['concepto', 'medioDePago'])
+            ->where('tipo','=','ingresos')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
 
         // Por ahora, ingresos y órdenes en 0 (cuando los implementes, los agregas)
-        $totalIngresos = 0; // TODO: Implementar cuando tengas ingresos
         $totalOrdenes = 0;  // TODO: Implementar cuando tengas OT
         
         // Balance del día (ingresos - egresos)
@@ -46,6 +59,7 @@ class DashboardController extends Controller
             return Inertia::render('Administrador/inicio', [
                 'stats' => $stats,
                 'ultimosEgresos' => $ultimosEgresos,
+                'ultimosIngresos' => $ultimosIngresos
             ]);
         }
 
@@ -53,6 +67,7 @@ class DashboardController extends Controller
         return Inertia::render('Empleado/inicio', [
             'stats' => $stats,
             'ultimosEgresos' => $ultimosEgresos,
+            'ultimosIngresos' => $ultimosIngresos
         ]);
     }
 }
