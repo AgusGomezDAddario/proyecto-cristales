@@ -18,9 +18,15 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
 
     const colorClasses = {
         red: {
+            bg500: 'bg-red-500',
+            ring500: 'focus:ring-red-500',
+            border500: 'focus:border-red-500',
             base: 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
         },
         green: {
+            bg500: 'bg-green-500',
+            ring500: 'focus:ring-green-500',
+            border500: 'focus:border-green-500',
             base: 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700',
         },
     };
@@ -56,7 +62,7 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-12 h-12 bg-${color}-500 rounded-xl flex items-center justify-center shadow-lg`}>
+                        <div className={`w-12 h-12 ${current.bg500} rounded-xl flex items-center justify-center shadow-lg`}>
                             {tipo === 'egresos' ? (
                                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
@@ -87,7 +93,7 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                                 type="date"
                                 value={data.fecha}
                                 onChange={(e) => setData('fecha', e.target.value)}
-                                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-${color}-500 focus:border-${color}-500 focus:bg-white outline-none transition text-gray-900 font-medium ${errors.fecha ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-medium ${errors.fecha ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
                                     }`}
                             />
                             {errors.fecha && (
@@ -114,7 +120,7 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                                     placeholder="0.00"
                                     value={data.monto}
                                     onChange={(e) => setData('monto', e.target.value)}
-                                    className={`w-full pl-10 pr-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-${color}-500 focus:border-${color}-500 focus:bg-white outline-none transition text-gray-900 font-semibold text-lg ${errors.monto ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                                    className={`w-full pl-10 pr-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-semibold text-lg ${errors.monto ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
                                         }`}
                                 />
                             </div>
@@ -138,7 +144,7 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                                     id="concepto_id"
                                     value={data.concepto_id}
                                     onChange={(e) => setData('concepto_id', e.target.value)}
-                                    className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-${color}-500 focus:border-${color}-500 focus:bg-white outline-none transition text-gray-900 font-medium ${errors.concepto_id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                                    className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-medium ${errors.concepto_id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
                                         }`}
                                 >
                                     <option value="" className="text-gray-500">Seleccione un concepto</option>
@@ -167,7 +173,7 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                                     id="medio_de_pago_id"
                                     value={data.medio_de_pago_id}
                                     onChange={(e) => setData('medio_de_pago_id', e.target.value)}
-                                    className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-${color}-500 focus:border-${color}-500 focus:bg-white outline-none transition text-gray-900 font-medium ${errors.medio_de_pago_id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                                    className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-medium ${errors.medio_de_pago_id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
                                         }`}
                                 >
                                     <option value="" className="text-gray-500">Seleccione un medio</option>
@@ -199,7 +205,7 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                                 placeholder="Ej: 001-00123456"
                                 value={data.comprobante}
                                 onChange={(e) => setData('comprobante', e.target.value)}
-                                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-${color}-500 focus:border-${color}-500 focus:bg-white outline-none transition text-gray-900 font-medium placeholder:text-gray-400 ${errors.comprobante ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-medium placeholder:text-gray-400 ${errors.comprobante ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
                                     }`}
                             />
                             {errors.comprobante && (
