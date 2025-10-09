@@ -31,11 +31,9 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
     });
     const [localErrors, setLocalErrors] = useState<Record<string, string>>({});
 
-    // ✅ Validación expuesta al padre
     useImperativeHandle(ref, () => ({
       validate: () => {
         const errs: Record<string, string> = {};
-
         if (!formData.vehiculo_id && !formData.nuevo_vehiculo) {
           errs.general = "Debes seleccionar o crear un vehículo.";
         } else if (formData.nuevo_vehiculo) {
@@ -44,57 +42,125 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
           if (!v.marca?.trim()) errs["nuevo_vehiculo.marca"] = "La marca es obligatoria.";
           if (!v.modelo?.trim()) errs["nuevo_vehiculo.modelo"] = "El modelo es obligatorio.";
         }
-
         setLocalErrors(errs);
         return Object.keys(errs).length === 0;
       },
     }));
 
-    // Opciones del select
     const options = vehiculos.map((v) => ({
       value: v.id,
       label: `${v.patente} — ${v.marca} ${v.modelo} (${v.anio})`,
+      patente: v.patente,
       marca: v.marca,
       modelo: v.modelo,
       anio: v.anio,
     }));
 
-    // Limpieza de error en vivo
-    const handleChange = (field: string, value: string) => {
-      setNuevoVehiculo({ ...nuevoVehiculo, [field]: value });
+    // === Mismo look oscuro (texto/placeholder) que el ClienteSection ===
+    const classNames = {
+      control: () =>
+        "border-2 border-gray-200 rounded-xl shadow-sm hover:border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500 transition bg-white",
+      menu: () => "rounded-xl shadow-lg border border-gray-100 bg-white mt-1",
+    } as const;
 
-      // 🔹 Validación inmediata en vivo
-      setLocalErrors((prev) => {
-        const updated = { ...prev };
-        if (["patente", "marca", "modelo"].includes(field) && value.trim() === "") {
-          updated[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} es obligatorio.`;
-        } else if (prev[field] && value.trim() !== "") {
-          delete updated[field];
-        }
-        return updated;
-      });
+    const styles = {
+      control: (base: any, state: any) => ({
+        ...base,
+        minHeight: 44,
+        height: 44,
+        borderWidth: 2,
+        boxShadow: state.isFocused ? "0 0 0 2px rgba(34,197,94,0.25)" : "none",
+        borderColor: state.isFocused ? "#22c55e" : "#e5e7eb",
+        "&:hover": { borderColor: state.isFocused ? "#22c55e" : "#d1d5db" },
+        backgroundColor: "#ffffff",
+      }),
+      valueContainer: (b: any) => ({ ...b, padding: "0 12px" }),
+      input: (b: any) => ({
+        ...b,
+        margin: 0,
+        padding: 0,
+        lineHeight: "1.25rem",
+        color: "#111827", // texto al escribir
+      }),
+      singleValue: (b: any) => ({
+        ...b,
+        color: "#111827", // valor seleccionado
+        fontWeight: 500,
+      }),
+      placeholder: (b: any) => ({
+        ...b,
+        color: "#111827", // placeholder oscuro
+        fontSize: "0.95rem",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+      }),
+      dropdownIndicator: (b: any, s: any) => ({
+        ...b,
+        color: "#111827",
+        "&:hover": { color: "#111827" },
+      }),
+      indicatorsContainer: (b: any) => ({ ...b, height: 44 }),
+      option: (b: any, state: any) => ({
+        ...b,
+        fontSize: "0.95rem",
+        color: state.isSelected ? "#ffffff" : "#111827",
+        backgroundColor: state.isSelected
+          ? "#22c55e"
+          : state.isFocused
+          ? "#f3f4f6"
+          : "#ffffff",
+        cursor: "pointer",
+      }),
+    } as const;
+
+    const theme = (t: any) => ({
+      ...t,
+      colors: {
+        ...t.colors,
+        primary: "#22c55e",
+        primary25: "#f3f4f6",
+        primary50: "#dcfce7",
+        neutral0: "#ffffff",
+        neutral20: "#e5e7eb",
+        neutral30: "#d1d5db",
+        neutral40: "#111827",
+        neutral50: "#111827", // placeholder
+        neutral60: "#111827",
+        neutral70: "#111827",
+        neutral80: "#111827", // texto
+      },
+    });
+
+    const clearSelection = () => {
+      setFormData({ ...formData, vehiculo_id: null, nuevo_vehiculo: null });
     };
 
     const handleSelect = (option: any) => {
       if (!option) {
-        setFormData({
-          ...formData,
-          vehiculo_id: "",
-          nuevo_vehiculo: null,
-        });
+        clearSelection();
         return;
       }
-
       setFormData({
         ...formData,
         vehiculo_id: option.value,
         nuevo_vehiculo: null,
       });
+      setLocalErrors((p) => {
+        const u = { ...p };
+        delete u.general;
+        return u;
+      });
+    };
 
+    const handleChange = (field: keyof typeof nuevoVehiculo, value: string) => {
+      setNuevoVehiculo((prev) => ({ ...prev, [field]: field === "anio" ? Number(value) : value }));
       setLocalErrors((prev) => {
-        const updated = { ...prev };
-        delete updated.general;
-        return updated;
+        const u = { ...prev };
+        if (["patente", "marca", "modelo"].includes(field as string) && value.trim() !== "") {
+          delete u[field as string];
+        }
+        return u;
       });
     };
 
@@ -103,132 +169,163 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
       if (!nuevoVehiculo.patente.trim()) errs.patente = "La patente es obligatoria.";
       if (!nuevoVehiculo.marca.trim()) errs.marca = "La marca es obligatoria.";
       if (!nuevoVehiculo.modelo.trim()) errs.modelo = "El modelo es obligatorio.";
-
       setLocalErrors(errs);
-      if (Object.keys(errs).length > 0) return;
+      if (Object.keys(errs).length) return;
 
       setFormData({
         ...formData,
         vehiculo_id: null,
-        nuevo_vehiculo: nuevoVehiculo,
+        nuevo_vehiculo: { ...nuevoVehiculo },
       });
-
       setShowNew(false);
+      setLocalErrors({});
       setNuevoVehiculo({
         patente: "",
         marca: "",
         modelo: "",
         anio: new Date().getFullYear(),
       });
-      setLocalErrors({});
     };
 
     const handleRemove = () => {
-      setFormData({
-        ...formData,
-        vehiculo_id: "",
-        nuevo_vehiculo: null,
-      });
+      clearSelection();
       setLocalErrors({});
       setShowNew(false);
     };
 
+    const hasSummary = Boolean(formData.vehiculo_id || formData.nuevo_vehiculo);
+    const resumenLabel =
+      formData.nuevo_vehiculo
+        ? `${formData.nuevo_vehiculo.patente} — ${formData.nuevo_vehiculo.marca} ${formData.nuevo_vehiculo.modelo} (${formData.nuevo_vehiculo.anio})`
+        : options.find((o) => o.value === formData.vehiculo_id)?.label;
+
     return (
-      <div className="rounded-2xl border bg-card shadow-sm p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="flex items-center text-2xl font-bold text-foreground">
-            <Car className="mr-2 h-7 w-7 text-primary" />
-            Datos del Vehículo
-          </h2>
-          {(formData.nuevo_vehiculo || formData.vehiculo_id) && (
+      <div className="space-y-3">
+        <label className="block text-sm font-semibold text-gray-800 mb-1">Vehículo *</label>
+
+        <div className="flex items-end gap-3">
+          <div className="flex-1">
+            <Select
+              options={options}
+              placeholder="Buscar o seleccionar vehículo…"
+              isClearable
+              value={options.find((opt) => opt.value === formData.vehiculo_id) || null}
+              onChange={handleSelect}
+              classNames={classNames}
+              styles={styles}
+              theme={theme}
+              components={{ IndicatorSeparator: null }}
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowNew((v) => !v);
+              if (!showNew) clearSelection();
+            }}
+            className="h-11 px-3 inline-flex items-center gap-2 rounded-xl bg-green-600 text-white hover:bg-green-700 transition shadow"
+            title="Nuevo vehículo"
+          >
+            <Plus className="h-5 w-5" />
+            <span className="font-medium">Nuevo</span>
+          </button>
+
+          {hasSummary && (
             <button
               type="button"
               onClick={handleRemove}
-              className="p-2 rounded-md hover:bg-red-50 text-gray-500 hover:text-red-600 transition"
+              className="h-11 w-11 flex items-center justify-center rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition"
+              title="Eliminar selección"
             >
-              <Trash2 className="h-6 w-6" />
+              <Trash2 className="h-5 w-5" />
             </button>
           )}
         </div>
 
-        {/* 📄 Formulario de nuevo vehículo */}
-        {showNew ? (
-          <div className="space-y-5">
-            {["patente", "marca", "modelo", "anio"].map((field) => (
-              <div key={field} className="flex flex-col gap-1">
-                <label className="text-lg font-medium">
-                  {field.charAt(0).toUpperCase() + field.slice(1)}
-                </label>
-                <input
-                  type={field === "anio" ? "number" : "text"}
-                  value={(nuevoVehiculo as any)[field]}
-                  onChange={(e) => handleChange(field, e.target.value)}
-                  className={`h-12 w-full rounded-lg border px-4 text-lg focus:outline-none focus:ring-2 focus:ring-primary ${
-                    localErrors[field] ? "border-red-500" : "border-input"
-                  }`}
-                />
-                {localErrors[field] && (
-                  <p className="text-sm text-red-600">{localErrors[field]}</p>
-                )}
-              </div>
-            ))}
+        {showNew && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <input
+                placeholder="Patente *"
+                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${
+                  localErrors.patente ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                }`}
+                value={nuevoVehiculo.patente}
+                onChange={(e) => handleChange("patente", e.target.value)}
+              />
+              {localErrors.patente && <p className="mt-1 text-sm text-red-600">{localErrors.patente}</p>}
+            </div>
 
-            <div className="flex gap-3">
+            <div>
+              <input
+                placeholder="Marca *"
+                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${
+                  localErrors.marca ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                }`}
+                value={nuevoVehiculo.marca}
+                onChange={(e) => handleChange("marca", e.target.value)}
+              />
+              {localErrors.marca && <p className="mt-1 text-sm text-red-600">{localErrors.marca}</p>}
+            </div>
+
+            <div>
+              <input
+                placeholder="Modelo *"
+                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${
+                  localErrors.modelo ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                }`}
+                value={nuevoVehiculo.modelo}
+                onChange={(e) => handleChange("modelo", e.target.value)}
+              />
+              {localErrors.modelo && <p className="mt-1 text-sm text-red-600">{localErrors.modelo}</p>}
+            </div>
+
+            <div>
+              <input
+                type="number"
+                placeholder="Año"
+                className="w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition border-gray-200 hover:border-gray-300"
+                value={nuevoVehiculo.anio}
+                onChange={(e) => handleChange("anio", e.target.value)}
+              />
+            </div>
+
+            <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={handleSaveNew}
-                className="flex-1 h-12 px-4 rounded-lg bg-green-600 text-white text-lg font-medium hover:bg-green-700 transition"
+                className="h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition shadow flex items-center justify-center"
               >
                 ✔️ Usar este vehículo
               </button>
               <button
                 type="button"
-                onClick={() => setShowNew(false)}
-                className="flex-1 h-12 px-4 rounded-lg bg-gray-200 text-gray-700 text-lg font-medium hover:bg-gray-300 transition"
+                onClick={() => {
+                  setShowNew(false);
+                  setNuevoVehiculo({
+                    patente: "",
+                    marca: "",
+                    modelo: "",
+                    anio: new Date().getFullYear(),
+                  });
+                  setLocalErrors({});
+                }}
+                className="h-12 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition"
               >
                 Cancelar
               </button>
             </div>
           </div>
-        ) : formData.nuevo_vehiculo || formData.vehiculo_id ? (
-          // 📋 Vista resumen (igual que ClienteSection)
-          <div className="rounded-md bg-muted/60 p-5 space-y-3 border text-lg text-muted-foreground">
-            <p>
-              🚗{" "}
-              {formData.nuevo_vehiculo
-                ? `${formData.nuevo_vehiculo.patente} — ${formData.nuevo_vehiculo.marca} ${formData.nuevo_vehiculo.modelo} (${formData.nuevo_vehiculo.anio})`
-                : options.find((o) => o.value === formData.vehiculo_id)?.label}
-            </p>
-          </div>
-        ) : (
-          // 🔽 Select + botón de agregar
-          <div className="flex items-end gap-3">
-            <div className="flex flex-col flex-1 gap-1">
-              <label className="text-lg font-medium">Seleccionar vehículo</label>
-              <Select
-                options={options}
-                placeholder="Buscar o seleccionar vehículo..."
-                isClearable
-                value={
-                  options.find((opt) => opt.value === formData.vehiculo_id) ||
-                  null
-                }
-                onChange={handleSelect}
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowNew(true)}
-              className="h-12 w-12 flex items-center justify-center rounded-lg bg-primary text-white hover:bg-primary/90 transition"
-            >
-              <Plus className="h-6 w-6" />
-            </button>
+        )}
+
+        {hasSummary && !showNew && (
+          <div className="rounded-xl bg-gray-50 border border-gray-200 p-4">
+            <p className="text-gray-800 font-medium">🚗 {resumenLabel}</p>
           </div>
         )}
 
-        {localErrors.general && (
-          <p className="text-red-600 text-sm">{localErrors.general}</p>
-        )}
+        {localErrors.general && <p className="text-sm text-red-600">{localErrors.general}</p>}
       </div>
     );
   }

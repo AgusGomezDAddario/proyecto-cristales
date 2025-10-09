@@ -31,22 +31,17 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
     });
     const [localErrors, setLocalErrors] = useState<Record<string, string>>({});
 
-    // ✅ Validación expuesta al padre (CreateOrdenes)
     useImperativeHandle(ref, () => ({
       validate: () => {
         const errs: Record<string, string> = {};
-
         if (!formData.titular_id && !formData.nuevo_titular) {
           errs.general = "Debes seleccionar o crear un cliente.";
         } else if (formData.nuevo_titular) {
-          if (!formData.nuevo_titular.nombre?.trim()) {
+          if (!formData.nuevo_titular.nombre?.trim())
             errs["nuevo_titular.nombre"] = "El nombre es obligatorio.";
-          }
-          if (!formData.nuevo_titular.apellido?.trim()) {
+          if (!formData.nuevo_titular.apellido?.trim())
             errs["nuevo_titular.apellido"] = "El apellido es obligatorio.";
-          }
         }
-
         setLocalErrors(errs);
         return Object.keys(errs).length === 0;
       },
@@ -59,46 +54,99 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
       email: t.email,
     }));
 
-    // ✅ Limpieza de error en vivo
-// ✅ Validación en vivo (activa y reactiva errores)
-  const handleChange = (field: string, value: string) => {
-    setNuevoTitular({ ...nuevoTitular, [field]: value });
+    // === Tema oscuro/neutral para que se vea "más negro" ===
+    const classNames = {
+      control: () =>
+        "border-2 border-gray-200 rounded-xl shadow-sm hover:border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500 transition bg-white",
+      menu: () => "rounded-xl shadow-lg border border-gray-100 bg-white mt-1",
+    } as const;
 
-    setLocalErrors((prev) => {
-      const updated = { ...prev };
+    const styles = {
+      control: (base: any, state: any) => ({
+        ...base,
+        minHeight: 44,
+        height: 44,
+        borderWidth: 2,
+        boxShadow: state.isFocused ? "0 0 0 2px rgba(34,197,94,0.25)" : "none",
+        borderColor: state.isFocused ? "#22c55e" : "#e5e7eb",
+        "&:hover": { borderColor: state.isFocused ? "#22c55e" : "#d1d5db" },
+        backgroundColor: "#ffffff",
+      }),
+      valueContainer: (b: any) => ({ ...b, padding: "0 12px" }),
+      input: (b: any) => ({
+        ...b,
+        margin: 0,
+        padding: 0,
+        lineHeight: "1.25rem",
+        color: "#111827", // texto al escribir (negro oscuro)
+      }),
+      singleValue: (b: any) => ({
+        ...b,
+        color: "#111827", // valor seleccionado
+        fontWeight: 500,
+      }),
+      placeholder: (b: any) => ({
+        ...b,
+        color: "#111827", // placeholder oscuro (ajústalo si lo querés más claro)
+        fontSize: "0.95rem",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+      }),
+      dropdownIndicator: (b: any, s: any) => ({
+        ...b,
+        color: s.isFocused ? "#111827" : "#111827",
+        "&:hover": { color: "#111827" },
+      }),
+      indicatorsContainer: (b: any) => ({ ...b, height: 44 }),
+      option: (b: any, state: any) => ({
+        ...b,
+        fontSize: "0.95rem",
+        color: state.isSelected ? "#ffffff" : "#111827",
+        backgroundColor: state.isSelected
+          ? "#22c55e"
+          : state.isFocused
+          ? "#f3f4f6"
+          : "#ffffff",
+        cursor: "pointer",
+      }),
+    } as const;
 
-      // Si el campo está vacío y es obligatorio → muestra error
-      if (
-        ["nombre", "apellido"].includes(field) &&
-        value.trim() === ""
-      ) {
-        updated[field] = `${
-          field.charAt(0).toUpperCase() + field.slice(1)
-        } es obligatorio.`;
-      }
-      // Si antes tenía error y ahora se completó → elimina el error
-      else if (prev[field] && value.trim() !== "") {
-        delete updated[field];
-      }
-
-      return updated;
+    // Override de paleta interna de react-select (por si usa colores por defecto)
+    const theme = (t: any) => ({
+      ...t,
+      colors: {
+        ...t.colors,
+        primary: "#22c55e",
+        primary25: "#f3f4f6",
+        primary50: "#dcfce7",
+        neutral0: "#ffffff",
+        neutral20: "#e5e7eb",
+        neutral30: "#d1d5db",
+        neutral40: "#111827",
+        neutral50: "#111827", // placeholder
+        neutral60: "#111827",
+        neutral70: "#111827",
+        neutral80: "#111827", // texto
+      },
     });
-  };
 
+    const clearSelection = () => {
+      setFormData({
+        ...formData,
+        titular_id: null,
+        nombreCliente: "",
+        telefono: "",
+        email: "",
+        nuevo_titular: null,
+      });
+    };
 
     const handleSelect = (option: any) => {
       if (!option) {
-        setFormData({
-          ...formData,
-          titular_id: "",
-          nombreCliente: "",
-          telefono: "",
-          email: "",
-          nuevo_titular: null,
-        });
+        clearSelection();
         return;
       }
-
       setFormData({
         ...formData,
         titular_id: option.value,
@@ -107,23 +155,19 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
         email: option.email,
         nuevo_titular: null,
       });
-
-      // Borrar error general si existía
-      setLocalErrors((prev) => {
-        const updated = { ...prev };
-        delete updated.general;
-        return updated;
+      setLocalErrors((p) => {
+        const u = { ...p };
+        delete u.general;
+        return u;
       });
     };
 
     const handleSaveNew = () => {
       const errs: Record<string, string> = {};
       if (!nuevoTitular.nombre.trim()) errs.nombre = "El nombre es obligatorio.";
-      if (!nuevoTitular.apellido.trim())
-        errs.apellido = "El apellido es obligatorio.";
+      if (!nuevoTitular.apellido.trim()) errs.apellido = "El apellido es obligatorio.";
       setLocalErrors(errs);
-
-      if (Object.keys(errs).length > 0) return;
+      if (Object.keys(errs).length) return;
 
       setFormData({
         ...formData,
@@ -131,128 +175,177 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
         nombreCliente: `${nuevoTitular.nombre} ${nuevoTitular.apellido}`,
         telefono: nuevoTitular.telefono,
         email: nuevoTitular.email,
-        nuevo_titular: nuevoTitular,
+        nuevo_titular: { ...nuevoTitular },
       });
-
       setShowNew(false);
-      setNuevoTitular({ nombre: "", apellido: "", telefono: "", email: "" });
       setLocalErrors({});
+      setNuevoTitular({ nombre: "", apellido: "", telefono: "", email: "" });
     };
 
     const handleRemove = () => {
-      setFormData({
-        ...formData,
-        titular_id: "",
-        nombreCliente: "",
-        telefono: "",
-        email: "",
-        nuevo_titular: null,
-      });
+      clearSelection();
       setLocalErrors({});
       setShowNew(false);
     };
 
+    const hasSummary = Boolean(formData.titular_id || formData.nuevo_titular);
+    const resumenNombre =
+      formData.nuevo_titular?.nombre
+        ? `${formData.nuevo_titular.nombre} ${formData.nuevo_titular.apellido ?? ""}`.trim()
+        : formData.nombreCliente || "";
+    const resumenTel = formData.nuevo_titular?.telefono ?? formData.telefono ?? "";
+    const resumenEmail = formData.nuevo_titular?.email ?? formData.email ?? "";
+
     return (
-      <div className="rounded-2xl border bg-card shadow-sm p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="flex items-center text-2xl font-bold text-foreground">
-            <User className="mr-2 h-7 w-7 text-primary" />
-            Datos del Cliente
-          </h2>
-          {(formData.nuevo_titular || formData.titular_id) && (
+      <div className="space-y-3">
+        <label className="block text-sm font-semibold text-gray-800 mb-1">Cliente *</label>
+
+        <div className="flex items-end gap-3">
+          <div className="flex-1">
+            <Select
+              options={options}
+              placeholder="Buscar o seleccionar cliente…"
+              isClearable
+              value={options.find((opt) => opt.value === formData.titular_id) || null}
+              onChange={handleSelect}
+              classNames={classNames}
+              styles={styles}
+              theme={theme}
+              components={{ IndicatorSeparator: null }}
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowNew((v) => !v);
+              if (!showNew) clearSelection();
+            }}
+            className="h-11 px-3 inline-flex items-center gap-2 rounded-xl bg-green-600 text-white hover:bg-green-700 transition shadow"
+            title="Nuevo cliente"
+          >
+            <Plus className="h-5 w-5" />
+            <span className="font-medium">Nuevo</span>
+          </button>
+
+          {hasSummary && (
             <button
               type="button"
               onClick={handleRemove}
-              className="p-2 rounded-md hover:bg-red-50 text-gray-500 hover:text-red-600 transition"
+              className="h-11 w-11 flex items-center justify-center rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition"
+              title="Eliminar selección"
             >
-              <Trash2 className="h-6 w-6" />
+              <Trash2 className="h-5 w-5" />
             </button>
           )}
         </div>
 
-        {showNew ? (
-          <div className="space-y-5">
-            {["nombre", "apellido", "telefono", "email"].map((field) => (
-              <div key={field} className="flex flex-col gap-1">
-                <label className="text-lg font-medium">
-                  {field === "email"
-                    ? "Email (opcional)"
-                    : field.charAt(0).toUpperCase() + field.slice(1)}
-                </label>
-                <input
-                  type={field === "email" ? "email" : "text"}
-                  value={(nuevoTitular as any)[field]}
-                  onChange={(e) => handleChange(field, e.target.value)}
-                  className={`h-12 w-full rounded-lg border px-4 text-lg focus:outline-none focus:ring-2 focus:ring-primary ${
-                    localErrors[field] ? "border-red-500" : "border-input"
-                  }`}
-                />
-                {localErrors[field] && (
-                  <p className="text-sm text-red-600">{localErrors[field]}</p>
-                )}
-              </div>
-            ))}
+        {showNew && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* inputs… (sin cambios) */}
+            <div>
+              <input
+                placeholder="Nombre *"
+                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${
+                  localErrors.nombre ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                }`}
+                value={nuevoTitular.nombre}
+                onChange={(e) => {
+                  setNuevoTitular((s) => ({ ...s, nombre: e.target.value }));
+                  if (localErrors.nombre && e.target.value.trim() !== "") {
+                    setLocalErrors((p) => {
+                      const u = { ...p };
+                      delete u.nombre;
+                      return u;
+                    });
+                  }
+                }}
+              />
+              {localErrors.nombre && (
+                <p className="mt-1 text-sm text-red-600">{localErrors.nombre}</p>
+              )}
+            </div>
 
-            <div className="flex gap-3">
+            <div>
+              <input
+                placeholder="Apellido *"
+                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${
+                  localErrors.apellido ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                }`}
+                value={nuevoTitular.apellido}
+                onChange={(e) => {
+                  setNuevoTitular((s) => ({ ...s, apellido: e.target.value }));
+                  if (localErrors.apellido && e.target.value.trim() !== "") {
+                    setLocalErrors((p) => {
+                      const u = { ...p };
+                      delete u.apellido;
+                      return u;
+                    });
+                  }
+                }}
+              />
+              {localErrors.apellido && (
+                <p className="mt-1 text-sm text-red-600">{localErrors.apellido}</p>
+              )}
+            </div>
+
+            <input
+              placeholder="Teléfono"
+              className="w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition border-gray-200 hover:border-gray-300"
+              value={nuevoTitular.telefono}
+              onChange={(e) => setNuevoTitular((s) => ({ ...s, telefono: e.target.value }))}
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition border-gray-200 hover:border-gray-300"
+              value={nuevoTitular.email}
+              onChange={(e) => setNuevoTitular((s) => ({ ...s, email: e.target.value }))}
+            />
+
+            <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={handleSaveNew}
-                className="flex-1 h-12 px-4 rounded-lg bg-green-600 text-white text-lg font-medium hover:bg-green-700 transition"
+                className="h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition shadow flex items-center justify-center"
               >
                 ✔️ Usar este cliente
               </button>
               <button
                 type="button"
-                onClick={() => setShowNew(false)}
-                className="flex-1 h-12 px-4 rounded-lg bg-gray-200 text-gray-700 text-lg font-medium hover:bg-gray-300 transition"
+                onClick={() => {
+                  setShowNew(false);
+                  setNuevoTitular({ nombre: "", apellido: "", telefono: "", email: "" });
+                  setLocalErrors({});
+                }}
+                className="h-12 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition"
               >
                 Cancelar
               </button>
             </div>
           </div>
-        ) : formData.nuevo_titular || formData.titular_id ? (
-          <div className="rounded-md bg-muted/60 p-5 space-y-3 border text-lg text-muted-foreground">
-            <p className="flex items-center">
-              <User className="mr-2 h-5 w-5 text-primary" />{" "}
-              {formData.nombreCliente}
+        )}
+
+        {hasSummary && !showNew && (
+          <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 space-y-1">
+            <p className="flex items-center text-gray-800 font-medium">
+              <User className="mr-2 w-4 h-4 text-green-600" />
+              {resumenNombre || "Sin nombre"}
             </p>
-            <p className="flex items-center">
-              <Phone className="mr-2 h-5 w-5 text-primary" /> {formData.telefono}
+            <p className="flex items-center text-gray-600">
+              <Phone className="mr-2 w-4 h-4 text-green-600" />
+              {resumenTel || "Sin teléfono"}
             </p>
-            {formData.email && (
-              <p className="flex items-center">
-                <Mail className="mr-2 h-5 w-5 text-primary" /> {formData.email}
+            {resumenEmail && (
+              <p className="flex items-center text-gray-600">
+                <Mail className="mr-2 w-4 h-4 text-green-600" />
+                {resumenEmail}
               </p>
             )}
           </div>
-        ) : (
-          <div className="flex items-end gap-3">
-            <div className="flex flex-col flex-1 gap-1">
-              <label className="text-lg font-medium">Seleccionar titular</label>
-              <Select
-                options={options}
-                placeholder="Buscar o seleccionar cliente..."
-                isClearable
-                value={
-                  options.find((opt) => opt.value === formData.titular_id) ||
-                  null
-                }
-                onChange={handleSelect}
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowNew(true)}
-              className="h-12 w-12 flex items-center justify-center rounded-lg bg-primary text-white hover:bg-primary/90 transition"
-            >
-              <Plus className="h-6 w-6" />
-            </button>
-          </div>
         )}
 
-        {localErrors.general && (
-          <p className="text-red-600 text-sm">{localErrors.general}</p>
-        )}
+        {localErrors.general && <p className="text-sm text-red-600">{localErrors.general}</p>}
       </div>
     );
   }
