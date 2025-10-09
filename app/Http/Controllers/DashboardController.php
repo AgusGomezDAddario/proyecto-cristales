@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Inertia\Inertia;
 use App\Models\Movimiento;
+use App\Models\OrdenDeTrabajo;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -40,8 +41,11 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        // Por ahora, ingresos y órdenes en 0 (cuando los implementes, los agregas)
-        $totalOrdenes = 0;  // TODO: Implementar cuando tengas OT
+        // Obtener todos los ordenes del día (usando whereDate para comparar solo la fecha)
+        $ordenesHoy = OrdenDeTrabajo::whereDate('fecha', $hoy)->get();
+        
+        // Calcular el total de ordenes del día
+        $totalOrdenes = count($ordenesHoy);
         
         // Balance del día (ingresos - egresos)
         $balanceDelDia = $totalIngresos - $totalEgresos;

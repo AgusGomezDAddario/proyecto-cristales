@@ -15,8 +15,11 @@ class OrdenDeTrabajo extends Model
         'titular_vehiculo_id',
         'medio_de_pago_id',
         'estado_id',
-        'fecha',
         'observacion',
+    ];
+
+    protected $casts = [
+        'fecha' => 'date'
     ];
 
     // 🔹 Relación con la asociativa titular-vehículo
