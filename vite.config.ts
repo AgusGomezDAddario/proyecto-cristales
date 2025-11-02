@@ -2,8 +2,8 @@ import { wayfinder } from '@laravel/vite-plugin-wayfinder';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
-import { defineConfig } from 'vite';
 import path from 'path'; // 👈 necesario
+import { defineConfig } from 'vite';
 
 export default defineConfig({
     plugins: [
@@ -18,6 +18,12 @@ export default defineConfig({
             formVariants: true,
         }),
     ],
+    server: {
+        host: '127.0.0.1',
+        port: 5173,
+        strictPort: true,
+        hmr: { host: '127.0.0.1' }, // evita ws hacia 'localhost'
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'resources/js'), // 👈 aquí se define el alias @

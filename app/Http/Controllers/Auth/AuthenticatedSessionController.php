@@ -29,15 +29,18 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        // Autentica por name/password (LoginRequest ya lo hace con guard 'web')
         $request->authenticate();
 
+        // Fija la cookie de sesión
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Redirige a donde quería ir; fallback a 'ordenes'
+        return redirect()->intended(route('ordenes.index', absolute: false) ?? '/ordenes');
     }
 
     /**
-     * Para cerrar sesion
+     * Para cerrar sesión
      */
     public function destroy(Request $request): RedirectResponse
     {
