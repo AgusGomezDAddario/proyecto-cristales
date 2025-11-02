@@ -61,25 +61,25 @@
 }
 
 :root {
-    --background: oklch(1 0 0);        /* Blanco */
-    --foreground: oklch(0.145 0 0);    /* Negro */
-    --card: oklch(1 0 0);              /* Blanco */
+    --background: oklch(1 0 0); /* Blanco */
+    --foreground: oklch(0.145 0 0); /* Negro */
+    --card: oklch(1 0 0); /* Blanco */
     --card-foreground: oklch(0.145 0 0); /* Negro */
-    --popover: oklch(1 0 0);           /* Blanco */
+    --popover: oklch(1 0 0); /* Blanco */
     --popover-foreground: oklch(0.145 0 0); /* Negro */
-    --primary: #2596be;                /* ← Color de LALO Parabrisas */
+    --primary: #2596be; /* ← Color de LALO Parabrisas */
     --primary-foreground: oklch(0.985 0 0); /* Blanco */
-    --secondary: oklch(0.97 0 0);      /* Gris claro */
+    --secondary: oklch(0.97 0 0); /* Gris claro */
     --secondary-foreground: oklch(0.205 0 0); /* Negro */
-    --muted: oklch(0.97 0 0);          /* Gris claro */
+    --muted: oklch(0.97 0 0); /* Gris claro */
     --muted-foreground: oklch(0.556 0 0); /* Gris oscuro */
-    --accent: oklch(0.97 0 0);         /* Gris claro */
+    --accent: oklch(0.97 0 0); /* Gris claro */
     --accent-foreground: oklch(0.205 0 0); /* Negro */
     --destructive: oklch(0.577 0.245 27.325); /* Rojo */
     --destructive-foreground: oklch(0.985 0 0); /* Blanco */
-    --border: oklch(0.922 0 0);        /* Gris claro */
-    --input: oklch(0.922 0 0);         /* Gris claro */
-    --ring: oklch(0.87 0 0);           /* Gris más oscuro */
+    --border: oklch(0.922 0 0); /* Gris claro */
+    --input: oklch(0.922 0 0); /* Gris claro */
+    --ring: oklch(0.87 0 0); /* Gris más oscuro */
     --chart-1: oklch(0.646 0.222 41.116);
     --chart-2: oklch(0.6 0.118 184.704);
     --chart-3: oklch(0.398 0.07 227.392);
@@ -145,16 +145,28 @@
     select,
     option,
     textarea {
-        @apply text-foreground bg-white;
+        @apply bg-white text-foreground;
     }
 
     /* Asegura que las opciones de los selects se vean bien */
     select {
-        @apply text-foreground bg-white;
+        @apply bg-white text-foreground;
     }
 
     option {
         @apply bg-white text-foreground;
+    }
+
+    button,
+    .btn,
+    [type='submit'] {
+        @apply rounded-md bg-[#2596be] font-semibold text-white;
+    }
+
+    button:hover,
+    .btn:hover,
+    [type='submit']:hover {
+        @apply bg-[#1862fd];
     }
 }
 
