@@ -190,7 +190,8 @@ class OrdenDeTrabajoController extends Controller
             'titularVehiculo.titular',
             'titularVehiculo.vehiculo',
             'estado',
-            'pagos.medioDePago'
+            'pagos.medioDePago',
+            'detalles'
         ])->findOrFail($id);
 
         return Inertia::render('ordenes/show', [
