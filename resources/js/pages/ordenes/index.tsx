@@ -41,7 +41,7 @@ type Orden = {
   medio_de_pago: MedioDePago;
 };
 
-export default function Index({ ordenes }: { ordenes: Orden[] }) {
+export default function Index({ ordenes }: { ordenes: any }) {
   const { delete: destroy } = useForm();
 
   const formatDate = (dateString: string) => {
@@ -57,6 +57,9 @@ export default function Index({ ordenes }: { ordenes: Orden[] }) {
       destroy(`/ordenes/${id}`);
     }
   }
+
+  // Accedemos a ordenes.data porque viene paginado desde Laravel
+  const listaOrdenes = ordenes.data || [];
 
   return (
     <DashboardLayout>
@@ -81,7 +84,7 @@ export default function Index({ ordenes }: { ordenes: Orden[] }) {
 
         {/* Tabla */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-          {ordenes.length === 0 ? (
+          {listaOrdenes.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg
@@ -137,7 +140,7 @@ export default function Index({ ordenes }: { ordenes: Orden[] }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {ordenes.map((orden) => (
+                  {listaOrdenes.map((orden: Orden) => (
                     <tr
                       key={orden.id}
                       className="hover:bg-gray-50 transition"
@@ -161,7 +164,8 @@ export default function Index({ ordenes }: { ordenes: Orden[] }) {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {orden.medio_de_pago?.nombre ?? "-"}
+                        {/* Como ahora son múltiples pagos, mostramos 'Ver detalle' o el primero */}
+                        {orden.medio_de_pago?.nombre ?? "Ver detalle"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end gap-3">
