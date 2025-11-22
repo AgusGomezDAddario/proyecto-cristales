@@ -60,26 +60,27 @@
     --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* SOLO MODO CLARO */
 :root {
-    --background: oklch(1 0 0);        /* Blanco */
-    --foreground: oklch(0.145 0 0);    /* Negro */
-    --card: oklch(1 0 0);              /* Blanco */
-    --card-foreground: oklch(0.145 0 0); /* Negro */
-    --popover: oklch(1 0 0);           /* Blanco */
-    --popover-foreground: oklch(0.145 0 0); /* Negro */
-    --primary: #2596be;                /* ← Color de LALO Parabrisas */
-    --primary-foreground: oklch(0.985 0 0); /* Blanco */
-    --secondary: oklch(0.97 0 0);      /* Gris claro */
-    --secondary-foreground: oklch(0.205 0 0); /* Negro */
-    --muted: oklch(0.97 0 0);          /* Gris claro */
-    --muted-foreground: oklch(0.556 0 0); /* Gris oscuro */
-    --accent: oklch(0.97 0 0);         /* Gris claro */
-    --accent-foreground: oklch(0.205 0 0); /* Negro */
-    --destructive: oklch(0.577 0.245 27.325); /* Rojo */
-    --destructive-foreground: oklch(0.985 0 0); /* Blanco */
-    --border: oklch(0.922 0 0);        /* Gris claro */
-    --input: oklch(0.922 0 0);         /* Gris claro */
-    --ring: oklch(0.87 0 0);           /* Gris más oscuro */
+    --background: oklch(1 0 0); /* Blanco */
+    --foreground: oklch(0.145 0 0); /* Negro */
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: #2596be; /* Azul corporativo */
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(0.985 0 0);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.87 0 0);
     --chart-1: oklch(0.646 0.222 41.116);
     --chart-2: oklch(0.6 0.118 184.704);
     --chart-3: oklch(0.398 0.07 227.392);
@@ -96,40 +97,7 @@
     --sidebar-ring: oklch(0.87 0 0);
 }
 
-.dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.145 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.145 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: #2596be;  
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.396 0.141 25.723);
-    --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border: oklch(0.269 0 0);
-    --input: oklch(0.269 0 0);
-    --ring: oklch(0.439 0 0);
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.985 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(0.269 0 0);
-    --sidebar-ring: oklch(0.439 0 0);
-}
+/* (Se eliminó la sección .dark para forzar modo claro) */
 
 @layer base {
     * {
@@ -140,39 +108,48 @@
         @apply bg-background text-foreground;
     }
 
-    /* Fuerza color de texto visible en todos los inputs y selects */
+    /* Inputs/selects siempre claros y legibles */
     input,
     select,
     option,
     textarea {
-        @apply text-foreground bg-white;
-    }
-
-    /* Asegura que las opciones de los selects se vean bien */
-    select {
-        @apply text-foreground bg-white;
-    }
-
-    option {
         @apply bg-white text-foreground;
     }
+
+    select { @apply bg-white text-foreground; }
+    option { @apply bg-white text-foreground; }
+
+    /* Botones globales */
+    button,
+    .btn,
+    [type='submit'] {
+        @apply rounded-md bg-[#2596be] font-semibold text-white;
+    }
+    button:hover,
+    .btn:hover,
+    [type='submit']:hover {
+        @apply bg-[#1862fd];
+    }
+
+    /* ✅ Checkbox corporativo global */
+    /* ✅ Checkbox corporativo global (nativo, con tilde visible) */
+@layer base {
+  input[type="checkbox"] {
+    /* SIN appearance-none: dejamos el tilde nativo */
+    @apply w-5 h-5 rounded border border-gray-400 bg-white
+           cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1862fd] transition;
+    accent-color: #2596be; /* color del tilde y del checkbox marcado */
+  }
+
+  input[type="checkbox"]:checked {
+    @apply border-[#2596be]; /* borde azul al marcar */
+    /* el fondo y tilde los maneja accent-color */
+  }
+
+  input[type="checkbox"]:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
 }
 
-/* ESTILOS EXPLÍCITOS CON !important PARA FORZAR VISIBILIDAD */
-input,
-select,
-option,
-textarea {
-    color: var(--foreground) !important;
-    background-color: var(--background) !important;
 }
 
-select {
-    color: var(--foreground) !important;
-    background-color: var(--background) !important;
-}
-
-option {
-    color: var(--foreground) !important;
-    background-color: var(--background) !important;
-}

@@ -118,27 +118,26 @@ export default function DetallesSection({ detalles, setDetalles }: Props) {
                     className="w-[96px] px-3 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900"
                   />
 
-                  <label className="inline-flex items-center gap-2 text-sm font-medium text-gray-800 whitespace-nowrap select-none">
-                    <input
-                      type="checkbox"
-                      checked={detalle.colocacion_incluida}
-                      onChange={(e) =>
-                        handleChange(index, "colocacion_incluida", e.target.checked)
-                      }
-                      className="w-5 h-5 accent-green-600 rounded"
-                    />
-                    Coloc.
-                  </label>
+                  <label className="inline-flex items-center gap-2 text-sm font-medium text-gray-800 whitespace-nowrap select-none bg-white">
+                  <input
+                    type="checkbox"
+                    checked={detalle.colocacion_incluida}
+                    onChange={(e) => handleChange(index, "colocacion_incluida", e.target.checked)}
+                    className="w-5 h-5 rounded bg-white border border-gray-400
+                              accent-[#2596be] focus:ring-2 focus:ring-[#1862fd] cursor-pointer"
+                  />
+                  Coloc.
+                </label>
 
-                  <button
-                    type="button"
-                    onClick={() => handleRemove(index)}
-                    className="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition"
-                    aria-label="Eliminar ítem"
-                    title="Eliminar ítem"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
+                <button
+                  type="button"
+                  onClick={() => handleRemove(index)}
+                  className="p-2 rounded-lg bg-[#2596be] text-white hover:bg-[#1862fd] transition"
+                  aria-label="Eliminar ítem"
+                  title="Eliminar ítem"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
                 </div>
               </div>
             </div>

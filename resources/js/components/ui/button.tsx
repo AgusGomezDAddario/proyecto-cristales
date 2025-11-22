@@ -16,20 +16,25 @@ export const Button: React.FC<ButtonProps> = ({
   className = '',
   ...props
 }) => {
-  const baseClasses = 'flex items-center justify-center font-semibold rounded-lg transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none';
-  
+  const baseClasses =
+    'flex items-center justify-center font-semibold rounded-lg transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none';
+
   const variants = {
-    primary: 'bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white',
-    secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800',
-    outline: 'border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary-light)]'
+    /** 🎨 Paleta unificada **/
+    primary:
+      'bg-[#2596be] hover:bg-[#1862fd] text-white', // <-- colores ajustados
+    secondary:
+      'bg-gray-200 hover:bg-gray-300 text-gray-800',
+    outline:
+      'border border-[#2596be] text-[#2596be] hover:bg-[#e6f0ff]',
   };
-  
+
   const sizes = {
     sm: 'h-10 px-3 text-sm',
     md: 'h-12 px-4',
-    lg: 'h-14 px-6 text-lg'
+    lg: 'h-14 px-6 text-lg',
   };
-  
+
   const classes = `${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`;
 
   return (
