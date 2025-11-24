@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-
 class Movimiento extends Model
 {
     use HasFactory;
@@ -18,12 +17,14 @@ class Movimiento extends Model
         'concepto_id',
         'medio_de_pago_id',
         'comprobante',
-        'tipo'
+        'tipo',
+        'es_caja_chica', 
     ];
 
     protected $casts = [
         'fecha' => 'date',
         'monto' => 'decimal:2',
+        'es_caja_chica' => 'boolean',
     ];
 
     public function concepto()

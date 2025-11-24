@@ -10,21 +10,9 @@ use Illuminate\Http\Request;
 
 abstract class MovimientoController extends Controller
 {
-
-    /**
-     * Tipo de movimiento ('ingreso' o 'egreso').
-     * Cada subcontrolador va a definirlo.
-     */
     protected string $tipo;
-
-    /**
-     * Nombre para mostrar en las vistas.
-     */
     protected string $label;
 
-    /**
-     * Listado de movimientos según el tipo
-     */
     public function index()
     {
         $movimientos = Movimiento::with(['concepto', 'medioDePago'])
@@ -39,9 +27,6 @@ abstract class MovimientoController extends Controller
         ]);
     }
 
-    /**
-     * Mostrar formulario de creación
-     */
     public function create()
     {
         $conceptos = Concepto::orderBy('nombre', 'asc')->get();
@@ -55,9 +40,6 @@ abstract class MovimientoController extends Controller
         ]);
     }
 
-    /**
-     * Guardar nuevo movimiento
-     */
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -65,10 +47,17 @@ abstract class MovimientoController extends Controller
             'monto'            => 'required|numeric|min:0',
             'concepto_id'      => 'required|exists:concepto,id',
             'medio_de_pago_id' => 'nullable|exists:medio_de_pago,id',
-            'comprobante'      => 'nullable|string|max:255'
+            'comprobante'      => 'nullable|string|max:255',
+            'es_caja_chica'    => 'nullable|boolean',
         ]);
 
         $data['tipo'] = $this->tipo;
+
+        if ($this->tipo === 'egreso') {
+            $data['es_caja_chica'] = (bool) $request->boolean('es_caja_chica');
+        } else {
+            $data['es_caja_chica'] = false;
+        }
 
         Movimiento::create($data);
 
@@ -76,20 +65,14 @@ abstract class MovimientoController extends Controller
             ->with('success', $this->label . ' registrado correctamente');
     }
 
-    /**
-     * Mostrar un movimiento específico
-     */
     public function show(Movimiento $movimiento)
     {
         return Inertia::render('movimientos/show', [
-            'movimiento' => $movimiento->load(['concepto', 'medioDePago',]),
+            'movimiento' => $movimiento->load(['concepto', 'medioDePago']),
             'label' => ucfirst($this->label),
         ]);
     }
 
-    /**
-     * Mostrar formulario de edición
-     */
     public function edit(Movimiento $movimiento)
     {
         $conceptos = Concepto::orderBy('nombre', 'asc')->get();
@@ -103,9 +86,6 @@ abstract class MovimientoController extends Controller
         ]);
     }
 
-    /**
-     * Actualizar un movimiento
-     */
     public function update(Request $request, Movimiento $movimiento)
     {
         $data = $request->validate([
@@ -114,7 +94,14 @@ abstract class MovimientoController extends Controller
             'concepto_id'      => 'required|exists:concepto,id',
             'medio_de_pago_id' => 'nullable|exists:medio_de_pago,id',
             'comprobante'      => 'nullable|string|max:255',
+            'es_caja_chica'    => 'nullable|boolean', 
         ]);
+
+        if ($movimiento->tipo === 'egreso') {
+            $data['es_caja_chica'] = (bool) $request->boolean('es_caja_chica');
+        } else {
+            unset($data['es_caja_chica']); 
+        }
 
         $movimiento->update($data);
 
@@ -122,9 +109,6 @@ abstract class MovimientoController extends Controller
             ->with('success', $this->label . ' actualizado correctamente');
     }
 
-    /**
-     * Eliminar un movimiento
-     */
     public function destroy(Movimiento $movimiento)
     {
         $movimiento->delete();

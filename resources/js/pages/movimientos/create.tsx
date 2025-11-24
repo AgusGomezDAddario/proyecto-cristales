@@ -42,12 +42,13 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
         return `${year}-${month}-${day}`;
     };
 
-    const { data, setData, post, processing, errors } = useForm<MovimientoFormData>({
+    const { data, setData, post, processing, errors } = useForm<MovimientoFormData & { es_caja_chica?: boolean }>({
         fecha: getFechaArgentina(),
         monto: '',
         concepto_id: '',
         medio_de_pago_id: '',
         comprobante: '',
+        es_caja_chica: tipo === 'egreso' ? false : undefined, // ✅ nuevo (solo aplica a egreso)
     });
 
     const submit: FormEventHandler = (e) => {
@@ -94,8 +95,9 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                                 type="date"
                                 value={data.fecha}
                                 onChange={(e) => setData('fecha', e.target.value)}
-                                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-medium ${errors.fecha ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                    }`}
+                                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-medium ${
+                                    errors.fecha ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                                }`}
                             />
                             {errors.fecha && (
                                 <p className={`mt-2 text-sm text-red-600 flex items-center gap-1`}>
@@ -121,8 +123,9 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                                     placeholder="0.00"
                                     value={data.monto}
                                     onChange={(e) => setData('monto', e.target.value)}
-                                    className={`w-full pl-10 pr-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-semibold text-lg ${errors.monto ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                        }`}
+                                    className={`w-full pl-10 pr-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-semibold text-lg ${
+                                        errors.monto ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                                    }`}
                                 />
                             </div>
                             {errors.monto && (
@@ -135,6 +138,21 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                             )}
                         </div>
 
+                        {/* ✅ Caja chica (solo egresos) */}
+                        {tipo === 'egreso' && (
+                            <div className="flex items-center gap-3">
+                                <input
+                                    id="es_caja_chica"
+                                    type="checkbox"
+                                    checked={!!data.es_caja_chica}
+                                    onChange={(e) => setData('es_caja_chica', e.target.checked)}
+                                />
+                                <label htmlFor="es_caja_chica" className="text-sm font-semibold text-gray-800">
+                                    Pertenece a caja chica
+                                </label>
+                            </div>
+                        )}
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Concepto */}
                             <div>
@@ -145,8 +163,9 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                                     id="concepto_id"
                                     value={data.concepto_id}
                                     onChange={(e) => setData('concepto_id', e.target.value)}
-                                    className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-medium ${errors.concepto_id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                        }`}
+                                    className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-medium ${
+                                        errors.concepto_id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                                    }`}
                                 >
                                     <option value="" className="text-gray-500">Seleccione un concepto</option>
                                     {conceptos.map((concepto) => (
@@ -174,8 +193,9 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                                     id="medio_de_pago_id"
                                     value={data.medio_de_pago_id}
                                     onChange={(e) => setData('medio_de_pago_id', e.target.value)}
-                                    className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-medium ${errors.medio_de_pago_id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                        }`}
+                                    className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-medium ${
+                                        errors.medio_de_pago_id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                                    }`}
                                 >
                                     <option value="" className="text-gray-500">Seleccione un medio</option>
                                     {mediosDePago.map((medio) => (
@@ -206,13 +226,14 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                                 placeholder="Ej: 001-00123456"
                                 value={data.comprobante}
                                 onChange={(e) => setData('comprobante', e.target.value)}
-                                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-medium placeholder:text-gray-400 ${errors.comprobante ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                    }`}
+                                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-medium placeholder:text-gray-400 ${
+                                    errors.comprobante ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                                }`}
                             />
                             {errors.comprobante && (
                                 <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
                                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 01116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                                     </svg>
                                     {errors.comprobante}
                                 </p>
@@ -252,7 +273,7 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                 <div className="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
                     <div className="flex items-start gap-3">
                         <svg className="w-5 h-5 text-blue-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                         </svg>
                         <p className="text-sm text-blue-800">
                             <strong>Tip:</strong> Los campos marcados con * son obligatorios. El medio de pago y comprobante son opcionales.
