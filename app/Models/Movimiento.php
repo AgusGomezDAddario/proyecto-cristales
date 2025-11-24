@@ -17,7 +17,6 @@ class Movimiento extends Model
         'monto',
         'concepto_id',
         'medio_de_pago_id',
-        'comprobante',
         'tipo'
     ];
 
@@ -34,5 +33,10 @@ class Movimiento extends Model
     public function medioDePago()
     {
         return $this->belongsTo(MedioDePago::class, 'medio_de_pago_id');
+    }
+
+    public function comprobantes()
+    {
+        return $this->hasMany(Comprobante::class, 'movimiento_id');
     }
 }

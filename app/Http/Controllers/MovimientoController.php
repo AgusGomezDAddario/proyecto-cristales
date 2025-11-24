@@ -6,6 +6,7 @@ use Inertia\Inertia;
 use App\Models\Movimiento;
 use App\Models\Concepto;
 use App\Models\MedioDePago;
+use App\Models\Comprobante;
 use Illuminate\Http\Request;
 
 abstract class MovimientoController extends Controller
@@ -70,12 +71,25 @@ abstract class MovimientoController extends Controller
             'monto'            => 'required|numeric|min:0',
             'concepto_id'      => 'required|exists:concepto,id',
             'medio_de_pago_id' => 'nullable|exists:medio_de_pago,id',
-            'comprobante'      => 'nullable|string|max:255'
+            'comprobantes'     => 'nullable|array',
+            'comprobantes.*'   => 'file|mimes:jpg,jpeg,png,pdf|max:20480',
         ]);
 
         $data['tipo'] = $this->tipo;
 
-        Movimiento::create($data);
+        $movimiento = Movimiento::create($data);
+
+        // Guardar comprobantes si vienen
+        if ($request->hasFile('comprobantes')) {
+            foreach ($request->file('comprobantes') as $archivo) {
+                $path = $archivo->store('comprobantes/' . $this->tipo, 'public');
+
+                Comprobante::create([
+                    'movimiento_id' => $movimiento->id,
+                    'ruta_archivo'  => $path,
+                ]);
+            }
+        }
 
         return redirect()->route($this->ruta . '.index')
             ->with('success', $this->label . ' registrado correctamente');
@@ -118,7 +132,6 @@ abstract class MovimientoController extends Controller
             'monto'            => 'required|numeric|min:0',
             'concepto_id'      => 'required|exists:concepto,id',
             'medio_de_pago_id' => 'nullable|exists:medio_de_pago,id',
-            'comprobante'      => 'nullable|string|max:255',
         ]);
 
         $movimiento->update($data);

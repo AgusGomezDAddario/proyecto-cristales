@@ -29,4 +29,5 @@ export interface MovimientoFormData {
     concepto_id: string | number;
     medio_de_pago_id: string | number;
     comprobante: string;
+    comprobantes: File[];
 }
