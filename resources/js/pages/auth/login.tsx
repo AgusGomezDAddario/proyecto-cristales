@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AuthLayout from '@/layouts/Auth-layout';
+import AuthLayout from '@/layouts/auth-layout';
 import { register } from '@/routes';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
@@ -40,6 +40,8 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     autoComplete="username"
                                     placeholder="Usuario"
                                     className="border border-gray-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-400 placeholder:text-gray-500 text-gray-900 transition-all"
+                                    onInvalid={(e) => e.currentTarget.setCustomValidity('Debe ingresar su nombre de usuario.')}
+                                    onInput={(e) => e.currentTarget.setCustomValidity('')}
                                     />
                                 <InputError message={errors.name} />
                             </div>
@@ -61,6 +63,8 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     autoComplete="current-password"
                                     placeholder="Contraseña"
                                     className="border border-gray-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-400 placeholder:text-gray-500 text-gray-900 transition-all"
+                                    onInvalid={(e) => e.currentTarget.setCustomValidity('Debe ingresar su contraseña')}
+                                    onInput={(e) => e.currentTarget.setCustomValidity('')}
                                     />
                                 <InputError message={errors.password} />
                             </div>

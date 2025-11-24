@@ -18,11 +18,32 @@ class LoginRequest extends FormRequest
 
     public function rules(): array
     {
-        // Logueamos por 'name' + 'password' (NO email)
         return [
             'name'     => ['required', 'string'],
             'password' => ['required', 'string'],
             'remember' => ['nullable', 'boolean'],
+        ];
+    }
+
+    /**
+     * Mensajes personalizados de validación.
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required'     => 'Debe ingresar su nombre de usuario.',
+            'password.required' => 'Debe ingresar su contraseña.',
+        ];
+    }
+
+    /**
+     * Nombres amigables para los campos (opcional pero prolijo).
+     */
+    public function attributes(): array
+    {
+        return [
+            'name' => 'nombre de usuario',
+            'password' => 'contraseña',
         ];
     }
 
@@ -41,8 +62,9 @@ class LoginRequest extends FormRequest
         if (! $ok) {
             RateLimiter::hit($this->throttleKey());
 
+            // Mensaje de credenciales inválidas
             throw ValidationException::withMessages([
-                'name' => trans('auth.failed'),
+                'name' => 'Usuario o contraseña incorrectos.',
             ]);
         }
 
