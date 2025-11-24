@@ -49,6 +49,12 @@ abstract class MovimientoController extends Controller
             'medio_de_pago_id' => 'nullable|exists:medio_de_pago,id',
             'comprobante'      => 'nullable|string|max:255',
             'es_caja_chica'    => 'nullable|boolean',
+        ], [
+            'fecha.required'       => 'Debe ingresar una fecha.',
+            'monto.required'       => 'Debe ingresar un monto.',
+            'monto.numeric'        => 'El monto debe ser un número válido.',
+            'concepto_id.required' => 'Debe seleccionar un concepto.',
+            'concepto_id.exists'   => 'El concepto seleccionado no es válido.',
         ]);
 
         $data['tipo'] = $this->tipo;

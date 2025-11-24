@@ -10,53 +10,101 @@ class DatosInicialesSeeder extends Seeder
 {
     public function run(): void
     {
-        // ---- Tabla rol ----
-        DB::table('rol')->insert([
-            ['role_id' => 1, 'descripcion' => 'Administrador'],
-            ['role_id' => 2, 'descripcion' => 'Cajero'],
-            ['role_id' => 3, 'descripcion' => 'Taller'],
-        ]);
-
-        // ---- Tabla users ----
-        DB::table('users')->insert([
+        /* ============================================================
+         |  ROLES  (tabla: rol)
+         * ============================================================ */
+        DB::table('rol')->upsert(
             [
-                'name'       => 'Admin',
-                'password'   => Hash::make('admin123'), // contraseña encriptada
-                'role_id'    => 1, // Administrador
-                'created_at' => now(),
-                'updated_at' => now(),
+                ['role_id' => 1, 'descripcion' => 'Administrador'],
+                ['role_id' => 2, 'descripcion' => 'Cajero'],
+                ['role_id' => 3, 'descripcion' => 'Taller'],
             ],
-            [
-                'name'       => 'Cajero',
-                'password'   => Hash::make('editor123'),
-                'role_id'    => 2, // Cajero
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name'       => 'Taller',
-                'password'   => Hash::make('user123'),
-                'role_id'    => 3, // Taller
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
+            ['role_id'],
+            ['descripcion']
+        );
 
-        // ---- Tabla medio_de_pago ----
-        DB::table('medio_de_pago')->insert([
-            ['nombre' => 'Efectivo'],
-            ['nombre' => 'Crédito'],
-            ['nombre' => 'Débito'],
-            ['nombre' => 'Transferencia'],
-            ['nombre' => 'Cheque'],
-        ]);
+        /* ============================================================
+         |  USERS  (tabla: users)
+         * ============================================================ */
+        DB::table('users')->upsert(
+            [
+                [
+                    'name'       => 'Admin',
+                    'password'   => Hash::make('admin123'),
+                    'role_id'    => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'name'       => 'Cajero',
+                    'password'   => Hash::make('editor123'),
+                    'role_id'    => 2,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'name'       => 'Taller',
+                    'password'   => Hash::make('user123'),
+                    'role_id'    => 3,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+            ],
+            ['name'],
+            ['password', 'role_id', 'updated_at']
+        );
 
-        // ---- Tabla estado ----
-        DB::table('estado')->insert([
-            ['nombre' => 'Iniciado'],
-            ['nombre' => 'Pendiente'],
-            ['nombre' => 'Completada'],
-            ['nombre' => 'Pagado'],
-        ]);
+        /* ============================================================
+         |  CONCEPTOS  (tabla: concepto)
+         * ============================================================ */
+        DB::table('concepto')->upsert(
+            [
+                // Conceptos típicos de EGRESOS
+                ['nombre' => 'Materiales'],
+                ['nombre' => 'Insumos / Repuestos'],
+                ['nombre' => 'Herramientas'],
+                ['nombre' => 'Combustible'],
+                ['nombre' => 'Servicios (luz, agua, internet)'],
+                ['nombre' => 'Gastos varios'],
+                ['nombre' => 'Adelanto de personal'],
+
+                // Conceptos típicos de INGRESOS
+                ['nombre' => 'Venta de cristal'],
+                ['nombre' => 'Colocación / Mano de obra'],
+                ['nombre' => 'Servicio a domicilio'],
+                ['nombre' => 'Otros ingresos'],
+            ],
+            ['nombre'],  // clave única lógica
+            []           // no actualiza nada si existe
+        );
+
+        /* ============================================================
+         |  MEDIOS DE PAGO  (tabla: medio_de_pago)
+         * ============================================================ */
+        DB::table('medio_de_pago')->upsert(
+            [
+                ['nombre' => 'Efectivo'],
+                ['nombre' => 'Crédito'],
+                ['nombre' => 'Débito'],
+                ['nombre' => 'Transferencia'],
+                ['nombre' => 'Cheque'],
+            ],
+            ['nombre'],
+            []
+        );
+
+        /* ============================================================
+         |  ESTADO  (tabla: estado)
+         * ============================================================ */
+        DB::table('estado')->upsert(
+            [
+                ['nombre' => 'Iniciado'],
+                ['nombre' => 'Pendiente'],
+                ['nombre' => 'Completada'],
+                ['nombre' => 'Pagado'],
+            ],
+            ['nombre'],
+            []
+        );
     }
 }
