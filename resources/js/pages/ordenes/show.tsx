@@ -12,7 +12,7 @@ type Detalle = {
 
 type Pago = {
   id: number;
-  valor_pagado: number;
+  valor: number;
   observacion: string | null;
   medio_de_pago: { nombre: string };
 };
@@ -35,7 +35,7 @@ export default function Show({ orden }: { orden: Orden }) {
     return acc + Number(curr.valor) * Number(curr.cantidad);
   }, 0);
 
-  const totalPagado = orden.pagos.reduce((acc, curr) => acc + Number(curr.valor_pagado), 0);
+  const totalPagado = orden.pagos.reduce((acc, curr) => acc + Number(curr.valor), 0);
   const saldoPendiente = totalOrden - totalPagado;
 
   return (
@@ -59,8 +59,8 @@ export default function Show({ orden }: { orden: Orden }) {
                 <span>{new Date(orden.fecha).toLocaleDateString("es-AR", { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                 <span className="mx-1">•</span>
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${orden.estado.nombre === 'Entregado' ? 'bg-green-100 text-green-700 border-green-200' :
-                    orden.estado.nombre === 'Cancelado' ? 'bg-red-100 text-red-700 border-red-200' :
-                      'bg-yellow-100 text-yellow-700 border-yellow-200'
+                  orden.estado.nombre === 'Cancelado' ? 'bg-red-100 text-red-700 border-red-200' :
+                    'bg-yellow-100 text-yellow-700 border-yellow-200'
                   }`}>
                   {orden.estado.nombre}
                 </span>
@@ -161,7 +161,7 @@ export default function Show({ orden }: { orden: Orden }) {
                           </div>
                         </div>
                         <span className="font-bold text-gray-900">
-                          ${Number(pago.valor_pagado).toLocaleString("es-AR")}
+                          ${Number(pago.valor).toLocaleString("es-AR")}
                         </span>
                       </div>
                     ))}

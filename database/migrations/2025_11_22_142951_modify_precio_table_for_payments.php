@@ -14,7 +14,7 @@ return new class extends Migration {
 
         Schema::table('precio', function (Blueprint $table) {
             $table->string('observacion', 255)->nullable();
-            $table->decimal('valor', 12, 2)->nullable()->change();
+            // No eliminamos valor_pagado
         });
     }
 

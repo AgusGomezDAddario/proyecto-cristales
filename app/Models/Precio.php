@@ -13,7 +13,6 @@ class Precio extends Model
         'orden_de_trabajo_id',
         'medio_de_pago_id',
         'valor',
-        'valor_pagado',
         'observacion'
     ];
 

@@ -157,7 +157,7 @@ class OrdenDeTrabajoController extends Controller
                 Precio::create([
                     'orden_de_trabajo_id' => $orden->id,
                     'medio_de_pago_id' => $pago['medio_de_pago_id'],
-                    'valor_pagado' => $pago['monto'],
+                    'valor' => $pago['monto'],
                     'observacion' => $pago['observacion'] ?? null,
                 ]);
             }
