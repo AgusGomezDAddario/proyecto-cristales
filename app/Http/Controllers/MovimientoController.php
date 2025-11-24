@@ -23,6 +23,11 @@ abstract class MovimientoController extends Controller
     protected string $label;
 
     /**
+     * Ruta base para las rutas del tipo de movimiento
+     */
+    protected string $ruta;
+
+    /**
      * Listado de movimientos según el tipo
      */
     public function index()
@@ -44,7 +49,7 @@ abstract class MovimientoController extends Controller
      */
     public function create()
     {
-        $conceptos = Concepto::orderBy('nombre', 'asc')->get();
+        $conceptos = Concepto::where('tipo', $this->tipo)->orderBy('nombre', 'asc')->get();
         $mediosDePago = MedioDePago::orderBy('nombre', 'asc')->get();
 
         return Inertia::render('movimientos/create', [
@@ -72,7 +77,7 @@ abstract class MovimientoController extends Controller
 
         Movimiento::create($data);
 
-        return redirect()->route($this->tipo . 's.index')
+        return redirect()->route($this->ruta . '.index')
             ->with('success', $this->label . ' registrado correctamente');
     }
 
@@ -92,7 +97,7 @@ abstract class MovimientoController extends Controller
      */
     public function edit(Movimiento $movimiento)
     {
-        $conceptos = Concepto::orderBy('nombre', 'asc')->get();
+        $conceptos = Concepto::where('tipo', $this->tipo)->orderBy('nombre', 'asc')->get();
         $mediosDePago = MedioDePago::orderBy('nombre', 'asc')->get();
 
         return Inertia::render('movimientos/edit', [
@@ -118,7 +123,7 @@ abstract class MovimientoController extends Controller
 
         $movimiento->update($data);
 
-        return redirect()->route($this->tipo . 's.index')
+        return redirect()->route($this->ruta . '.index')
             ->with('success', $this->label . ' actualizado correctamente');
     }
 
@@ -129,7 +134,7 @@ abstract class MovimientoController extends Controller
     {
         $movimiento->delete();
 
-        return redirect()->route($this->tipo . 's.index')
+        return redirect()->route($this->ruta . '.index')
             ->with('success', $this->label . ' eliminado correctamente');
     }
 }
