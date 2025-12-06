@@ -3,7 +3,7 @@ import { Head, useForm, Link } from "@inertiajs/react";
 import { toast } from "react-hot-toast";
 import ClienteSection, { ClienteSectionRef } from "@/components/ui/ClienteSection";
 import VehiculoSection, { VehiculoSectionRef } from "@/components/ui/VehiculoSection";
-import DetallesSection from "@/components/ui/DetallesSection";
+import DetallesSection, { Detalle } from "@/components/ui/DetallesSection";
 import EstadoSection from "@/components/ui/EstadoSection";
 import MedioPagoSection from "@/components/ui/MedioPagoSection";
 import DashboardLayout from "@/layouts/DashboardLayout";
@@ -15,10 +15,10 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago }: any)
     vehiculo_id: null,
     nuevo_vehiculo: null,
     estado_id: null,
-    medio_de_pago_id: null,
+    pagos: [],
     observacion: "",
     fecha: "",
-    detalles: [{ descripcion: "", valor: "", cantidad: 1, colocacion_incluida: false }],
+    detalles: [{ descripcion: "", valor: "", cantidad: 1, colocacion_incluida: false }] as Detalle[],
   });
 
   const clienteRef = useRef<ClienteSectionRef>(null);
@@ -57,6 +57,10 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago }: any)
     });
   };
 
+  const totalOrden = data.detalles.reduce((acc: number, curr: any) => {
+    return acc + (Number(curr.valor) || 0) * (Number(curr.cantidad) || 1);
+  }, 0);
+
   return (
     <DashboardLayout>
       <Head title="Nueva Orden de Trabajo" />
@@ -87,9 +91,8 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago }: any)
                 type="date"
                 value={data.fecha}
                 onChange={(e) => setData("fecha", e.target.value)}
-                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 font-medium ${
-                  errors.fecha ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 font-medium ${errors.fecha ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                  }`}
               />
               {errors.fecha && <p className="mt-2 text-sm text-red-600">{errors.fecha}</p>}
             </div>
@@ -109,6 +112,23 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago }: any)
               setFormData={(nd: any) => setData({ ...data, ...nd })}
             />
 
+
+            {/* Detalles */}
+            <DetallesSection
+              detalles={data.detalles}
+              setDetalles={(nuevos) => setData("detalles", nuevos)}
+            />
+
+            {/* Medio de Pago */}
+            <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
+              <MedioPagoSection
+                mediosDePago={mediosDePago}
+                formData={data}
+                setFormData={(nd: any) => setData({ ...data, ...nd })}
+                errors={errors as Record<string, string>}
+                totalOrden={totalOrden}
+              />
+            </div>
             {/* Estado y Medio de Pago en grilla */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <EstadoSection
@@ -117,19 +137,7 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago }: any)
                 setFormData={(nd: any) => setData({ ...data, ...nd })}
                 errors={errors as Record<string, string>}
               />
-              <MedioPagoSection
-                mediosDePago={mediosDePago}
-                formData={data}
-                setFormData={(nd: any) => setData({ ...data, ...nd })}
-                errors={errors as Record<string, string>}
-              />
             </div>
-
-            {/* Detalles */}
-            <DetallesSection
-              detalles={data.detalles}
-              setDetalles={(nuevos) => setData("detalles", nuevos)}
-            />
 
             {/* Observación */}
             <div>

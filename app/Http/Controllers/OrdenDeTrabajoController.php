@@ -11,6 +11,7 @@ use App\Models\Estado;
 use App\Models\MedioDePago;
 use Inertia\Inertia;
 use App\Models\DetalleOrdenDeTrabajo;
+use App\Models\Precio;
 
 class OrdenDeTrabajoController extends Controller
 {
@@ -21,81 +22,84 @@ class OrdenDeTrabajoController extends Controller
             'titularVehiculo.titular',
             'titularVehiculo.vehiculo',
             'estado',
-            'medioDePago'
+            'pagos.medioDePago'
         ])
-        ->orderBy('created_at', 'desc')
-        ->get();
+            ->latest()
+            ->paginate(10);
 
         return Inertia::render('ordenes/index', [
             'ordenes' => $ordenes
         ]);
     }
 
-public function create()
-{
-    \Log::info('🟢 Entrando a create() de OrdenDeTrabajoController');
+    public function create()
+    {
+        \Log::info('🟢 Entrando a create() de OrdenDeTrabajoController');
 
-    try {
-        $titulares = Titular::with('vehiculos:id,patente,marca,modelo,anio')
-            ->select('id', 'nombre', 'apellido', 'telefono', 'email')
-            ->get();
+        try {
+            $titulares = Titular::with('vehiculos:id,patente,marca,modelo,anio')
+                ->select('id', 'nombre', 'apellido', 'telefono', 'email')
+                ->get();
 
-        \Log::info('✅ Titulares cargados correctamente', ['count' => $titulares->count()]);
-    } catch (\Exception $e) {
-        \Log::error('❌ Error al cargar titulares', ['message' => $e->getMessage()]);
-        dd('Error al cargar titulares: ' . $e->getMessage());
+            \Log::info('✅ Titulares cargados correctamente', ['count' => $titulares->count()]);
+        } catch (\Exception $e) {
+            \Log::error('❌ Error al cargar titulares', ['message' => $e->getMessage()]);
+            dd('Error al cargar titulares: ' . $e->getMessage());
+        }
+
+        try {
+            $estados = Estado::select('id', 'nombre')->get();
+            $mediosDePago = MedioDePago::select('id', 'nombre')->get();
+            \Log::info('✅ Estados y medios de pago cargados correctamente');
+        } catch (\Exception $e) {
+            \Log::error('❌ Error al cargar estados o medios de pago', ['message' => $e->getMessage()]);
+            dd('Error al cargar estados o medios de pago: ' . $e->getMessage());
+        }
+
+        \Log::info('🚀 Renderizando vista createOrdenes');
+
+        return Inertia::render('ordenes/createOrdenes', [
+            'titulares' => $titulares,
+            'estados' => $estados,
+            'mediosDePago' => $mediosDePago,
+        ]);
     }
-
-    try {
-        $estados = Estado::select('id', 'nombre')->get();
-        $mediosDePago = MedioDePago::select('id', 'nombre')->get();
-        \Log::info('✅ Estados y medios de pago cargados correctamente');
-    } catch (\Exception $e) {
-        \Log::error('❌ Error al cargar estados o medios de pago', ['message' => $e->getMessage()]);
-        dd('Error al cargar estados o medios de pago: ' . $e->getMessage());
-    }
-
-    \Log::info('🚀 Renderizando vista createOrdenes');
-
-    return Inertia::render('ordenes/createOrdenes', [
-        'titulares'    => $titulares,
-        'estados'      => $estados,
-        'mediosDePago' => $mediosDePago,
-    ]);
-}
 
 
 
 
     public function store(Request $request)
-{
-    // Lo que hace validate es asegurarse que los datos cumplen ciertas reglas, en caso contrario lanza un error y vuelve al formulario
+    {
+        // Lo que hace validate es asegurarse que los datos cumplen ciertas reglas, en caso contrario lanza un error y vuelve al formulario
         $validated = $request->validate([
-            'titular_id'       => 'nullable|integer|exists:titular,id', // Puede ser null, entero y debe existir
-            'vehiculo_id'      => 'nullable|integer|exists:vehiculo,id',
+            'titular_id' => 'nullable|integer|exists:titular,id', // Puede ser null, entero y debe existir
+            'vehiculo_id' => 'nullable|integer|exists:vehiculo,id',
 
-            'nuevo_titular'              => 'nullable|array',
-            'nuevo_titular.nombre'       => 'required_without:titular_id|string|max:48',
-            'nuevo_titular.apellido'     => 'required_without:titular_id|string|max:48',
-            'nuevo_titular.telefono'     => 'nullable|string|max:20',
-            'nuevo_titular.email'        => 'nullable|email|max:48',
+            'nuevo_titular' => 'nullable|array',
+            'nuevo_titular.nombre' => 'required_without:titular_id|string|max:48',
+            'nuevo_titular.apellido' => 'required_without:titular_id|string|max:48',
+            'nuevo_titular.telefono' => 'nullable|string|max:20',
+            'nuevo_titular.email' => 'nullable|email|max:48',
 
-            'nuevo_vehiculo'             => 'nullable|array',
-            'nuevo_vehiculo.patente'     => 'required_without:vehiculo_id|string|max:10',
-            'nuevo_vehiculo.marca'       => 'nullable|string|max:48',
-            'nuevo_vehiculo.modelo'      => 'nullable|string|max:48',
-            'nuevo_vehiculo.anio'        => 'nullable|integer|min:1900|max:' . date('Y'),
+            'nuevo_vehiculo' => 'nullable|array',
+            'nuevo_vehiculo.patente' => 'required_without:vehiculo_id|string|max:10',
+            'nuevo_vehiculo.marca' => 'nullable|string|max:48',
+            'nuevo_vehiculo.modelo' => 'nullable|string|max:48',
+            'nuevo_vehiculo.anio' => 'nullable|integer|min:1900|max:' . date('Y'),
 
 
-            'medio_de_pago_id' => 'required|exists:medio_de_pago,id', // Debe existir
-            'estado_id'        => 'required|exists:estado,id', // Debe existir
-            'fecha'            => 'required|date', // Fecha requerida
-            'observacion'      => 'nullable|string|max:500', // Puede ser null o string con max 500 caracteres
-            'detalles'                     => 'nullable|array',
-            'detalles.*.descripcion'       => 'nullable|string|max:255',
-            'detalles.*.valor'             => 'nullable|numeric|min:0',
-            'detalles.*.cantidad'          => 'nullable|integer|min:1',
-            'detalles.*.colocacion_incluida' => 'boolean',    
+            'estado_id' => 'required|exists:estado,id', // Debe existir
+            'fecha' => 'required|date', // Fecha requerida
+            'observacion' => 'nullable|string|max:500', // Puede ser null o string con max 500 caracteres
+            'detalles' => 'nullable|array',
+            'detalles.*.descripcion' => 'nullable|string|max:255',
+            'detalles.*.valor' => 'nullable|numeric|min:0',
+            'detalles.*.cantidad' => 'nullable|integer|min:1',
+            'detalles.*.colocacion_incluida' => 'boolean',
+            'pagos' => 'required|array|min:1',
+            'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
+            'pagos.*.monto' => 'required|numeric|min:0',
+            'pagos.*.observacion' => 'nullable|string|max:255',
         ]);
 
         $data = $request->all();
@@ -114,10 +118,10 @@ public function create()
         // 1️⃣ Crear nuevo titular si corresponde
         if (empty($data['titular_id']) && !empty($data['nuevo_titular'])) {
             $nuevoTitular = Titular::create([
-                'nombre'   => $data['nuevo_titular']['nombre'] ?? '',
+                'nombre' => $data['nuevo_titular']['nombre'] ?? '',
                 'apellido' => $data['nuevo_titular']['apellido'] ?? '',
                 'telefono' => $data['nuevo_titular']['telefono'] ?? '',
-                'email'    => $data['nuevo_titular']['email'] ?? null,
+                'email' => $data['nuevo_titular']['email'] ?? null,
             ]);
             $data['titular_id'] = $nuevoTitular->id;
         }
@@ -126,37 +130,48 @@ public function create()
         if (empty($data['vehiculo_id']) && !empty($data['nuevo_vehiculo'])) {
             $nuevoVehiculo = Vehiculo::create([
                 'patente' => strtoupper($data['nuevo_vehiculo']['patente']),
-                'marca'   => $data['nuevo_vehiculo']['marca'] ?? '',
-                'modelo'  => $data['nuevo_vehiculo']['modelo'] ?? '',
-                'anio'    => $data['nuevo_vehiculo']['anio'] ?? null,
+                'marca' => $data['nuevo_vehiculo']['marca'] ?? '',
+                'modelo' => $data['nuevo_vehiculo']['modelo'] ?? '',
+                'anio' => $data['nuevo_vehiculo']['anio'] ?? null,
             ]);
             $data['vehiculo_id'] = $nuevoVehiculo->id;
         }
 
         // 3️⃣ Crea o recupera la relación pivot entre titular y vehículo
         $pivot = TitularVehiculo::firstOrCreate([
-            'titular_id'  => $data['titular_id'],
+            'titular_id' => $data['titular_id'],
             'vehiculo_id' => $data['vehiculo_id'],
         ]);
 
         // 4️⃣ Crear la Orden de Trabajo
         $orden = OrdenDeTrabajo::create([
             'titular_vehiculo_id' => $pivot->id,
-            'medio_de_pago_id'    => $data['medio_de_pago_id'],
-            'estado_id'           => $data['estado_id'],
-            'fecha'               => $data['fecha'],
-            'observacion'         => $data['observacion'] ?? null,
+            'estado_id' => $data['estado_id'],
+            'fecha' => $data['fecha'],
+            'observacion' => $data['observacion'] ?? null,
         ]);
+
+        // Guardar pagos
+        if (!empty($data['pagos'])) {
+            foreach ($data['pagos'] as $pago) {
+                Precio::create([
+                    'orden_de_trabajo_id' => $orden->id,
+                    'medio_de_pago_id' => $pago['medio_de_pago_id'],
+                    'valor' => $pago['monto'],
+                    'observacion' => $pago['observacion'] ?? null,
+                ]);
+            }
+        }
 
         // Guardar detalles si se enviaron
         if (!empty($data['detalles']) && is_array($data['detalles'])) {
             foreach ($data['detalles'] as $detalle) {
                 DetalleOrdenDeTrabajo::create([
-                    'descripcion'          => $detalle['descripcion'] ?? '',
-                    'valor'                => $detalle['valor'] ?? 0,
-                    'cantidad'             => $detalle['cantidad'] ?? 1,
-                    'colocacion_incluida'  => $detalle['colocacion_incluida'] ?? false,
-                    'orden_de_trabajo_id'  => $orden->id,
+                    'descripcion' => $detalle['descripcion'] ?? '',
+                    'valor' => $detalle['valor'] ?? 0,
+                    'cantidad' => $detalle['cantidad'] ?? 1,
+                    'colocacion_incluida' => $detalle['colocacion_incluida'] ?? false,
+                    'orden_de_trabajo_id' => $orden->id,
                 ]);
             }
         }
@@ -175,7 +190,8 @@ public function create()
             'titularVehiculo.titular',
             'titularVehiculo.vehiculo',
             'estado',
-            'medioDePago'
+            'pagos.medioDePago',
+            'detalles'
         ])->findOrFail($id);
 
         return Inertia::render('ordenes/show', [
@@ -201,10 +217,10 @@ public function create()
 
         $data = $request->validate([
             'titular_vehiculo_id' => 'sometimes|required|exists:titular_vehiculo,id',
-            'medio_de_pago_id'    => 'sometimes|required|exists:medio_de_pago,id',
-            'estado_id'           => 'sometimes|required|exists:estado,id',
-            'fecha'               => 'sometimes|required|date',
-            'observacion'         => 'nullable|string|max:150',
+            'estado_id' => 'required|exists:estado,id',
+            'fecha' => 'required|date',
+            'pagos' => 'required|array|min:1',
+            'observacion' => 'nullable|string|max:150',
         ]);
 
         $orden->update($data);

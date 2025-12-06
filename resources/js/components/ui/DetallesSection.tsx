@@ -1,7 +1,7 @@
 import React from "react";
 import { Plus, Trash2, DollarSign, Layers } from "lucide-react";
 
-interface Detalle {
+export interface Detalle {
   descripcion: string;
   // ahora puede venir como string vacío o número
   valor: number | string;
@@ -119,25 +119,25 @@ export default function DetallesSection({ detalles, setDetalles }: Props) {
                   />
 
                   <label className="inline-flex items-center gap-2 text-sm font-medium text-gray-800 whitespace-nowrap select-none bg-white">
-                  <input
-                    type="checkbox"
-                    checked={detalle.colocacion_incluida}
-                    onChange={(e) => handleChange(index, "colocacion_incluida", e.target.checked)}
-                    className="w-5 h-5 rounded bg-white border border-gray-400
+                    <input
+                      type="checkbox"
+                      checked={detalle.colocacion_incluida}
+                      onChange={(e) => handleChange(index, "colocacion_incluida", e.target.checked)}
+                      className="w-5 h-5 rounded bg-white border border-gray-400
                               accent-[#2596be] focus:ring-2 focus:ring-[#1862fd] cursor-pointer"
-                  />
-                  Coloc.
-                </label>
+                    />
+                    Coloc.
+                  </label>
 
-                <button
-                  type="button"
-                  onClick={() => handleRemove(index)}
-                  className="p-2 rounded-lg bg-[#2596be] text-white hover:bg-[#1862fd] transition"
-                  aria-label="Eliminar ítem"
-                  title="Eliminar ítem"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(index)}
+                    className="p-2 rounded-lg bg-[#2596be] text-white hover:bg-[#1862fd] transition"
+                    aria-label="Eliminar ítem"
+                    title="Eliminar ítem"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
                 </div>
               </div>
             </div>
