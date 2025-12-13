@@ -3,12 +3,22 @@ import { Head, useForm, Link } from "@inertiajs/react";
 import { toast } from "react-hot-toast";
 import ClienteSection, { ClienteSectionRef } from "@/components/ui/ClienteSection";
 import VehiculoSection, { VehiculoSectionRef } from "@/components/ui/VehiculoSection";
-import DetallesSection, { Detalle } from "@/components/ui/DetallesSection";
+import DetallesSection, { Detalle, ArticuloCatalog } from "@/components/ui/DetallesSection";
 import EstadoSection from "@/components/ui/EstadoSection";
 import MedioPagoSection from "@/components/ui/MedioPagoSection";
 import DashboardLayout from "@/layouts/DashboardLayout";
 
-export default function CreateOrdenes({ titulares, estados, mediosDePago }: any) {
+export default function CreateOrdenes({
+  titulares,
+  estados,
+  mediosDePago,
+  articulosCatalog = [],
+}: {
+  titulares: any[];
+  estados: any[];
+  mediosDePago: any[];
+  articulosCatalog?: ArticuloCatalog[];
+}) {
   const { data, setData, post, processing, errors } = useForm({
     titular_id: null,
     nuevo_titular: null,
@@ -18,7 +28,16 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago }: any)
     pagos: [],
     observacion: "",
     fecha: "",
-    detalles: [{ descripcion: "", valor: "", cantidad: 1, colocacion_incluida: false }] as Detalle[],
+    detalles: [
+      {
+        articulo_id: null,
+        atributos: {}, // categoria_id -> subcategoria_id
+        descripcion: "",
+        valor: "",
+        cantidad: 1,
+        colocacion_incluida: false,
+      },
+    ] as Detalle[],
   });
 
   const clienteRef = useRef<ClienteSectionRef>(null);
@@ -30,6 +49,7 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago }: any)
       const hoy = new Date().toISOString().split("T")[0];
       setData("fecha", hoy);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Vehículos del titular seleccionado
@@ -38,16 +58,25 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago }: any)
 
   // Limpiar vehículo si cambia titular
   useEffect(() => {
-    setData((prev) => ({ ...prev, vehiculo_id: null, nuevo_vehiculo: null }));
-  }, [data.titular_id]);
+    setData((prev: any) => ({ ...prev, vehiculo_id: null, nuevo_vehiculo: null }));
+  }, [data.titular_id, setData]);
 
   // Submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     const clienteOk = clienteRef.current?.validate();
     if (!clienteOk) return toast.error("Por favor completá los datos del cliente.");
+
     const vehiculoOk = vehiculoRef.current?.validate();
     if (!vehiculoOk) return toast.error("Por favor completá los datos del vehículo.");
+
+    // Validación mínima de detalles (frontend)
+    const detallesOk = data.detalles.every((d: any) => {
+      const valorNum = d.valor === "" ? 0 : Number(d.valor);
+      return d.articulo_id && Number(d.cantidad) >= 1 && !isNaN(valorNum) && valorNum > 0;
+    });
+    if (!detallesOk) return toast.error("Revisá los ítems: artículo y valor deben estar completos.");
 
     post("/ordenes", {
       onError: (errs) => {
@@ -91,13 +120,14 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago }: any)
                 type="date"
                 value={data.fecha}
                 onChange={(e) => setData("fecha", e.target.value)}
-                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 font-medium ${errors.fecha ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                  }`}
+                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 font-medium ${
+                  (errors as any).fecha ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                }`}
               />
-              {errors.fecha && <p className="mt-2 text-sm text-red-600">{errors.fecha}</p>}
+              {(errors as any).fecha && <p className="mt-2 text-sm text-red-600">{(errors as any).fecha}</p>}
             </div>
 
-            {/* Cliente y Vehículo */}
+            {/* Cliente y Vehículo (se mantienen tal cual) */}
             <ClienteSection
               ref={clienteRef}
               titulares={titulares}
@@ -112,11 +142,11 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago }: any)
               setFormData={(nd: any) => setData({ ...data, ...nd })}
             />
 
-
-            {/* Detalles */}
+            {/* Detalles (nuevo modelo) */}
             <DetallesSection
               detalles={data.detalles}
               setDetalles={(nuevos) => setData("detalles", nuevos)}
+              articulosCatalog={articulosCatalog}
             />
 
             {/* Medio de Pago */}
@@ -129,7 +159,8 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago }: any)
                 totalOrden={totalOrden}
               />
             </div>
-            {/* Estado y Medio de Pago en grilla */}
+
+            {/* Estado */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <EstadoSection
                 estados={estados}
@@ -181,8 +212,8 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago }: any)
               />
             </svg>
             <p className="text-sm text-blue-800">
-              <strong>Tip:</strong> Completá todos los datos del cliente y vehículo
-              antes de guardar la orden. Los campos marcados con * son obligatorios.
+              <strong>Tip:</strong> Completá todos los datos del cliente y vehículo antes de guardar la orden. Los campos
+              marcados con * son obligatorios.
             </p>
           </div>
         </div>
