@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('subcategoria', function (Blueprint $table) {
+        Schema::create('subcategorias', function (Blueprint $table) {
     $table->id();
     $table->foreignId('categoria_id')
-        ->constrained('categoria')
+        ->constrained('categorias')
         ->cascadeOnDelete();
 
     $table->string('nombre', 100);

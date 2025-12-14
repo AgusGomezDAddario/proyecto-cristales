@@ -11,17 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categoria', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('articulo_id')
-        ->constrained('articulo')
-        ->cascadeOnDelete();
+        Schema::create('categorias', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('articulo_id')->constrained('articulos')->cascadeOnDelete();
+            $table->string('nombre');
+            $table->boolean('obligatoria')->default(false);
+            $table->boolean('activo')->default(true);
+            $table->timestamps();
+    });
 
-    $table->string('nombre', 100);
-    $table->boolean('obligatoria')->default(false);
-    $table->boolean('activo')->default(true);
-    $table->timestamps();
-});
 
     }
 

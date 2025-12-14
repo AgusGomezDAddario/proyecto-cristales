@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('detalle_orden_de_trabajo', function (Blueprint $table) {
-    $table->foreignId('articulo_id')
+    $table->foreignId('articulos_id')
         ->after('orden_de_trabajo_id')
-        ->constrained('articulo');
+        ->constrained('articulos');
 });
 
     }

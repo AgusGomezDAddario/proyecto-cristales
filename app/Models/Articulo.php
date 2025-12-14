@@ -9,7 +9,7 @@ class Articulo extends Model
 {
     use HasFactory;
 
-    protected $table = 'articulo';
+    protected $table = 'articulos';
 
     protected $fillable = [
         'nombre',
@@ -21,4 +21,3 @@ class Articulo extends Model
         return $this->hasMany(Categoria::class, 'articulo_id');
     }
 }
-

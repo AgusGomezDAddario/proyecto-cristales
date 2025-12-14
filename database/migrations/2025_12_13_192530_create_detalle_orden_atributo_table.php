@@ -18,16 +18,16 @@ return new class extends Migration
         ->constrained('detalle_orden_de_trabajo')
         ->cascadeOnDelete();
 
-    $table->foreignId('categoria_id')
-        ->constrained('categoria');
+    $table->foreignId('categorias_id')
+        ->constrained('categorias');
 
-    $table->foreignId('subcategoria_id')
-        ->constrained('subcategoria');
+    $table->foreignId('subcategorias_id')
+        ->constrained('subcategorias');
 
     $table->timestamps();
 
     $table->unique(
-        ['detalle_orden_de_trabajo_id', 'categoria_id'],
+        ['detalle_orden_de_trabajo_id', 'categorias_id'],
         'detalle_categoria_unique'
     );
 });
