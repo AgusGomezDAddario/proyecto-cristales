@@ -16,6 +16,10 @@ class Articulo extends Model
         'activo',
     ];
 
+    protected $casts = [
+        'activo' => 'boolean',
+    ];
+
     public function categorias()
     {
         return $this->hasMany(Categoria::class, 'articulo_id');

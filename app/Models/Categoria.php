@@ -16,6 +16,13 @@ class Categoria extends Model
         'nombre',
         'obligatoria',
         'activo',
+        // si más adelante incorporás tipo_input:
+        // 'tipo_input',
+    ];
+
+    protected $casts = [
+        'obligatoria' => 'boolean',
+        'activo' => 'boolean',
     ];
 
     public function articulo()

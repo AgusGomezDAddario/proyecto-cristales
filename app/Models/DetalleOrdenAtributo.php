@@ -15,9 +15,10 @@ class DetalleOrdenAtributo extends Model
         'detalle_orden_de_trabajo_id',
         'categoria_id',
         'subcategoria_id',
+        // futuro: 'valor_boolean', 'valor_texto'
     ];
 
-    public function detalleOrdenDeTrabajo()
+    public function detalleOrden()
     {
         return $this->belongsTo(DetalleOrdenDeTrabajo::class, 'detalle_orden_de_trabajo_id');
     }
