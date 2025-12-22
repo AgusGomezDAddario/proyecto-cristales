@@ -15,6 +15,7 @@ use App\Models\DetalleOrdenAtributo;
 use App\Models\Precio;
 use App\Models\Articulo;
 use App\Models\Subcategoria;
+use App\Models\CompaniaSeguro;
 
 class OrdenDeTrabajoController extends Controller
 {
@@ -48,11 +49,17 @@ class OrdenDeTrabajoController extends Controller
             ->select('id', 'nombre')
             ->get();
 
+        $companiasSeguros = CompaniaSeguro::select('id','nombre')
+            ->where('activo', true)
+            ->orderBy('nombre')
+            ->get();
+
         return Inertia::render('ordenes/createOrdenes', [
             'titulares' => $titulares,
             'estados' => $estados,
             'mediosDePago' => $mediosDePago,
             'articulos' => $articulos,
+            'companiasSeguros' => $companiasSeguros,
         ]);
     }
 
@@ -77,6 +84,7 @@ class OrdenDeTrabajoController extends Controller
             'estado_id' => 'required|exists:estado,id',
             'fecha' => 'required|date',
             'observacion' => 'nullable|string|max:500',
+            'compania_seguro_id' => 'nullable|integer|exists:companias_seguros,id',
 
             // DETALLES (NUEVO MODELO)
             'detalles' => 'required|array|min:1',
@@ -141,6 +149,7 @@ class OrdenDeTrabajoController extends Controller
             'estado_id' => $data['estado_id'],
             'fecha' => $data['fecha'],
             'observacion' => $data['observacion'] ?? null,
+            'compania_seguro_id' => $data['compania_seguro_id'] ?? null,
         ]);
 
         // 5) Pagos

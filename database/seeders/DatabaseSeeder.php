@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DatosInicialesSeeder::class,
             CatalogoArticulosSeeder::class,
+            CompaniasSegurosSeeder::class,
         ]);
     }
 }
