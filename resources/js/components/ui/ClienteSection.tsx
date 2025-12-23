@@ -106,8 +106,8 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
         backgroundColor: state.isSelected
           ? "#22c55e"
           : state.isFocused
-          ? "#f3f4f6"
-          : "#ffffff",
+            ? "#f3f4f6"
+            : "#ffffff",
         cursor: "pointer",
       }),
     } as const;
@@ -133,13 +133,10 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
 
     const clearSelection = () => {
       setFormData({
-        ...formData,
         titular_id: null,
-        nombreCliente: "",
-        telefono: "",
-        email: "",
         nuevo_titular: null,
       });
+
     };
 
     const handleSelect = (option: any) => {
@@ -148,13 +145,10 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
         return;
       }
       setFormData({
-        ...formData,
         titular_id: option.value,
-        nombreCliente: option.label,
-        telefono: option.telefono,
-        email: option.email,
         nuevo_titular: null,
       });
+
       setLocalErrors((p) => {
         const u = { ...p };
         delete u.general;
@@ -170,13 +164,10 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
       if (Object.keys(errs).length) return;
 
       setFormData({
-        ...formData,
         titular_id: null,
-        nombreCliente: `${nuevoTitular.nombre} ${nuevoTitular.apellido}`,
-        telefono: nuevoTitular.telefono,
-        email: nuevoTitular.email,
         nuevo_titular: { ...nuevoTitular },
       });
+
       setShowNew(false);
       setLocalErrors({});
       setNuevoTitular({ nombre: "", apellido: "", telefono: "", email: "" });
@@ -246,9 +237,8 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
             <div>
               <input
                 placeholder="Nombre *"
-                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${
-                  localErrors.nombre ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${localErrors.nombre ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                  }`}
                 value={nuevoTitular.nombre}
                 onChange={(e) => {
                   setNuevoTitular((s) => ({ ...s, nombre: e.target.value }));
@@ -269,9 +259,8 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
             <div>
               <input
                 placeholder="Apellido *"
-                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${
-                  localErrors.apellido ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${localErrors.apellido ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                  }`}
                 value={nuevoTitular.apellido}
                 onChange={(e) => {
                   setNuevoTitular((s) => ({ ...s, apellido: e.target.value }));
