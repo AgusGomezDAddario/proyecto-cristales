@@ -8,17 +8,17 @@ interface OT {
   estado: {
     nombre: string;
   };
-  titularVehiculo: {
+  titular_vehiculo: {
     titular: {
       nombre: string;
       apellido: string;
-    };
+    } | null;
     vehiculo: {
       patente: string;
       marca: string;
       modelo: string;
-    };
-  };
+    } | null;
+  } | null;
 }
 
 interface Props {
@@ -26,6 +26,7 @@ interface Props {
 }
 
 export default function OrdenesTaller({ ots }: Props) {
+  console.log(ots);
   return (
     <DashboardLayout title="Órdenes de Trabajo Pendientes">
       <Head title="Órdenes de Trabajo - Taller" />
@@ -44,60 +45,71 @@ export default function OrdenesTaller({ ots }: Props) {
           </p>
         </div>
       ) : (
-        <>
-          {/* 👉 Listado de OTs */}
-          <div className="grid grid-cols-1 gap-6">
-            {ots.map((ot) => (
-              <div
-                key={ot.id}
-                className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-              >
-                {/* Info principal */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-purple-600">
-                      OT #{ot.id}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
-                      {ot.estado.nombre}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Calendar className="w-4 h-4" />
-                    {new Date(ot.fecha).toLocaleDateString('es-AR')}
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <User className="w-4 h-4" />
-                    {ot.titularVehiculo.titular.nombre}{' '}
-                    {ot.titularVehiculo.titular.apellido}
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <Car className="w-4 h-4" />
-                    {ot.titularVehiculo.vehiculo.marca}{' '}
-                    {ot.titularVehiculo.vehiculo.modelo} ·{' '}
-                    <span className="font-mono">
-                      {ot.titularVehiculo.vehiculo.patente}
-                    </span>
-                  </div>
+        <div className="grid grid-cols-1 gap-6">
+          {ots.map((ot) => (
+            <div
+              key={ot.id}
+              className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+            >
+              {/* Info principal */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-purple-600">
+                    OT #{ot.id}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                    {ot.estado.nombre}
+                  </span>
                 </div>
 
-                {/* Acción */}
-                <div className="flex justify-end">
-                  <Link
-                    href={`/ordenes/${ot.id}`}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition shadow-sm"
-                  >
-                    Ver orden
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Calendar className="w-4 h-4" />
+                  {new Date(ot.fecha).toLocaleDateString('es-AR')}
+                </div>
+
+                {/* Titular */}
+                <div className="flex items-center gap-2 text-sm text-gray-700">
+                  <User className="w-4 h-4" />
+                  {ot.titular_vehiculo?.titular ? (
+                    <>
+                      {ot.titular_vehiculo.titular.nombre}{' '}
+                      {ot.titular_vehiculo.titular.apellido}
+                    </>
+                  ) : (
+                    <span className="italic text-gray-400">Sin titular</span>
+                  )}
+                </div>
+
+                {/* Vehículo */}
+                <div className="flex items-center gap-2 text-sm text-gray-700">
+                  <Car className="w-4 h-4" />
+                  {ot.titular_vehiculo?.vehiculo ? (
+                    <>
+                      {ot.titular_vehiculo.vehiculo.marca}{' '}
+                      {ot.titular_vehiculo.vehiculo.modelo} ·{' '}
+                      <span className="font-mono">
+                        {ot.titular_vehiculo.vehiculo.patente}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="italic text-gray-400">Sin vehículo</span>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
-        </>
+
+              {/* Acción */}
+              <div className="flex justify-end">
+                <Link
+                  href={`/ordenes/${ot.id}`}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition shadow-sm"
+                >
+                  Ver orden
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </DashboardLayout>
   );

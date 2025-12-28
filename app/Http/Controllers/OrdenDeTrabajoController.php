@@ -216,7 +216,11 @@ class OrdenDeTrabajoController extends Controller
 
     public function pendientes()
     {
-        $ots = OrdenDeTrabajo::with(['estado', 'titularVehiculo'])
+        $ots = OrdenDeTrabajo::with([
+                'estado',
+                'titularVehiculo.titular',
+                'titularVehiculo.vehiculo'
+            ])
             ->whereHas('estado', fn ($q) =>
                 $q->whereIn('nombre', ['Iniciado', 'Pendiente'])
             )
@@ -226,6 +230,7 @@ class OrdenDeTrabajoController extends Controller
             'ots' => $ots,
         ]);
     }
+
 
 
     // show/edit/update/destroy: los ajustamos después cuando usemos atributos en el detalle.
