@@ -198,5 +198,36 @@ class OrdenDeTrabajoController extends Controller
             ->with('success', 'Orden creada correctamente ✅ (ID: ' . $orden->id . ')');
     }
 
+    public function show(OrdenDeTrabajo $orden)
+    {
+        $orden->load([
+            'estado',
+            'titularVehiculo.titular',
+            'titularVehiculo.vehiculo',
+            'detalles',
+            'pagos.medioDePago',
+        ]);
+
+        return Inertia::render('Ordenes/Show', [
+            'orden' => $orden,
+            'userRoleId' => auth()->user()->role_id,
+        ]);
+    }
+
+    public function pendientes()
+    {
+        $ots = OrdenDeTrabajo::with(['estado', 'titularVehiculo'])
+            ->whereHas('estado', fn ($q) =>
+                $q->whereIn('nombre', ['Iniciado', 'Pendiente'])
+            )
+            ->get();
+
+        return Inertia::render('taller/ordenes', [
+            'ots' => $ots,
+        ]);
+    }
+
+
     // show/edit/update/destroy: los ajustamos después cuando usemos atributos en el detalle.
+
 }

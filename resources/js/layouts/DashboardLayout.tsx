@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, Head } from '@inertiajs/react';
 import { PropsWithChildren, useState } from 'react';
 
 interface Props extends PropsWithChildren {
@@ -12,6 +12,8 @@ export default function DashboardLayout({ children, title }: Props) {
 
   const isActive = (path: string) => url.startsWith(path);
   const isAdmin = auth?.user?.role_id === 1;
+  const isTaller = auth?.user?.role_id === 3;
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
@@ -46,6 +48,7 @@ export default function DashboardLayout({ children, title }: Props) {
 
             {/* Menú de navegación (desktop) */}
             <div className="hidden md:flex items-center gap-2">
+            {isAdmin && (
               <Link
                 href="/admin"
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
@@ -56,6 +59,7 @@ export default function DashboardLayout({ children, title }: Props) {
               >
                 📊 Panel de Control
               </Link>
+              )}
               
               {isAdmin && (
                 <Link
@@ -69,29 +73,33 @@ export default function DashboardLayout({ children, title }: Props) {
                   👤 Gestión de Usuarios
                 </Link>
               )}
+              {!isTaller && (
+              <>
+                <Link
+                  href="/egresos"
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    isActive('/egresos')
+                      ? 'bg-red-50 text-red-700 shadow-sm'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  💸 Egresos
+                </Link>
 
+                <Link
+                  href="/ingresos"
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    isActive('/ingresos')
+                      ? 'bg-green-50 text-green-700 shadow-sm'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  💰 Ingresos
+                </Link>
+              </>
+              )}
               <Link
-                href="/egresos"
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  isActive('/egresos')
-                    ? 'bg-red-50 text-red-700 shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                💸 Egresos
-              </Link>
-              <Link
-                href="/ingresos"
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  isActive('/ingresos')
-                    ? 'bg-green-50 text-green-700 shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                💰 Ingresos
-              </Link>
-              <Link
-                href="/ordenes"
+                href={isTaller ? '/taller/ots' : '/ordenes'}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                   isActive('/ordenes')
                     ? 'bg-purple-50 text-purple-700 shadow-sm'

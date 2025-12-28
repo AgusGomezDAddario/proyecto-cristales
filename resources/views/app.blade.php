@@ -36,7 +36,7 @@
         @inertia
 
         {{-- 👇 Ziggy al final del body, antes del bundle --}}
-        @routes
+      
 
         @viteReactRefresh
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])

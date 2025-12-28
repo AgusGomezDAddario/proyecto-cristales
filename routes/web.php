@@ -46,6 +46,13 @@ Route::middleware(['auth'])->group(function () {
         ->parameters([
             'ordenes' => 'orden'
         ]);
+
+    // 👉 Rutas para cuando se logue el perfil taller
+    Route::middleware(['auth', 'rol.taller'])->group(function () {
+    Route::get('/taller/ots', [OrdenDeTrabajoController::class, 'pendientes'])
+        ->name('taller.ots');
+    }); 
+
 });
 
 require __DIR__.'/settings.php';

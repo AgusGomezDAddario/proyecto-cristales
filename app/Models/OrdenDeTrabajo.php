@@ -50,4 +50,5 @@ class OrdenDeTrabajo extends Model
         return $this->hasMany(Precio::class, 'orden_de_trabajo_id');
     }
 
+
 }
