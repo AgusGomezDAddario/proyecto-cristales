@@ -8,6 +8,8 @@ use App\Http\Controllers\IngresoController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EgresoController;
 use App\Http\Controllers\MovimientoController;
+use App\Http\Controllers\DailySummaryController;
+use App\Http\Controllers\CashboxController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -46,6 +48,13 @@ Route::middleware(['auth'])->group(function () {
         ->parameters([
             'ordenes' => 'orden'
         ]);
+    // 👉 Rutas para Resumen del día
+    Route::get('/resumen-del-dia', [DailySummaryController::class, 'show'])->name('daily-summary.show');
+
+    Route::post('/caja/abrir', [CashboxController::class, 'open'])->name('cashbox.open');
+    Route::post('/caja/cerrar', [CashboxController::class, 'close'])->name('cashbox.close');
+
+    Route::get('/resumen-del-dia/imprimir', [DailySummaryController::class, 'print'])->name('daily-summary.print');
 });
 
 require __DIR__.'/settings.php';
