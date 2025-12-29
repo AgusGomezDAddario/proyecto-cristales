@@ -60,12 +60,11 @@ export default function Index() {
   const canOpen = isToday && cashbox.status === "NOT_OPENED";
   const canClose = isToday && cashbox.status === "OPEN";
 
-  function formatCurrency(value: number) {
-    return value.toLocaleString("es-AR", {
-      style: "currency",
-      currency: "ARS",
-    });
-  }
+function formatCurrency(value: number | null | undefined) {
+  const safe = Number(value ?? 0);
+  return safe.toLocaleString("es-AR", { style: "currency", currency: "ARS" });
+}
+
 
   /* ======================
    * Handlers

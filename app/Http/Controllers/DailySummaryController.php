@@ -22,7 +22,7 @@ class DailySummaryController extends Controller
 
         $caja = CajaDiaria::whereDate('fecha', $date)->first();
 
-        return Inertia::render('DailySummary/Index', [
+        return Inertia::render('DailySummary/index', [
             'fecha' => $date,
             'kpis' => [
                 'ingresos' => $totals['ingresos'],
