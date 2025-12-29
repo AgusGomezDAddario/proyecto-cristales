@@ -54,7 +54,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/caja/abrir', [CashboxController::class, 'open'])->name('cashbox.open');
     Route::post('/caja/cerrar', [CashboxController::class, 'close'])->name('cashbox.close');
 
-    Route::get('/resumen-del-dia/imprimir', [DailySummaryController::class, 'print'])->name('daily-summary.print');
+    Route::get('/resumen-del-dia/imprimir', [DailySummaryController::class, 'print'])
+    ->name('daily-summary.print');
 });
 
 require __DIR__.'/settings.php';

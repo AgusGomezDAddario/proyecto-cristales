@@ -40,4 +40,44 @@ class DailySummaryController extends Controller
             'today' => Carbon::today()->toDateString(),
         ]);
     }
+
+    public function print(Request $request)
+{
+    $date = $request->query('date', Carbon::today()->toDateString());
+
+    // KPIs
+    $totals = Movimiento::totalsForDate($date);
+    $ingresos = (float) ($totals['ingresos'] ?? 0);
+    $egresos  = (float) ($totals['egresos'] ?? 0);
+    $neto     = $ingresos - $egresos;
+
+    // Tablas por medio de pago
+    $ingresosPorMedio = Movimiento::groupedByMedioPago($date, Movimiento::TIPO_INGRESO);
+    $egresosPorMedio  = Movimiento::groupedByMedioPago($date, Movimiento::TIPO_EGRESO);
+
+    // Caja del día
+    $caja = CajaDiaria::whereDate('fecha', $date)->first();
+
+    $cashboxStatus = 'NOT_OPENED';
+    if ($caja) {
+        $cashboxStatus = $caja->isClosed() ? 'CLOSED' : 'OPEN';
+    }
+
+    return view('daily-summary.print', [
+        'fecha' => $date,
+        'kpis' => [
+            'ingresos' => $ingresos,
+            'egresos' => $egresos,
+            'neto' => $neto,
+        ],
+        'ingresosPorMedio' => $ingresosPorMedio,
+        'egresosPorMedio' => $egresosPorMedio,
+        'cashbox' => [
+            'status' => $cashboxStatus,
+            'opening_balance' => $caja?->opening_balance ?? 0,
+            'opened_at' => $caja?->opened_at,
+            'closed_at' => $caja?->closed_at,
+        ],
+    ]);
+}
 }
