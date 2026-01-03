@@ -231,6 +231,18 @@ class OrdenDeTrabajoController extends Controller
         ]);
     }
 
+    public function cambiarEstadoTaller(Request $request, OrdenDeTrabajo $orden)
+    {
+        $request->validate([
+            'estado_id' => 'required|integer|in:1,2,3', // iniciado, pendiente, completada
+        ]);
+
+        $orden->update([
+            'estado_id' => $request->estado_id,
+        ]);
+
+        return redirect()->back()->with('success', 'Estado actualizado correctamente');
+    }
 
 
     // show/edit/update/destroy: los ajustamos después cuando usemos atributos en el detalle.

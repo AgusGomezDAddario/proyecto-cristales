@@ -49,8 +49,13 @@ Route::middleware(['auth'])->group(function () {
 
     // 👉 Rutas para cuando se logue el perfil taller
     Route::middleware(['auth', 'rol.taller'])->group(function () {
-    Route::get('/taller/ots', [OrdenDeTrabajoController::class, 'pendientes'])
+        Route::get('/taller/ots', [OrdenDeTrabajoController::class, 'pendientes'])
         ->name('taller.ots');
+
+        Route::patch(
+        '/taller/ordenes/{orden}/estado',
+        [OrdenDeTrabajoController::class, 'cambiarEstadoTaller']
+        )->name('taller.ordenes.estado');
     }); 
 
 });

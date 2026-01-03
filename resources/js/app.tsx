@@ -4,6 +4,8 @@ import { createInertiaApp } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 import { route as ziggyRoute } from 'ziggy-js';
+import { Toaster } from 'react-hot-toast';
+
 
 // Declarar route globalmente
 declare global {
@@ -23,7 +25,22 @@ createInertiaApp({
     setup({ el, App, props }) {
         const root = createRoot(el);
 
-        root.render(<App {...props} />);
+        root.render(
+            <>
+                <Toaster
+                    position="top-right"
+                    toastOptions={{
+                        duration: 3000,
+                        style: {
+                            borderRadius: '12px',
+                            background: '#1f2937',
+                            color: '#fff',
+                        },
+                    }}
+                />
+                <App {...props} />
+            </>
+        );
     },
     progress: {
         color: '#4B5563',

@@ -1,11 +1,14 @@
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Calendar, Car, User, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 interface OT {
   id: number;
   fecha: string;
   estado: {
+    id: number;
     nombre: string;
   };
   titular_vehiculo: {
@@ -25,8 +28,12 @@ interface Props {
   ots: OT[];
 }
 
+
 export default function OrdenesTaller({ ots }: Props) {
-  console.log(ots);
+  const [open, setOpen] = useState(false);
+  const [ordenSeleccionada, setOrdenSeleccionada] = useState<OT | null>(null);
+  const [estadoId, setEstadoId] = useState<number | null>(null);
+
   return (
     <DashboardLayout title="Órdenes de Trabajo Pendientes">
       <Head title="Órdenes de Trabajo - Taller" />
@@ -98,19 +105,99 @@ export default function OrdenesTaller({ ots }: Props) {
               </div>
 
               {/* Acción */}
-              <div className="flex justify-end">
+              <div className="flex justify-end items-center gap-3">
                 <Link
                   href={`/ordenes/${ot.id}`}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition shadow-sm"
+                  className="inline-flex items-center gap-2 px-5 py-2 rounded-xl 
+                            bg-purple-600 text-white font-semibold
+                            hover:bg-purple-700 transition shadow-sm"
                 >
                   Ver orden
                   <ArrowRight className="w-4 h-4" />
                 </Link>
+
+                <button
+                  onClick={() => {
+                    setOrdenSeleccionada(ot);
+                    setEstadoId(ot.estado.id);
+                    setOpen(true);
+                  }}
+                  className="inline-flex items-center px-5 py-2 rounded-xl
+                            border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+                >
+                  Cambiar estado
+                </button>
               </div>
+
             </div>
           ))}
         </div>
       )}
+      {open && ordenSeleccionada && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 space-y-4">
+
+            <h3 className="text-lg font-bold text-gray-900">
+              Cambiar estado de OT #{ordenSeleccionada.id}
+            </h3>
+
+            {/* Select de estados */}
+            <select
+              value={estadoId ?? ''}
+              onChange={(e) => setEstadoId(Number(e.target.value))}
+              className="w-full border border-gray-300 rounded-lg p-2"
+            >
+              <option value={1}>Iniciado</option>
+              <option value={2}>Pendiente</option>
+              <option value={3}>Completada</option>
+            </select>
+
+            {/* Botones */}
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  setOrdenSeleccionada(null);
+                  setEstadoId(null);
+                }}
+                className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={() => {
+                  if (!estadoId) {
+                    toast.error('Seleccioná un estado');
+                    return;
+                  }
+                  router.patch(
+                    `/taller/ordenes/${ordenSeleccionada.id}/estado`,
+                    { estado_id: estadoId },
+                    {
+                      preserveScroll: true,
+                      onSuccess: () => {
+                        toast.success('Estado actualizado correctamente');
+                        setOpen(false);
+                        setOrdenSeleccionada(null);
+                        setEstadoId(null);
+                      },
+                      onError: () => {
+                        toast.error('No se pudo actualizar el estado');
+                      },
+                    }
+                  );
+                }}
+                className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700"
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
     </DashboardLayout>
   );
 }
