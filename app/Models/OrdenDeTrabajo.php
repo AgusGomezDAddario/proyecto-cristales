@@ -13,10 +13,9 @@ class OrdenDeTrabajo extends Model
 
     protected $fillable = [
         'titular_vehiculo_id',
-        'medio_de_pago_id',
         'estado_id',
-        'observacion',
         'fecha',
+        'observacion',
     ];
 
     protected $casts = [
@@ -41,9 +40,14 @@ class OrdenDeTrabajo extends Model
         return $this->belongsTo(MedioDePago::class, 'medio_de_pago_id');
     }
 
-        public function detalles()
+    public function detalles()
     {
         return $this->hasMany(DetalleOrdenDeTrabajo::class, 'orden_de_trabajo_id');
+    }
+
+    public function pagos()
+    {
+        return $this->hasMany(Precio::class, 'orden_de_trabajo_id');
     }
 
 }

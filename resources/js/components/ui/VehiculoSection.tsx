@@ -133,7 +133,7 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
     });
 
     const clearSelection = () => {
-      setFormData({ ...formData, vehiculo_id: null, nuevo_vehiculo: null });
+      setFormData({ vehiculo_id: null, nuevo_vehiculo: null });
     };
 
     const handleSelect = (option: any) => {
@@ -142,10 +142,10 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
         return;
       }
       setFormData({
-        ...formData,
-        vehiculo_id: option.value,
-        nuevo_vehiculo: null,
-      });
+  vehiculo_id: option.value,
+  nuevo_vehiculo: null,
+});
+
       setLocalErrors((p) => {
         const u = { ...p };
         delete u.general;
@@ -173,10 +173,10 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
       if (Object.keys(errs).length) return;
 
       setFormData({
-        ...formData,
-        vehiculo_id: null,
-        nuevo_vehiculo: { ...nuevoVehiculo },
-      });
+  vehiculo_id: null,
+  nuevo_vehiculo: { ...nuevoVehiculo },
+});
+
       setShowNew(false);
       setLocalErrors({});
       setNuevoVehiculo({

@@ -15,9 +15,9 @@ class PrecioFactory extends Factory
     {
         return [
             'orden_de_trabajo_id' => OrdenDeTrabajo::factory(),
-            'medio_de_pago_id'    => MedioDePago::inRandomOrder()->first()->id ?? 1,
-            'valor'               => $this->faker->randomFloat(2, 1000, 20000),
-            'valor_pagado'        => $this->faker->randomFloat(2, 0, 20000),
+            'medio_de_pago_id' => MedioDePago::inRandomOrder()->first()->id ?? 1,
+            'valor' => $this->faker->randomFloat(2, 1000, 20000),
+            'valor_pagado' => null,
         ];
     }
 }

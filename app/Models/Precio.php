@@ -8,6 +8,14 @@ class Precio extends Model
 {
     protected $table = 'precio';
     use HasFactory;
+
+    protected $fillable = [
+        'orden_de_trabajo_id',
+        'medio_de_pago_id',
+        'valor',
+        'observacion'
+    ];
+
     public function medioDePago()
     {
         return $this->belongsTo(MedioDePago::class, 'medio_de_pago_id');
