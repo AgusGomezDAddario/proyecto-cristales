@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, Head } from "@inertiajs/react";
+import { Link, Head, usePage } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { User, Phone, Mail, Car, Calendar, FileText, DollarSign, CreditCard, ArrowLeft, Printer } from "lucide-react";
 
@@ -37,6 +37,10 @@ export default function Show({ orden }: { orden: Orden }) {
 
   const totalPagado = orden.pagos.reduce((acc, curr) => acc + Number(curr.valor), 0);
   const saldoPendiente = totalOrden - totalPagado;
+  const { auth } = usePage().props as any;
+  const esTaller = auth?.role_id === 3; // 👈 ajustá si tu ID es otro
+  const esAdmin  = auth?.role_id === 1;
+
 
   return (
     <DashboardLayout>
@@ -67,7 +71,7 @@ export default function Show({ orden }: { orden: Orden }) {
               </div>
             </div>
           </div>
-
+          {!esTaller && (
           <div className="flex gap-3">
             <button
               onClick={() => window.print()}
@@ -83,8 +87,8 @@ export default function Show({ orden }: { orden: Orden }) {
               Editar Orden
             </Link>
           </div>
+          )}
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Columna Principal (Izquierda) */}
           <div className="lg:col-span-2 space-y-8">
@@ -102,8 +106,11 @@ export default function Show({ orden }: { orden: Orden }) {
                       <tr className="text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
                         <th className="pb-3 pl-2">Descripción</th>
                         <th className="pb-3 text-center">Cant.</th>
-                        <th className="pb-3 text-right">Unitario</th>
+                        {!esTaller && (
+                        <><th className="pb-3 text-right">Unitario</th>
                         <th className="pb-3 text-right pr-2">Subtotal</th>
+                        </>
+                        )}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
@@ -118,13 +125,17 @@ export default function Show({ orden }: { orden: Orden }) {
                             )}
                           </td>
                           <td className="py-3 text-center">{detalle.cantidad}</td>
-                          <td className="py-3 text-right">${Number(detalle.valor).toLocaleString("es-AR")}</td>
-                          <td className="py-3 text-right font-medium pr-2">
-                            ${(Number(detalle.valor) * Number(detalle.cantidad)).toLocaleString("es-AR")}
-                          </td>
+                          {!esTaller && (<>
+                            <td className="py-3 text-right">${Number(detalle.valor).toLocaleString("es-AR")}</td>
+                            <td className="py-3 text-right font-medium pr-2">
+                              ${(Number(detalle.valor) * Number(detalle.cantidad)).toLocaleString("es-AR")}
+                            </td>
+                          </>
+                          )}
                         </tr>
                       ))}
                     </tbody>
+                    {!esTaller && (
                     <tfoot>
                       <tr className="border-t border-gray-100">
                         <td colSpan={3} className="pt-4 text-right font-bold text-gray-900">Total:</td>
@@ -133,12 +144,14 @@ export default function Show({ orden }: { orden: Orden }) {
                         </td>
                       </tr>
                     </tfoot>
+                    )}
                   </table>
                 </div>
               </div>
             </div>
 
             {/* Pagos */}
+            {!esTaller && (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
                 <DollarSign className="w-5 h-5 text-gray-500" />
@@ -184,6 +197,7 @@ export default function Show({ orden }: { orden: Orden }) {
                 )}
               </div>
             </div>
+            )}
 
             {/* Observaciones */}
             {orden.observacion && (
