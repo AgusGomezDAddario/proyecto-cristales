@@ -27,7 +27,13 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::resource('egresos', EgresoController::class);
+    Route::put('/egresos/{id}', [EgresoController::class, 'update']);
+    Route::post('/egresos/{id}', [EgresoController::class, 'update']);
+
     Route::resource('ingresos', IngresoController::class);
+    Route::put('/ingresos/{id}', [IngresoController::class, 'update']);
+    Route::post('/ingresos/{id}', [IngresoController::class, 'update']);
+
 
     // 👉 Rutas para Movimientos (Egresos)
     // Route::resource('movimientos', MovimientoController::class);

@@ -113,69 +113,75 @@ abstract class MovimientoController extends Controller
     /**
      * Mostrar formulario de edición
      */
-    // public function edit($id)
-    // {
-    //     $movimiento = Movimiento::with(['concepto', 'medioDePago', 'comprobantes'])->findOrFail($id);
-    //     $conceptos = Concepto::where('tipo', $this->tipo)->orderBy('nombre', 'asc')->get();
-    //     $mediosDePago = MedioDePago::orderBy('nombre', 'asc')->get();
+    public function edit($id)
+    {
+        $movimiento = Movimiento::with(['concepto', 'medioDePago', 'comprobantes'])->findOrFail($id);
+        $conceptos = Concepto::where('tipo', $this->tipo)->orderBy('nombre', 'asc')->get();
+        $mediosDePago = MedioDePago::orderBy('nombre', 'asc')->get();
 
-    //     return Inertia::render('movimientos/edit', [
-    //         'movimiento' => $movimiento,
-    //         'conceptos' => $conceptos,
-    //         'mediosDePago' => $mediosDePago,
-    //         'label' => ucfirst($this->label),
-    //         'tipo' => $this->tipo,
-    //     ]);
-    // }
+        return Inertia::render('movimientos/edit', [
+            'movimiento' => $movimiento,
+            'conceptos' => $conceptos,
+            'mediosDePago' => $mediosDePago,
+            'label' => ucfirst($this->label),
+            'tipo' => $this->tipo,
+        ]);
+    }
 
     /**
      * Actualizar un movimiento
      */
-    // public function update(Request $request, $id)
-    // {
-    //     $movimiento = Movimiento::findOrFail($id);
-    //     //dd($request->all());
+    public function update(Request $request, $id)
+    {
+    //     dd(
+    //     $request->headers->get('content-type'),
+    //     $request->all(),
+    //     $request->allFiles()
+    // );
 
-    //     $data = $request->validate([
-    //         'fecha'                  => 'required|date',
-    //         'monto'                  => 'required|numeric|min:0',
-    //         'concepto_id'            => 'required|exists:concepto,id',
-    //         'medio_de_pago_id'       => 'nullable|exists:medio_de_pago,id',
+        $movimiento = Movimiento::findOrFail($id);
+        //dd($request->all());
 
-    //         'comprobantes'           => 'nullable|array',
-    //         'comprobantes.*'         => 'file|mimes:jpg,jpeg,png,pdf|max:20480',
+        $data = $request->validate([
+            'fecha'                  => 'required|date',
+            'monto'                  => 'required|numeric|min:0',
+            'concepto_id'            => 'required|exists:concepto,id',
+            'medio_de_pago_id'       => 'nullable|exists:medio_de_pago,id',
 
-    //         'comprobantes_a_eliminar' => 'nullable|array',
-    //         'comprobantes_a_eliminar.*' => 'integer|exists:comprobante,id',
-    //     ]);
+            'comprobantes'           => 'nullable|array',
+            'comprobantes.*'         => 'file|mimes:jpg,jpeg,png,pdf|max:20480',
 
-    //     $movimiento->update($data);
+            'comprobantes_a_eliminar' => 'nullable|array',
+            'comprobantes_a_eliminar.*' => 'integer|exists:comprobantes,id',
+        ]);
 
-    //     // 1) ELIMINAR comprobantes marcados
-    //     if (!empty($data['comprobantes_a_eliminar'])) {
-    //         foreach ($data['comprobantes_a_eliminar'] as $cid) {
-    //             $comp = Comprobante::find($cid);
-    //             if ($comp) {
-    //                 Storage::disk('public')->delete($comp->ruta_archivo);
-    //                 $comp->delete();
-    //             }
-    //         }
-    //     }
+        $movimiento->update($data);
 
-    //     // 2) AGREGAR los nuevos comprobantes
-    //     if ($request->hasFile('comprobantes')) {
-    //         foreach ($request->file('comprobantes') as $archivo) {
-    //             $path = $archivo->store('comprobantes', 'public');
-    //             Comprobante::create([
-    //                 'movimiento_id' => $movimiento->id,
-    //                 'ruta_archivo'  => $path,
-    //             ]);
-    //         }
-    //     }
+        // 1) ELIMINAR comprobantes marcados
+        if (!empty($data['comprobantes_a_eliminar'])) {
+            foreach ($data['comprobantes_a_eliminar'] as $cid) {
+                $comp = Comprobante::find($cid);
+                if ($comp) {
+                    Storage::disk('public')->delete($comp->ruta_archivo);
+                    $comp->delete();
+                }
+            }
+        }
 
-    //     return redirect()->route($this->ruta . '.index')
-    //         ->with('success', $this->label . ' actualizado correctamente');
-    // }
+        // 2) AGREGAR los nuevos comprobantes
+        if ($request->hasFile('comprobantes')) {
+            foreach ($request->file('comprobantes') as $archivo) {
+                $path = $archivo->store("comprobantes/{$this->tipo}", 'public');
+                Comprobante::create([
+                    'movimiento_id' => $movimiento->id,
+                    'ruta_archivo'  => $path,
+                ]);
+            }
+        }
+
+        return redirect()->route($this->ruta . '.index')
+            ->with('success', $this->label . ' actualizado correctamente');
+    }
 
 
     /**
