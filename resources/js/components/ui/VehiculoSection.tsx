@@ -1,13 +1,27 @@
 import { Car, Plus, Trash2 } from "lucide-react";
-import { useState, forwardRef, useImperativeHandle } from "react";
+import { useState, forwardRef, useImperativeHandle, useEffect } from "react";
 import Select from "react-select";
+import axios from "axios";
 
 interface Vehiculo {
   id: number;
   patente: string;
-  marca: string;
-  modelo: string;
+  marca_id: number;
+  modelo_id: number;
   anio: number;
+  marca?: { id: number; nombre: string };
+  modelo?: { id: number; nombre: string };
+}
+
+interface Marca {
+  id: number;
+  nombre: string;
+}
+
+interface Modelo {
+  id: number;
+  marca_id: number;
+  nombre: string;
 }
 
 interface Props {
@@ -23,13 +37,34 @@ export interface VehiculoSectionRef {
 const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
   ({ vehiculos, formData, setFormData }, ref) => {
     const [showNew, setShowNew] = useState(false);
+    const [marcas, setMarcas] = useState<Marca[]>([]);
+    const [modelos, setModelos] = useState<Modelo[]>([]);
     const [nuevoVehiculo, setNuevoVehiculo] = useState({
       patente: "",
-      marca: "",
-      modelo: "",
+      marca_id: null as number | null,
+      modelo_id: null as number | null,
       anio: new Date().getFullYear(),
     });
     const [localErrors, setLocalErrors] = useState<Record<string, string>>({});
+
+    // Cargar marcas al montar el componente
+    useEffect(() => {
+      axios.get('/api/marcas')
+        .then(response => setMarcas(response.data))
+        .catch(error => console.error('Error cargando marcas:', error));
+    }, []);
+
+    // Cargar modelos cuando cambia la marca seleccionada
+    useEffect(() => {
+      if (nuevoVehiculo.marca_id) {
+        axios.get(`/api/modelos/${nuevoVehiculo.marca_id}`)
+          .then(response => setModelos(response.data))
+          .catch(error => console.error('Error cargando modelos:', error));
+      } else {
+        setModelos([]);
+        setNuevoVehiculo(prev => ({ ...prev, modelo_id: null }));
+      }
+    }, [nuevoVehiculo.marca_id]);
 
     useImperativeHandle(ref, () => ({
       validate: () => {
@@ -39,68 +74,83 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
         } else if (formData.nuevo_vehiculo) {
           const v = formData.nuevo_vehiculo;
           if (!v.patente?.trim()) errs["nuevo_vehiculo.patente"] = "La patente es obligatoria.";
-          if (!v.marca?.trim()) errs["nuevo_vehiculo.marca"] = "La marca es obligatoria.";
-          if (!v.modelo?.trim()) errs["nuevo_vehiculo.modelo"] = "El modelo es obligatorio.";
+          if (!v.marca_id) errs["nuevo_vehiculo.marca_id"] = "La marca es obligatoria.";
+          if (!v.modelo_id) errs["nuevo_vehiculo.modelo_id"] = "El modelo es obligatorio.";
         }
         setLocalErrors(errs);
         return Object.keys(errs).length === 0;
       },
     }));
 
+    // Opciones para el selector de vehículos existentes
     const options = vehiculos.map((v) => ({
       value: v.id,
-      label: `${v.patente} — ${v.marca} ${v.modelo} (${v.anio})`,
+      label: `${v.patente} — ${v.marca?.nombre || 'Sin marca'} ${v.modelo?.nombre || 'Sin modelo'} (${v.anio})`,
       patente: v.patente,
-      marca: v.marca,
-      modelo: v.modelo,
+      marca: v.marca?.nombre || '',
+      modelo: v.modelo?.nombre || '',
       anio: v.anio,
     }));
 
-    // === Mismo look oscuro (texto/placeholder) que el ClienteSection ===
+    // Opciones para selector de marcas
+    const marcaOptions = marcas.map(m => ({
+      value: m.id,
+      label: m.nombre
+    }));
+
+    // Opciones para selector de modelos
+    const modeloOptions = modelos.map(m => ({
+      value: m.id,
+      label: m.nombre
+    }));
+
+    // === Estilos para react-select ===
     const classNames = {
       control: () =>
-        "border-2 border-gray-200 rounded-xl shadow-sm hover:border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500 transition bg-white",
+        "border-2 border-gray-200 rounded-xl shadow-sm hover:border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500 transition bg-gray-50",
       menu: () => "rounded-xl shadow-lg border border-gray-100 bg-white mt-1",
     } as const;
 
     const styles = {
       control: (base: any, state: any) => ({
         ...base,
-        minHeight: 44,
-        height: 44,
+        minHeight: 52,
+        height: 52,
         borderWidth: 2,
+        borderRadius: "0.75rem",
         boxShadow: state.isFocused ? "0 0 0 2px rgba(34,197,94,0.25)" : "none",
         borderColor: state.isFocused ? "#22c55e" : "#e5e7eb",
         "&:hover": { borderColor: state.isFocused ? "#22c55e" : "#d1d5db" },
-        backgroundColor: "#ffffff",
+        backgroundColor: "#f9fafb",
       }),
-      valueContainer: (b: any) => ({ ...b, padding: "0 12px" }),
+      valueContainer: (b: any) => ({ ...b, padding: "0 16px" }),
       input: (b: any) => ({
         ...b,
         margin: 0,
         padding: 0,
         lineHeight: "1.25rem",
-        color: "#111827", // texto al escribir
+        color: "#111827",
       }),
       singleValue: (b: any) => ({
         ...b,
-        color: "#111827", // valor seleccionado
+        color: "#111827",
         fontWeight: 500,
       }),
       placeholder: (b: any) => ({
         ...b,
-        color: "#111827", // placeholder oscuro
-        fontSize: "0.95rem",
+        color: "#9ca3af", // color más suave para placeholder
+        fontSize: "1rem",
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis",
       }),
       dropdownIndicator: (b: any, s: any) => ({
         ...b,
-        color: "#111827",
-        "&:hover": { color: "#111827" },
+        color: "#6b7280",
+        padding: "0 12px",
+        "&:hover": { color: "#374151" },
       }),
-      indicatorsContainer: (b: any) => ({ ...b, height: 44 }),
+      indicatorsContainer: (b: any) => ({ ...b, height: 52 }),
       option: (b: any, state: any) => ({
         ...b,
         fontSize: "0.95rem",
@@ -108,8 +158,8 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
         backgroundColor: state.isSelected
           ? "#22c55e"
           : state.isFocused
-          ? "#f3f4f6"
-          : "#ffffff",
+            ? "#f3f4f6"
+            : "#ffffff",
         cursor: "pointer",
       }),
     } as const;
@@ -125,10 +175,10 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
         neutral20: "#e5e7eb",
         neutral30: "#d1d5db",
         neutral40: "#111827",
-        neutral50: "#111827", // placeholder
+        neutral50: "#111827",
         neutral60: "#111827",
         neutral70: "#111827",
-        neutral80: "#111827", // texto
+        neutral80: "#111827",
       },
     });
 
@@ -142,9 +192,9 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
         return;
       }
       setFormData({
-  vehiculo_id: option.value,
-  nuevo_vehiculo: null,
-});
+        vehiculo_id: option.value,
+        nuevo_vehiculo: null,
+      });
 
       setLocalErrors((p) => {
         const u = { ...p };
@@ -153,36 +203,25 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
       });
     };
 
-    const handleChange = (field: keyof typeof nuevoVehiculo, value: string) => {
-      setNuevoVehiculo((prev) => ({ ...prev, [field]: field === "anio" ? Number(value) : value }));
-      setLocalErrors((prev) => {
-        const u = { ...prev };
-        if (["patente", "marca", "modelo"].includes(field as string) && value.trim() !== "") {
-          delete u[field as string];
-        }
-        return u;
-      });
-    };
-
     const handleSaveNew = () => {
       const errs: Record<string, string> = {};
       if (!nuevoVehiculo.patente.trim()) errs.patente = "La patente es obligatoria.";
-      if (!nuevoVehiculo.marca.trim()) errs.marca = "La marca es obligatoria.";
-      if (!nuevoVehiculo.modelo.trim()) errs.modelo = "El modelo es obligatorio.";
+      if (!nuevoVehiculo.marca_id) errs.marca_id = "La marca es obligatoria.";
+      if (!nuevoVehiculo.modelo_id) errs.modelo_id = "El modelo es obligatorio.";
       setLocalErrors(errs);
       if (Object.keys(errs).length) return;
 
       setFormData({
-  vehiculo_id: null,
-  nuevo_vehiculo: { ...nuevoVehiculo },
-});
+        vehiculo_id: null,
+        nuevo_vehiculo: { ...nuevoVehiculo },
+      });
 
       setShowNew(false);
       setLocalErrors({});
       setNuevoVehiculo({
         patente: "",
-        marca: "",
-        modelo: "",
+        marca_id: null,
+        modelo_id: null,
         anio: new Date().getFullYear(),
       });
     };
@@ -194,10 +233,16 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
     };
 
     const hasSummary = Boolean(formData.vehiculo_id || formData.nuevo_vehiculo);
-    const resumenLabel =
-      formData.nuevo_vehiculo
-        ? `${formData.nuevo_vehiculo.patente} — ${formData.nuevo_vehiculo.marca} ${formData.nuevo_vehiculo.modelo} (${formData.nuevo_vehiculo.anio})`
-        : options.find((o) => o.value === formData.vehiculo_id)?.label;
+
+    // Generar resumen para mostrar
+    const resumenLabel = formData.nuevo_vehiculo
+      ? (() => {
+        const v = formData.nuevo_vehiculo;
+        const marcaNombre = marcas.find(m => m.id === v.marca_id)?.nombre || 'Sin marca';
+        const modeloNombre = modelos.find(m => m.id === v.modelo_id)?.nombre || 'Sin modelo';
+        return `${v.patente} — ${marcaNombre} ${modeloNombre} (${v.anio})`;
+      })()
+      : options.find((o) => o.value === formData.vehiculo_id)?.label;
 
     return (
       <div className="space-y-3">
@@ -248,37 +293,43 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
             <div>
               <input
                 placeholder="Patente *"
-                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${
-                  localErrors.patente ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${localErrors.patente ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                  }`}
                 value={nuevoVehiculo.patente}
-                onChange={(e) => handleChange("patente", e.target.value)}
+                onChange={(e) => setNuevoVehiculo(prev => ({ ...prev, patente: e.target.value }))}
               />
               {localErrors.patente && <p className="mt-1 text-sm text-red-600">{localErrors.patente}</p>}
             </div>
 
             <div>
-              <input
-                placeholder="Marca *"
-                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${
-                  localErrors.marca ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                }`}
-                value={nuevoVehiculo.marca}
-                onChange={(e) => handleChange("marca", e.target.value)}
+              <Select
+                options={marcaOptions}
+                placeholder="Seleccionar Marca *"
+                isClearable
+                value={marcaOptions.find(opt => opt.value === nuevoVehiculo.marca_id) || null}
+                onChange={(option) => setNuevoVehiculo(prev => ({ ...prev, marca_id: option?.value || null, modelo_id: null }))}
+                classNames={classNames}
+                styles={styles}
+                theme={theme}
+                components={{ IndicatorSeparator: null }}
               />
-              {localErrors.marca && <p className="mt-1 text-sm text-red-600">{localErrors.marca}</p>}
+              {localErrors.marca_id && <p className="mt-1 text-sm text-red-600">{localErrors.marca_id}</p>}
             </div>
 
             <div>
-              <input
-                placeholder="Modelo *"
-                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${
-                  localErrors.modelo ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                }`}
-                value={nuevoVehiculo.modelo}
-                onChange={(e) => handleChange("modelo", e.target.value)}
+              <Select
+                options={modeloOptions}
+                placeholder="Seleccionar Modelo *"
+                isClearable
+                isDisabled={!nuevoVehiculo.marca_id}
+                value={modeloOptions.find(opt => opt.value === nuevoVehiculo.modelo_id) || null}
+                onChange={(option) => setNuevoVehiculo(prev => ({ ...prev, modelo_id: option?.value || null }))}
+                classNames={classNames}
+                styles={styles}
+                theme={theme}
+                components={{ IndicatorSeparator: null }}
               />
-              {localErrors.modelo && <p className="mt-1 text-sm text-red-600">{localErrors.modelo}</p>}
+              {localErrors.modelo_id && <p className="mt-1 text-sm text-red-600">{localErrors.modelo_id}</p>}
             </div>
 
             <div>
@@ -287,7 +338,7 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
                 placeholder="Año"
                 className="w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition border-gray-200 hover:border-gray-300"
                 value={nuevoVehiculo.anio}
-                onChange={(e) => handleChange("anio", e.target.value)}
+                onChange={(e) => setNuevoVehiculo(prev => ({ ...prev, anio: parseInt(e.target.value) || new Date().getFullYear() }))}
               />
             </div>
 
@@ -305,8 +356,8 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
                   setShowNew(false);
                   setNuevoVehiculo({
                     patente: "",
-                    marca: "",
-                    modelo: "",
+                    marca_id: null,
+                    modelo_id: null,
                     anio: new Date().getFullYear(),
                   });
                   setLocalErrors({});

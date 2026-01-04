@@ -8,6 +8,7 @@ use App\Http\Controllers\IngresoController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EgresoController;
 use App\Http\Controllers\MovimientoController;
+use App\Http\Controllers\VehiculoMaestroController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -46,7 +47,11 @@ Route::middleware(['auth'])->group(function () {
         ->parameters([
             'ordenes' => 'orden'
         ]);
+
+    // 👉 Rutas API para Maestro de Vehículos
+    Route::get('api/marcas', [VehiculoMaestroController::class, 'getMarcas'])->name('api.marcas');
+    Route::get('api/modelos/{marcaId}', [VehiculoMaestroController::class, 'getModelosByMarca'])->name('api.modelos');
 });
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';
