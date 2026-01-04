@@ -56,7 +56,9 @@ export default function CatalogoVehiculos({ modelos, marcas, filters }: PageProp
     const [marcaFilter, setMarcaFilter] = useState<number | null>(
         filters.marca_id ? parseInt(filters.marca_id) : null
     );
-    const [modeloFilter, setModeloFilter] = useState(filters.modelo_filter || "");
+    const [modeloFilter, setModeloFilter] = useState<string | null>(
+        filters.modelo_filter || null
+    );
     const [showModal, setShowModal] = useState(false);
     const [editingModelo, setEditingModelo] = useState<Modelo | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -145,6 +147,10 @@ export default function CatalogoVehiculos({ modelos, marcas, filters }: PageProp
 
     const marcaOptions = marcas.map((m) => ({ value: m.id, label: m.nombre }));
 
+    // Crear opciones de modelos (únicos) para el filtro
+    const allModeloNames = [...new Set(modelos.data.map((m) => m.nombre))].sort();
+    const modeloOptions = allModeloNames.map((nombre) => ({ value: nombre, label: nombre }));
+
     // ═══════════════════════════════════════════════════════════════
     // RENDER
     // ═══════════════════════════════════════════════════════════════
@@ -194,18 +200,20 @@ export default function CatalogoVehiculos({ modelos, marcas, filters }: PageProp
                             />
                         </div>
 
-                        {/* Filtro Modelo (texto) */}
-                        <input
-                            type="text"
-                            placeholder="🚗 Modelo..."
-                            value={modeloFilter}
-                            onChange={(e) => {
-                                setModeloFilter(e.target.value);
-                            }}
-                            onBlur={() => applyFilters()}
-                            onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-                            className="w-full md:w-32 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-200 focus:border-slate-400 transition text-sm"
-                        />
+                        {/* Filtro Modelo (dropdown) */}
+                        <div className="w-full md:w-40">
+                            <Select
+                                options={modeloOptions}
+                                placeholder="🚗 Modelo..."
+                                isClearable
+                                value={modeloOptions.find((o) => o.value === modeloFilter) || null}
+                                onChange={(opt) => {
+                                    setModeloFilter(opt?.value || null);
+                                    applyFilters({ modelo_filter: opt?.value || null });
+                                }}
+                                styles={selectStyles}
+                            />
+                        </div>
 
                         {/* Limpiar filtros */}
                         {(search || marcaFilter || modeloFilter) && (
@@ -213,7 +221,7 @@ export default function CatalogoVehiculos({ modelos, marcas, filters }: PageProp
                                 onClick={() => {
                                     setSearch("");
                                     setMarcaFilter(null);
-                                    setModeloFilter("");
+                                    setModeloFilter(null);
                                     router.get("/catalogo-vehiculos");
                                 }}
                                 className="inline-flex items-center gap-1 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg transition"
