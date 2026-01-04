@@ -164,51 +164,51 @@ export default function CatalogoVehiculos({ modelos, marcas, filters }: PageProp
                     </p>
                 </div>
 
-                {/* ═══ FILTROS ═══ */}
+                {/* ═══ FILTROS + BOTÓN ═══ */}
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
                         {/* Búscador */}
-                        <div className="relative md:col-span-2">
+                        <div className="relative flex-1 max-w-xs">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                             <input
                                 type="text"
-                                placeholder="🔍 Buscar por marca o modelo..."
+                                placeholder="🔍 Buscar..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-200 focus:border-slate-400 transition"
+                                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-200 focus:border-slate-400 transition text-sm"
                             />
                         </div>
 
                         {/* Filtro Marca */}
-                        <Select
-                            options={marcaOptions}
-                            placeholder="🎭 Filtrar marca..."
-                            isClearable
-                            value={marcaOptions.find((o) => o.value === marcaFilter) || null}
-                            onChange={(opt) => {
-                                setMarcaFilter(opt?.value || null);
-                                applyFilters({ marca_id: opt?.value || null });
-                            }}
-                            styles={selectStyles}
-                        />
+                        <div className="w-full md:w-40">
+                            <Select
+                                options={marcaOptions}
+                                placeholder="🎭 Marca..."
+                                isClearable
+                                value={marcaOptions.find((o) => o.value === marcaFilter) || null}
+                                onChange={(opt) => {
+                                    setMarcaFilter(opt?.value || null);
+                                    applyFilters({ marca_id: opt?.value || null });
+                                }}
+                                styles={selectStyles}
+                            />
+                        </div>
 
                         {/* Filtro Modelo (texto) */}
                         <input
                             type="text"
-                            placeholder="🚗 Filtrar modelo..."
+                            placeholder="🚗 Modelo..."
                             value={modeloFilter}
                             onChange={(e) => {
                                 setModeloFilter(e.target.value);
                             }}
                             onBlur={() => applyFilters()}
                             onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-200 focus:border-slate-400 transition"
+                            className="w-full md:w-32 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-200 focus:border-slate-400 transition text-sm"
                         />
-                    </div>
 
-                    {/* Limpiar filtros */}
-                    {(search || marcaFilter || modeloFilter) && (
-                        <div className="mt-3 flex justify-end">
+                        {/* Limpiar filtros */}
+                        {(search || marcaFilter || modeloFilter) && (
                             <button
                                 onClick={() => {
                                     setSearch("");
@@ -216,24 +216,25 @@ export default function CatalogoVehiculos({ modelos, marcas, filters }: PageProp
                                     setModeloFilter("");
                                     router.get("/catalogo-vehiculos");
                                 }}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg transition"
+                                className="inline-flex items-center gap-1 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg transition"
                             >
                                 <X className="h-3.5 w-3.5" />
-                                Limpiar filtros
+                                Limpiar
                             </button>
-                        </div>
-                    )}
-                </div>
+                        )}
 
-                {/* Botón Agregar (separado) */}
-                <div className="flex justify-end mb-4">
-                    <button
-                        onClick={openCreateModal}
-                        className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-medium py-2.5 px-5 rounded-lg transition shadow-sm"
-                    >
-                        <Plus className="h-4 w-4" />
-                        Agregar Modelo
-                    </button>
+                        {/* Espaciador */}
+                        <div className="flex-1 hidden md:block"></div>
+
+                        {/* Botón Agregar - Verde a la derecha */}
+                        <button
+                            onClick={openCreateModal}
+                            className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition shadow-sm text-sm"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Agregar Modelo
+                        </button>
+                    </div>
                 </div>
 
                 {/* ═══ TABLA ═══ */}
