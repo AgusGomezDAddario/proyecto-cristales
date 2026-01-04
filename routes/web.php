@@ -8,7 +8,7 @@ use App\Http\Controllers\IngresoController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EgresoController;
 use App\Http\Controllers\MovimientoController;
-use App\Http\Controllers\VehiculoMaestroController;
+use App\Http\Controllers\CatalogoVehiculoController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -25,6 +25,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('admin/users', [UserController::class, 'store'])->name('admin.users.store');
         Route::put('admin/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
         Route::delete('admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+
+        // 📚 Catálogo de Marcas/Modelos (solo admins)
+        Route::resource('catalogo-vehiculos', CatalogoVehiculoController::class)
+            ->parameters(['catalogo-vehiculos' => 'modelo'])
+            ->except(['create', 'show', 'edit']);
     });
 
     Route::resource('egresos', EgresoController::class);
@@ -48,9 +53,9 @@ Route::middleware(['auth'])->group(function () {
             'ordenes' => 'orden'
         ]);
 
-    // 👉 Rutas API para Maestro de Vehículos
-    Route::get('api/marcas', [VehiculoMaestroController::class, 'getMarcas'])->name('api.marcas');
-    Route::get('api/modelos/{marcaId}', [VehiculoMaestroController::class, 'getModelosByMarca'])->name('api.modelos');
+    // 👉 Rutas API para Catálogo de Vehículos (accesibles para todos los auth)
+    Route::get('api/marcas', [CatalogoVehiculoController::class, 'getMarcas'])->name('api.marcas');
+    Route::get('api/modelos/{marcaId}', [CatalogoVehiculoController::class, 'getModelosByMarca'])->name('api.modelos');
 });
 
 require __DIR__ . '/settings.php';
