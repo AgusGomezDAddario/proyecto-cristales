@@ -164,6 +164,26 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
       }),
     } as const;
 
+    const compactStyles = {
+      ...styles,
+      control: (base: any, state: any) => ({
+        ...styles.control(base, state),
+        minHeight: 44,
+        height: 44,
+      }),
+      valueContainer: (base: any) => ({
+        ...styles.valueContainer(base),
+        height: 44,
+        padding: "0 16px",
+        display: "flex",
+        alignItems: "center"
+      }),
+      indicatorsContainer: (base: any) => ({
+        ...base,
+        height: 44,
+      }),
+    };
+
     const theme = (t: any) => ({
       ...t,
       colors: {
@@ -213,7 +233,11 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
 
       setFormData({
         vehiculo_id: null,
-        nuevo_vehiculo: { ...nuevoVehiculo },
+        nuevo_vehiculo: {
+          ...nuevoVehiculo,
+          marca_nombre: marcas.find(m => m.id === nuevoVehiculo.marca_id)?.nombre,
+          modelo_nombre: modelos.find(m => m.id === nuevoVehiculo.modelo_id)?.nombre
+        },
       });
 
       setShowNew(false);
@@ -238,8 +262,9 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
     const resumenLabel = formData.nuevo_vehiculo
       ? (() => {
         const v = formData.nuevo_vehiculo;
-        const marcaNombre = marcas.find(m => m.id === v.marca_id)?.nombre || 'Sin marca';
-        const modeloNombre = modelos.find(m => m.id === v.modelo_id)?.nombre || 'Sin modelo';
+        const marcaNombre = v.marca_nombre || marcas.find(m => m.id === v.marca_id)?.nombre || 'Sin marca';
+        // Usar modelo_nombre guardado o intentar buscarlo (aunque models podría estar vacío si cambió la marca)
+        const modeloNombre = v.modelo_nombre || modelos.find(m => m.id === v.modelo_id)?.nombre || 'Sin modelo';
         return `${v.patente} — ${marcaNombre} ${modeloNombre} (${v.anio})`;
       })()
       : options.find((o) => o.value === formData.vehiculo_id)?.label;
@@ -257,7 +282,7 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
               value={options.find((opt) => opt.value === formData.vehiculo_id) || null}
               onChange={handleSelect}
               classNames={classNames}
-              styles={styles}
+              styles={compactStyles}
               theme={theme}
               components={{ IndicatorSeparator: null }}
             />

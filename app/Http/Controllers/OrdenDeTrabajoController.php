@@ -23,7 +23,8 @@ class OrdenDeTrabajoController extends Controller
     {
         $ordenes = OrdenDeTrabajo::with([
             'titularVehiculo.titular',
-            'titularVehiculo.vehiculo',
+            'titularVehiculo.vehiculo.marca',
+            'titularVehiculo.vehiculo.modelo',
             'estado',
             'pagos.medioDePago'
         ])

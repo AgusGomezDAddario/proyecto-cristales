@@ -5,8 +5,8 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 type Vehiculo = {
   id: number;
   patente: string;
-  marca: string;
-  modelo: string;
+  marca?: { nombre: string }; // Ahora es objeto opcional
+  modelo?: { nombre: string }; // Ahora es objeto opcional
   anio: number;
 };
 
@@ -155,7 +155,7 @@ export default function Index({ ordenes }: { ordenes: any }) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {orden.titular_vehiculo?.vehiculo
-                          ? `${orden.titular_vehiculo.vehiculo.patente} - ${orden.titular_vehiculo.vehiculo.marca} ${orden.titular_vehiculo.vehiculo.modelo}`
+                          ? `${orden.titular_vehiculo.vehiculo.patente} - ${orden.titular_vehiculo.vehiculo.marca?.nombre || ''} ${orden.titular_vehiculo.vehiculo.modelo?.nombre || ''}`
                           : "Sin vehículo"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
