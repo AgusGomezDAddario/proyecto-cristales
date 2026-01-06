@@ -16,6 +16,8 @@ use App\Models\Precio;
 use App\Models\Articulo;
 use App\Models\Subcategoria;
 use App\Models\CompaniaSeguro;
+use App\Models\Movimiento;
+use Illuminate\Support\Facades\Log;
 
 class OrdenDeTrabajoController extends Controller
 {
@@ -200,11 +202,65 @@ class OrdenDeTrabajoController extends Controller
                 ]);
             }
         }
+// ... código existente de detalles y atributos ...
 
-        return redirect()
-            ->route('ordenes.index')
-            ->with('success', 'Orden creada correctamente ✅ (ID: ' . $orden->id . ')');
+    // 🔥 NUEVO: Si se creó con estado "Pagado", registrar ingresos
+    if ($orden->estado_id == 1) {
+        $this->registrarIngresosDesdeOT($orden);
     }
+
+    return redirect()
+        ->route('ordenes.index')
+        ->with('success', 'Orden creada correctamente ✅ (ID: ' . $orden->id . ')');
+}
+
+/**
+ * Registra los ingresos basados en los pagos de la OT
+ */
+private function registrarIngresosDesdeOT(OrdenDeTrabajo $orden)
+{
+    try {
+        $pagos = $orden->fresh()->pagos; // fresh() asegura cargar los pagos recién creados
+
+        if ($pagos->isEmpty()) {
+            Log::warning("La OT #{$orden->id} no tiene pagos registrados.");
+            return;
+        }
+
+        foreach ($pagos as $pago) {
+            Movimiento::create([
+                'fecha' => $orden->fecha,
+                'monto' => $pago->valor,
+                'concepto_id' => 3, // "Cobro a clientes"
+                'medio_de_pago_id' => $pago->medio_de_pago_id,
+                'comprobante' => "OT-{$orden->id}",
+                'tipo' => 'ingreso',
+            ]);
+        }
+
+        Log::info("✅ Ingresos registrados para la OT #{$orden->id}");
+    } catch (\Exception $e) {
+        Log::error("❌ Error al registrar ingresos para OT #{$orden->id}: " . $e->getMessage());
+    }
+}
+
+public function update(Request $request, OrdenDeTrabajo $orden)
+{
+    // Validación similar a store()
+    $validated = $request->validate([
+        'estado_id' => 'required|exists:estado,id',
+        // ... otros campos ...
+    ]);
+
+    // Actualizar la orden
+    $orden->update($validated);
+
+    // El Observer detectará automáticamente si cambió a estado "Pagado"
+    
+    return redirect()
+        ->route('ordenes.index')
+        ->with('success', 'Orden actualizada correctamente ✅');
+}
 
     // show/edit/update/destroy: los ajustamos después cuando usemos atributos en el detalle.
 }
