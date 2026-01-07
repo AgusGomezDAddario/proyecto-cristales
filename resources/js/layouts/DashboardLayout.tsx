@@ -57,6 +57,17 @@ export default function DashboardLayout({ children, title }: Props) {
               >
                 📊 Panel de Control
               </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin/users"
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/admin/users')
+                    ? 'bg-blue-50 text-blue-700 shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                >
+                  👤 Gestión de Usuarios
+                </Link>
+              )}
 
               <Link
                 href="/egresos"
@@ -76,6 +87,16 @@ export default function DashboardLayout({ children, title }: Props) {
               >
                 💰 Ingresos
               </Link>
+              <Link
+                href="/resumen-del-dia"
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/resumen-del-dia')
+                  ? 'bg-blue-50 text-blue-700 shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+              >
+                🧾 Resumen del día
+              </Link>
+
               <Link
                 href="/ordenes"
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/ordenes')
@@ -257,6 +278,16 @@ export default function DashboardLayout({ children, title }: Props) {
               >
                 💰 Ingresos
               </Link>
+              <Link
+                href="/resumen-del-dia"
+                className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/resumen-del-dia')
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+              >
+                🧾 Resumen del día
+              </Link>
+
               <Link
                 href="/ordenes"
                 className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/ordenes')
