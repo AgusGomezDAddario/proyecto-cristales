@@ -46,51 +46,56 @@ export default function MainLayout({ children, title }: Props) {
             <div className="hidden md:flex items-center gap-2">
               <Link
                 href="/dashboard"
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  isActive('/dashboard')
-                    ? 'bg-blue-50 text-blue-700 shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/dashboard')
+                  ? 'bg-blue-50 text-blue-700 shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
               >
                 📊 Panel de Control
               </Link>
               <Link
                 href="/admin/users"
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  isActive('/admin/users')
-                    ? 'bg-blue-50 text-blue-700 shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/admin/users')
+                  ? 'bg-blue-50 text-blue-700 shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
               >
                 👤 Usuarios
               </Link>
               <Link
                 href="/movimientos"
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  isActive('/movimientos')
-                    ? 'bg-red-50 text-red-700 shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/movimientos')
+                  ? 'bg-red-50 text-red-700 shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
               >
                 💸 Carga de Egresos
               </Link>
               <Link
                 href="/ingresos"
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  isActive('/ingresos')
-                    ? 'bg-green-50 text-green-700 shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/ingresos')
+                  ? 'bg-green-50 text-green-700 shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
               >
                 💰 Carga de Ingresos
               </Link>
               <Link
+                href="/resumen-del-dia"
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/resumen-del-dia')
+                  ? 'bg-blue-50 text-blue-700 shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+              >
+                🧾 Resumen del día
+              </Link>
+
+              <Link
                 href="/ordenes-trabajo"
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  isActive('/ordenes-trabajo')
-                    ? 'bg-purple-50 text-purple-700 shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/ordenes-trabajo')
+                  ? 'bg-purple-50 text-purple-700 shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
               >
                 🚗 Órdenes de Trabajo
               </Link>
@@ -135,51 +140,56 @@ export default function MainLayout({ children, title }: Props) {
             <div className="px-4 py-2 space-y-1">
               <Link
                 href="/dashboard"
-                className={`block px-4 py-2 rounded-lg font-semibold ${
-                  isActive('/dashboard')
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/dashboard')
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
               >
                 📊 Panel de Control
               </Link>
               <Link
                 href="/admin/users"
-                className={`block px-4 py-2 rounded-lg font-semibold ${
-                  isActive('/admin/users')
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/admin/users')
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
               >
                 👤 Usuarios
               </Link>
               <Link
                 href="/movimientos"
-                className={`block px-4 py-2 rounded-lg font-semibold ${
-                  isActive('/movimientos')
-                    ? 'bg-red-50 text-red-700'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/movimientos')
+                  ? 'bg-red-50 text-red-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
               >
                 💸 Carga de Egresos
               </Link>
               <Link
                 href="/ingresos"
-                className={`block px-4 py-2 rounded-lg font-semibold ${
-                  isActive('/ingresos')
-                    ? 'bg-green-50 text-green-700'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/ingresos')
+                  ? 'bg-green-50 text-green-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
               >
                 💰 Carga de Ingresos
               </Link>
               <Link
-                href="/ordenes-trabajo"
-                className={`block px-4 py-2 rounded-lg font-semibold ${
-                  isActive('/ordenes-trabajo')
-                    ? 'bg-purple-50 text-purple-700'
+                href="/resumen-del-dia"
+                className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/resumen-del-dia')
+                    ? 'bg-blue-50 text-blue-700'
                     : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                  }`}
+              >
+                🧾 Resumen del día
+              </Link>
+
+              <Link
+                href="/ordenes-trabajo"
+                className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/ordenes-trabajo')
+                  ? 'bg-purple-50 text-purple-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
               >
                 🚗 Órdenes de Trabajo
               </Link>
@@ -202,7 +212,7 @@ export default function MainLayout({ children, title }: Props) {
       <footer className="bg-white border-t border-gray-200 mt-auto">
         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
           <p className="text-center text-sm text-gray-500">
-            © 2025 Yets Solutions - Todos los derechos reservados 
+            © 2025 Yets Solutions - Todos los derechos reservados
           </p>
         </div>
       </footer>
