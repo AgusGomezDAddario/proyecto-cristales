@@ -19,21 +19,72 @@ use App\Models\CompaniaSeguro;
 
 class OrdenDeTrabajoController extends Controller
 {
-    public function index()
-    {
-        $ordenes = OrdenDeTrabajo::with([
+    public function index(Request $request)
+{
+    $perPage = $request->integer('per_page', 10);
+
+    $ordenes = OrdenDeTrabajo::query()
+        ->with([
             'titularVehiculo.titular',
             'titularVehiculo.vehiculo',
             'estado',
-            'pagos.medioDePago'
+            'medioDePago',
         ])
-            ->latest()
-            ->paginate(10);
 
-        return Inertia::render('ordenes/index', [
-            'ordenes' => $ordenes
-        ]);
-    }
+        // 🔍 Búsqueda unificada
+        ->when($request->filled('q'), function ($query) use ($request) {
+            $q = $request->q;
+
+            $query->whereHas('titularVehiculo.titular', function ($q2) use ($q) {
+                $q2->where('nombre', 'like', "%{$q}%")
+                   ->orWhere('apellido', 'like', "%{$q}%");
+            })
+            ->orWhereHas('titularVehiculo.vehiculo', function ($q2) use ($q) {
+                $q2->where('patente', 'like', "%{$q}%");
+            });
+        })
+
+        // 🟦 Estado
+        ->when($request->filled('estado_id'), fn ($q) =>
+            $q->where('estado_id', $request->estado_id)
+        )
+
+        // 🧾 Con / Sin factura
+        ->when($request->filled('con_factura'), function ($q) use ($request) {
+            // acepta '1' o '0'
+            $q->where('con_factura', (int) $request->con_factura);
+        })  
+
+        // 📅 Rango de fechas
+        ->when($request->filled('date_from'), fn ($q) =>
+            $q->whereDate('fecha', '>=', $request->date_from)
+        )
+        ->when($request->filled('date_to'), fn ($q) =>
+            $q->whereDate('fecha', '<=', $request->date_to)
+        )
+
+        ->orderByDesc('fecha')
+        ->paginate($perPage)
+        ->withQueryString();
+
+        $estados = Estado::select('id', 'nombre')
+        ->orderBy('nombre')
+        ->get();
+
+    return Inertia::render('ordenes/index', [
+    'ordenes' => $ordenes,
+    'estados' => $estados,
+    'filters' => $request->only([
+        'q',
+        'estado_id',
+        'con_factura',
+        'date_from',
+        'date_to',
+        'per_page',
+        ]),
+    ]);
+
+}
 
     public function create()
     {
