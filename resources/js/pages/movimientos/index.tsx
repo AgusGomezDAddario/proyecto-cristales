@@ -86,9 +86,6 @@ export default function Index({ movimientos, tipo, label }: Props) {
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Medio de Pago
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Comprobante
-                                        </th>
                                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Monto
                                         </th>
@@ -108,9 +105,6 @@ export default function Index({ movimientos, tipo, label }: Props) {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                 {movimiento.medio_de_pago?.nombre || '-'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                {movimiento.comprobante || '-'}
                                             </td>
                                             <td
                                                 className={`px-6 py-4 whitespace-nowrap text-sm font-semibold text-right ${tipo === 'egreso' ? 'text-red-600' : 'text-green-600'
