@@ -16,28 +16,87 @@ use App\Models\Precio;
 use App\Models\Articulo;
 use App\Models\Subcategoria;
 use App\Models\CompaniaSeguro;
+use App\Models\Movimiento;
+use Illuminate\Support\Facades\Log;
 
 class OrdenDeTrabajoController extends Controller
 {
-    public function index()
-    {
-        $ordenes = OrdenDeTrabajo::with([
-            'titularVehiculo.titular',
-            'titularVehiculo.vehiculo',
-            'estado',
-            'pagos.medioDePago'
-        ])
-            ->latest()
-            ->paginate(10);
+    public function index(Request $request)
+{
+    $perPage = $request->integer('per_page', 10);
 
-        return Inertia::render('ordenes/index', [
-            'ordenes' => $ordenes
-        ]);
-    }
+    $ordenes = OrdenDeTrabajo::query()
+        ->with([
+            'titularVehiculo.titular',
+            'titularVehiculo.vehiculo.marca',
+            'titularVehiculo.vehiculo.modelo',
+            'estado',
+            'medioDePago',
+        ])
+
+        // 🔍 Búsqueda unificada
+        ->when($request->filled('q'), function ($query) use ($request) {
+            $q = $request->q;
+
+            $query->whereHas('titularVehiculo.titular', function ($q2) use ($q) {
+                $q2->where('nombre', 'like', "%{$q}%")
+                   ->orWhere('apellido', 'like', "%{$q}%");
+            })
+            ->orWhereHas('titularVehiculo.vehiculo', function ($q2) use ($q) {
+                $q2->where('patente', 'like', "%{$q}%");
+            });
+        })
+
+        // 🟦 Estado
+        ->when($request->filled('estado_id'), fn ($q) =>
+            $q->where('estado_id', $request->estado_id)
+        )
+
+        // 🧾 Con / Sin factura
+        ->when($request->filled('con_factura'), function ($q) use ($request) {
+            // acepta '1' o '0'
+            $q->where('con_factura', (int) $request->con_factura);
+        })  
+
+        // 📅 Rango de fechas
+        ->when($request->filled('date_from'), fn ($q) =>
+            $q->whereDate('fecha', '>=', $request->date_from)
+        )
+        ->when($request->filled('date_to'), fn ($q) =>
+            $q->whereDate('fecha', '<=', $request->date_to)
+        )
+
+        ->orderByDesc('fecha')
+        ->paginate($perPage)
+        ->withQueryString();
+
+        $estados = Estado::select('id', 'nombre')
+        ->orderBy('nombre')
+        ->get();
+
+    return Inertia::render('ordenes/index', [
+    'ordenes' => $ordenes,
+    'estados' => $estados,
+    'filters' => $request->only([
+        'q',
+        'estado_id',
+        'con_factura',
+        'date_from',
+        'date_to',
+        'per_page',
+        ]),
+    ]);
+
+}
 
     public function create()
     {
-        $titulares = Titular::with('vehiculos:id,patente,marca,modelo,anio')
+        $titulares = Titular::with([
+            'vehiculos' => function ($query) {
+                $query->select('vehiculo.id', 'patente', 'marca_id', 'modelo_id', 'anio')
+                    ->with(['marca:id,nombre', 'modelo:id,nombre']);
+            }
+        ])
             ->select('id', 'nombre', 'apellido', 'telefono', 'email')
             ->get();
 
@@ -49,7 +108,7 @@ class OrdenDeTrabajoController extends Controller
             ->select('id', 'nombre')
             ->get();
 
-        $companiasSeguros = CompaniaSeguro::select('id','nombre')
+        $companiasSeguros = CompaniaSeguro::select('id', 'nombre')
             ->where('activo', true)
             ->orderBy('nombre')
             ->get();
@@ -77,8 +136,8 @@ class OrdenDeTrabajoController extends Controller
 
             'nuevo_vehiculo' => 'nullable|array',
             'nuevo_vehiculo.patente' => 'required_without:vehiculo_id|string|max:10',
-            'nuevo_vehiculo.marca' => 'nullable|string|max:48',
-            'nuevo_vehiculo.modelo' => 'nullable|string|max:48',
+            'nuevo_vehiculo.marca_id' => 'nullable|integer|exists:marcas,id',
+            'nuevo_vehiculo.modelo_id' => 'nullable|integer|exists:modelos,id',
             'nuevo_vehiculo.anio' => 'nullable|integer|min:1900|max:' . date('Y'),
 
             'estado_id' => 'required|exists:estado,id',
@@ -130,8 +189,8 @@ class OrdenDeTrabajoController extends Controller
         if (empty($data['vehiculo_id']) && !empty($data['nuevo_vehiculo'])) {
             $nuevoVehiculo = Vehiculo::create([
                 'patente' => strtoupper($data['nuevo_vehiculo']['patente']),
-                'marca' => $data['nuevo_vehiculo']['marca'] ?? '',
-                'modelo' => $data['nuevo_vehiculo']['modelo'] ?? '',
+                'marca_id' => $data['nuevo_vehiculo']['marca_id'] ?? null,
+                'modelo_id' => $data['nuevo_vehiculo']['modelo_id'] ?? null,
                 'anio' => $data['nuevo_vehiculo']['anio'] ?? null,
             ]);
             $data['vehiculo_id'] = $nuevoVehiculo->id;
@@ -177,13 +236,15 @@ class OrdenDeTrabajoController extends Controller
 
             // Persistimos solo las selecciones efectivas
             foreach ($atributos as $categoriaId => $subcategoriaId) {
-                if (empty($subcategoriaId)) continue;
+                if (empty($subcategoriaId))
+                    continue;
 
                 // Control mínimo: que exista la subcategoría (ya validado por exists)
                 // Recomendación: agregar control fuerte: que esa subcategoría pertenezca a una categoría del artículo.
                 // (lo hacemos con una verificación simple)
                 $sc = Subcategoria::with('categoria')->find($subcategoriaId);
-                if (!$sc) continue;
+                if (!$sc)
+                    continue;
 
                 DetalleOrdenAtributo::create([
                     'detalle_orden_de_trabajo_id' => $detalleCreado->id,
@@ -192,11 +253,65 @@ class OrdenDeTrabajoController extends Controller
                 ]);
             }
         }
+// ... código existente de detalles y atributos ...
 
-        return redirect()
-            ->route('ordenes.index')
-            ->with('success', 'Orden creada correctamente ✅ (ID: ' . $orden->id . ')');
+    // 🔥 NUEVO: Si se creó con estado "Pagado", registrar ingresos
+    if ($orden->estado_id == 1) {
+        $this->registrarIngresosDesdeOT($orden);
     }
+
+    return redirect()
+        ->route('ordenes.index')
+        ->with('success', 'Orden creada correctamente ✅ (ID: ' . $orden->id . ')');
+}
+
+/**
+ * Registra los ingresos basados en los pagos de la OT
+ */
+private function registrarIngresosDesdeOT(OrdenDeTrabajo $orden)
+{
+    try {
+        $pagos = $orden->fresh()->pagos; // fresh() asegura cargar los pagos recién creados
+
+        if ($pagos->isEmpty()) {
+            Log::warning("La OT #{$orden->id} no tiene pagos registrados.");
+            return;
+        }
+
+        foreach ($pagos as $pago) {
+            Movimiento::create([
+                'fecha' => $orden->fecha,
+                'monto' => $pago->valor,
+                'concepto_id' => 3, // "Cobro a clientes"
+                'medio_de_pago_id' => $pago->medio_de_pago_id,
+                'comprobante' => "OT-{$orden->id}",
+                'tipo' => 'ingreso',
+            ]);
+        }
+
+        Log::info("✅ Ingresos registrados para la OT #{$orden->id}");
+    } catch (\Exception $e) {
+        Log::error("❌ Error al registrar ingresos para OT #{$orden->id}: " . $e->getMessage());
+    }
+}
+
+public function update(Request $request, OrdenDeTrabajo $orden)
+{
+    // Validación similar a store()
+    $validated = $request->validate([
+        'estado_id' => 'required|exists:estado,id',
+        // ... otros campos ...
+    ]);
+
+    // Actualizar la orden
+    $orden->update($validated);
+
+    // El Observer detectará automáticamente si cambió a estado "Pagado"
+    
+    return redirect()
+        ->route('ordenes.index')
+        ->with('success', 'Orden actualizada correctamente ✅');
+}
 
     // show/edit/update/destroy: los ajustamos después cuando usemos atributos en el detalle.
 }

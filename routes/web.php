@@ -8,6 +8,9 @@ use App\Http\Controllers\IngresoController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EgresoController;
 use App\Http\Controllers\MovimientoController;
+use App\Http\Controllers\CatalogoVehiculoController;
+use App\Http\Controllers\DailySummaryController;
+use App\Http\Controllers\CashboxController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -24,6 +27,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('admin/users', [UserController::class, 'store'])->name('admin.users.store');
         Route::put('admin/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
         Route::delete('admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+
+        // 📚 Catálogo de Marcas/Modelos (solo admins)
+        Route::resource('catalogo-vehiculos', CatalogoVehiculoController::class)
+            ->parameters(['catalogo-vehiculos' => 'modelo'])
+            ->except(['create', 'show', 'edit']);
     });
 
     Route::resource('egresos', EgresoController::class);
@@ -52,7 +60,19 @@ Route::middleware(['auth'])->group(function () {
         ->parameters([
             'ordenes' => 'orden'
         ]);
+
+    // 👉 Rutas API para Catálogo de Vehículos (accesibles para todos los auth)
+    Route::get('api/marcas', [CatalogoVehiculoController::class, 'getMarcas'])->name('api.marcas');
+    Route::get('api/modelos/{marcaId}', [CatalogoVehiculoController::class, 'getModelosByMarca'])->name('api.modelos');
+    // 👉 Rutas para Resumen del día
+    Route::get('/resumen-del-dia', [DailySummaryController::class, 'show'])->name('daily-summary.show');
+
+    Route::post('/caja/abrir', [CashboxController::class, 'open'])->name('cashbox.open');
+    Route::post('/caja/cerrar', [CashboxController::class, 'close'])->name('cashbox.close');
+
+    Route::get('/resumen-del-dia/imprimir', [DailySummaryController::class, 'print'])
+    ->name('daily-summary.print');
 });
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';
