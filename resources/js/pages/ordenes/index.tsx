@@ -5,8 +5,8 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 type Vehiculo = {
   id: number;
   patente: string;
-  marca: string;
-  modelo: string;
+  marca?: { nombre: string }; // Ahora es objeto opcional
+  modelo?: { nombre: string }; // Ahora es objeto opcional
   anio: number;
 };
 
@@ -234,19 +234,19 @@ export default function Index({ ordenes }: { ordenes: any }) {
               </select>
             </div> */}
 
-              {/* Factura */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-gray-600 mb-1">Factura</label>
-                <select
-                  value={filters.con_factura as any}
-                  onChange={(e) => setFilters((p) => ({ ...p, con_factura: e.target.value }))}
-                  className="w-full rounded-lg border-gray-300 focus:border-gray-400 focus:ring-gray-200 text-sm"
-                >
-                  <option value="">Todas</option>
-                  <option value="1">Con factura</option>
-                  <option value="0">Sin factura</option>
-                </select>
-              </div>
+            {/* Factura */}
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Factura</label>
+              <select
+                value={filters.con_factura as any}
+                onChange={(e) => setFilters((p) => ({ ...p, con_factura: e.target.value }))}
+                className="w-full rounded-lg border-gray-300 focus:border-gray-400 focus:ring-gray-200 text-sm"
+              >
+                <option value="">Todas</option>
+                <option value="1">Con factura</option>
+                <option value="0">Sin factura</option>
+              </select>
+            </div>
 
             {/* Fecha desde */}
             <div className="md:col-span-2">
@@ -389,7 +389,10 @@ export default function Index({ ordenes }: { ordenes: any }) {
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {listaOrdenes.map((orden: Orden) => (
-                      <tr key={orden.id} className="hover:bg-gray-50 transition">
+                      <tr
+                        key={orden.id}
+                        className="hover:bg-gray-50 transition"
+                      >
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {formatDate(orden.fecha)}
                         </td>
@@ -400,7 +403,7 @@ export default function Index({ ordenes }: { ordenes: any }) {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           {orden.titular_vehiculo?.vehiculo
-                            ? `${orden.titular_vehiculo.vehiculo.patente} - ${orden.titular_vehiculo.vehiculo.marca} ${orden.titular_vehiculo.vehiculo.modelo}`
+                            ? `${orden.titular_vehiculo.vehiculo.patente} - ${orden.titular_vehiculo.vehiculo.marca?.nombre || ''} ${orden.titular_vehiculo.vehiculo.modelo?.nombre || ''}`
                             : "Sin vehículo"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -479,11 +482,10 @@ export default function Index({ ordenes }: { ordenes: any }) {
                           key={idx}
                           href={l.url}
                           preserveScroll
-                          className={`px-3 py-1.5 rounded-lg text-sm border transition ${
-                            l.active
-                              ? "bg-gray-900 text-white border-gray-900"
-                              : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                          }`}
+                          className={`px-3 py-1.5 rounded-lg text-sm border transition ${l.active
+                            ? "bg-gray-900 text-white border-gray-900"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                            }`}
                         >
                           {label}
                         </Link>

@@ -26,7 +26,8 @@ class OrdenDeTrabajoController extends Controller
     $ordenes = OrdenDeTrabajo::query()
         ->with([
             'titularVehiculo.titular',
-            'titularVehiculo.vehiculo',
+            'titularVehiculo.vehiculo.marca',
+            'titularVehiculo.vehiculo.modelo',
             'estado',
             'medioDePago',
         ])
@@ -88,7 +89,12 @@ class OrdenDeTrabajoController extends Controller
 
     public function create()
     {
-        $titulares = Titular::with('vehiculos:id,patente,marca,modelo,anio')
+        $titulares = Titular::with([
+            'vehiculos' => function ($query) {
+                $query->select('vehiculo.id', 'patente', 'marca_id', 'modelo_id', 'anio')
+                    ->with(['marca:id,nombre', 'modelo:id,nombre']);
+            }
+        ])
             ->select('id', 'nombre', 'apellido', 'telefono', 'email')
             ->get();
 
@@ -100,7 +106,7 @@ class OrdenDeTrabajoController extends Controller
             ->select('id', 'nombre')
             ->get();
 
-        $companiasSeguros = CompaniaSeguro::select('id','nombre')
+        $companiasSeguros = CompaniaSeguro::select('id', 'nombre')
             ->where('activo', true)
             ->orderBy('nombre')
             ->get();
@@ -128,8 +134,8 @@ class OrdenDeTrabajoController extends Controller
 
             'nuevo_vehiculo' => 'nullable|array',
             'nuevo_vehiculo.patente' => 'required_without:vehiculo_id|string|max:10',
-            'nuevo_vehiculo.marca' => 'nullable|string|max:48',
-            'nuevo_vehiculo.modelo' => 'nullable|string|max:48',
+            'nuevo_vehiculo.marca_id' => 'nullable|integer|exists:marcas,id',
+            'nuevo_vehiculo.modelo_id' => 'nullable|integer|exists:modelos,id',
             'nuevo_vehiculo.anio' => 'nullable|integer|min:1900|max:' . date('Y'),
 
             'estado_id' => 'required|exists:estado,id',
@@ -181,8 +187,8 @@ class OrdenDeTrabajoController extends Controller
         if (empty($data['vehiculo_id']) && !empty($data['nuevo_vehiculo'])) {
             $nuevoVehiculo = Vehiculo::create([
                 'patente' => strtoupper($data['nuevo_vehiculo']['patente']),
-                'marca' => $data['nuevo_vehiculo']['marca'] ?? '',
-                'modelo' => $data['nuevo_vehiculo']['modelo'] ?? '',
+                'marca_id' => $data['nuevo_vehiculo']['marca_id'] ?? null,
+                'modelo_id' => $data['nuevo_vehiculo']['modelo_id'] ?? null,
                 'anio' => $data['nuevo_vehiculo']['anio'] ?? null,
             ]);
             $data['vehiculo_id'] = $nuevoVehiculo->id;
@@ -228,13 +234,15 @@ class OrdenDeTrabajoController extends Controller
 
             // Persistimos solo las selecciones efectivas
             foreach ($atributos as $categoriaId => $subcategoriaId) {
-                if (empty($subcategoriaId)) continue;
+                if (empty($subcategoriaId))
+                    continue;
 
                 // Control mínimo: que exista la subcategoría (ya validado por exists)
                 // Recomendación: agregar control fuerte: que esa subcategoría pertenezca a una categoría del artículo.
                 // (lo hacemos con una verificación simple)
                 $sc = Subcategoria::with('categoria')->find($subcategoriaId);
-                if (!$sc) continue;
+                if (!$sc)
+                    continue;
 
                 DetalleOrdenAtributo::create([
                     'detalle_orden_de_trabajo_id' => $detalleCreado->id,

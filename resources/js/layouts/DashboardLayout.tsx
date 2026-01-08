@@ -7,11 +7,13 @@ interface Props extends PropsWithChildren {
 
 export default function DashboardLayout({ children, title }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
   const { url } = usePage();
   const { auth } = usePage().props as any;
 
   const isActive = (path: string) => url.startsWith(path);
   const isAdmin = auth?.user?.role_id === 1;
+  const isAdminSection = isActive('/admin/users') || isActive('/catalogo-vehiculos');
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
@@ -55,7 +57,6 @@ export default function DashboardLayout({ children, title }: Props) {
               >
                 📊 Panel de Control
               </Link>
-
               {isAdmin && (
                 <Link
                   href="/admin/users"
@@ -105,6 +106,58 @@ export default function DashboardLayout({ children, title }: Props) {
               >
                 🚗 Órdenes de Trabajo
               </Link>
+
+              {isAdmin && (
+                <div className="relative">
+                  <button
+                    onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
+                    className="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1 text-gray-700 bg-transparent hover:bg-gray-100"
+                  >
+                    ⚙️ Administración
+                    <svg className={`w-4 h-4 transition-transform ${adminDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {adminDropdownOpen && (
+                    <div className="absolute top-full right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                      <Link
+                        href="#"
+                        className="block px-4 py-2 text-sm text-gray-400 cursor-not-allowed"
+                      >
+                        👥 Clientes
+                      </Link>
+                      <Link
+                        href="/catalogo-vehiculos"
+                        className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/catalogo-vehiculos') ? 'text-blue-600 font-medium' : 'text-gray-700'
+                          }`}
+                      >
+                        🚙 Vehículos
+                      </Link>
+                      <Link
+                        href="#"
+                        className="block px-4 py-2 text-sm text-gray-400 cursor-not-allowed"
+                      >
+                        📦 Artículos
+                      </Link>
+                      <Link
+                        href="#"
+                        className="block px-4 py-2 text-sm text-gray-400 cursor-not-allowed"
+                      >
+                        🏭 Proveedores
+                      </Link>
+                      <div className="border-t border-gray-100 my-1"></div>
+                      <Link
+                        href="/admin/users"
+                        className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/admin/users') ? 'text-blue-600 font-medium' : 'text-gray-700'
+                          }`}
+                      >
+                        👤 Usuarios
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Botón de logout */}
               <Link
@@ -165,15 +218,46 @@ export default function DashboardLayout({ children, title }: Props) {
               </Link>
 
               {isAdmin && (
-                <Link
-                  href="/admin/users"
-                  className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/admin/users')
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                >
-                  👤 Gestión de Usuarios
-                </Link>
+                <>
+                  <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase">⚙️ Administración</div>
+                  <Link
+                    href="#"
+                    className="block px-4 py-2 rounded-lg text-gray-400 cursor-not-allowed"
+                  >
+                    👥 Clientes
+                  </Link>
+                  <Link
+                    href="/catalogo-vehiculos"
+                    className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/catalogo-vehiculos')
+                      ? 'bg-orange-50 text-orange-700'
+                      : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                  >
+                    🚙 Vehículos
+                  </Link>
+                  <Link
+                    href="#"
+                    className="block px-4 py-2 rounded-lg text-gray-400 cursor-not-allowed"
+                  >
+                    📦 Artículos
+                  </Link>
+                  <Link
+                    href="#"
+                    className="block px-4 py-2 rounded-lg text-gray-400 cursor-not-allowed"
+                  >
+                    🏭 Proveedores
+                  </Link>
+                  <Link
+                    href="/admin/users"
+                    className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/admin/users')
+                      ? 'bg-orange-50 text-orange-700'
+                      : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                  >
+                    👤 Usuarios
+                  </Link>
+                  <div className="border-t border-gray-200 my-2"></div>
+                </>
               )}
 
               <Link
