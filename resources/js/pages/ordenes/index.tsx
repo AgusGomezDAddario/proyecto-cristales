@@ -234,19 +234,19 @@ export default function Index({ ordenes }: { ordenes: any }) {
               </select>
             </div> */}
 
-              {/* Factura */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-gray-600 mb-1">Factura</label>
-                <select
-                  value={filters.con_factura as any}
-                  onChange={(e) => setFilters((p) => ({ ...p, con_factura: e.target.value }))}
-                  className="w-full rounded-lg border-gray-300 focus:border-gray-400 focus:ring-gray-200 text-sm"
-                >
-                  <option value="">Todas</option>
-                  <option value="1">Con factura</option>
-                  <option value="0">Sin factura</option>
-                </select>
-              </div>
+            {/* Factura */}
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Factura</label>
+              <select
+                value={filters.con_factura as any}
+                onChange={(e) => setFilters((p) => ({ ...p, con_factura: e.target.value }))}
+                className="w-full rounded-lg border-gray-300 focus:border-gray-400 focus:ring-gray-200 text-sm"
+              >
+                <option value="">Todas</option>
+                <option value="1">Con factura</option>
+                <option value="0">Sin factura</option>
+              </select>
+            </div>
 
             {/* Fecha desde */}
             <div className="md:col-span-2">
@@ -362,85 +362,37 @@ export default function Index({ ordenes }: { ordenes: any }) {
               </Link>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fecha
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Titular
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Vehículo
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Estado
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Medio de Pago
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Acciones
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {listaOrdenes.map((orden: Orden) => (
-                    <tr
-                      key={orden.id}
-                      className="hover:bg-gray-50 transition"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatDate(orden.fecha)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {orden.titular_vehiculo?.titular
-                          ? `${orden.titular_vehiculo.titular.nombre} ${orden.titular_vehiculo.titular.apellido}`
-                          : "Sin titular"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {orden.titular_vehiculo?.vehiculo
-                          ? `${orden.titular_vehiculo.vehiculo.patente} - ${orden.titular_vehiculo.vehiculo.marca?.nombre || ''} ${orden.titular_vehiculo.vehiculo.modelo?.nombre || ''}`
-                          : "Sin vehículo"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className="px-2 py-1 rounded text-white text-xs bg-blue-500">
-                          {orden.estado?.nombre ?? "-"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {/* Como ahora son múltiples pagos, mostramos 'Ver detalle' o el primero */}
-                        {orden.medio_de_pago?.nombre ?? "Ver detalle"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end gap-3">
-                          <Link
-                            href={`/ordenes/${orden.id}`}
-                            className="text-blue-600 hover:text-blue-800 font-medium"
-                          >
-                            Ver
-                          </Link>
-                          <Link
-                            href={`/ordenes/${orden.id}/edit`}
-                            className="text-green-600 hover:text-green-800 font-medium"
-                          >
-                            Editar
-                          </Link>
-                          <button
-                            onClick={() => handleDelete(orden.id)}
-                            className="text-red-600 hover:text-red-800 font-medium"
-                          >
-                            Eliminar
-                          </button>
-                        </div>
-                      </td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Fecha
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Titular
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Vehículo
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Estado
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Medio de Pago
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Acciones
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {listaOrdenes.map((orden: Orden) => (
-                      <tr key={orden.id} className="hover:bg-gray-50 transition">
+                      <tr
+                        key={orden.id}
+                        className="hover:bg-gray-50 transition"
+                      >
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {formatDate(orden.fecha)}
                         </td>
@@ -451,7 +403,7 @@ export default function Index({ ordenes }: { ordenes: any }) {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           {orden.titular_vehiculo?.vehiculo
-                            ? `${orden.titular_vehiculo.vehiculo.patente} - ${orden.titular_vehiculo.vehiculo.marca} ${orden.titular_vehiculo.vehiculo.modelo}`
+                            ? `${orden.titular_vehiculo.vehiculo.patente} - ${orden.titular_vehiculo.vehiculo.marca?.nombre || ''} ${orden.titular_vehiculo.vehiculo.modelo?.nombre || ''}`
                             : "Sin vehículo"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -530,11 +482,10 @@ export default function Index({ ordenes }: { ordenes: any }) {
                           key={idx}
                           href={l.url}
                           preserveScroll
-                          className={`px-3 py-1.5 rounded-lg text-sm border transition ${
-                            l.active
-                              ? "bg-gray-900 text-white border-gray-900"
-                              : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                          }`}
+                          className={`px-3 py-1.5 rounded-lg text-sm border transition ${l.active
+                            ? "bg-gray-900 text-white border-gray-900"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                            }`}
                         >
                           {label}
                         </Link>
