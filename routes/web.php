@@ -11,6 +11,7 @@ use App\Http\Controllers\MovimientoController;
 use App\Http\Controllers\CatalogoVehiculoController;
 use App\Http\Controllers\DailySummaryController;
 use App\Http\Controllers\CashboxController;
+use App\Http\Controllers\MedioDePagoController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -42,19 +43,6 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/ingresos/{id}', [IngresoController::class, 'update']);
     Route::post('/ingresos/{id}', [IngresoController::class, 'update']);
 
-
-    // 👉 Rutas para Movimientos (Egresos)
-    // Route::resource('movimientos', MovimientoController::class);
-
-    // 👉 Rutas para Ingresos
-    // Route::get('ingresos', [IngresoController::class, 'index'])->name('ingresos.index');
-    // Route::get('ingresos/create', [IngresoController::class, 'create'])->name('ingresos.create');
-    // Route::post('ingresos', [IngresoController::class, 'store'])->name('ingresos.store');
-    // Route::get('ingresos/{ingreso}', [IngresoController::class, 'show'])->name('ingresos.show');
-    // Route::get('ingresos/{ingreso}/edit', [IngresoController::class, 'edit'])->name('ingresos.edit');
-    // Route::put('ingresos/{ingreso}', [IngresoController::class, 'update'])->name('ingresos.update');
-    // Route::delete('ingresos/{ingreso}', [IngresoController::class, 'destroy'])->name('ingresos.destroy');
-
     // 👉 Rutas para Órdenes de Trabajo
     Route::resource('ordenes', OrdenDeTrabajoController::class)
         ->parameters([
@@ -72,6 +60,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/resumen-del-dia/imprimir', [DailySummaryController::class, 'print'])
     ->name('daily-summary.print');
+
+    Route::resource('medio-de-pago', MedioDePagoController::class)
+    ->only(['index', 'store', 'update', 'destroy']);
 });
 
 require __DIR__ . '/settings.php';
