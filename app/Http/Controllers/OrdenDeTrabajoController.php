@@ -18,6 +18,7 @@ use App\Models\Subcategoria;
 use App\Models\CompaniaSeguro;
 use App\Models\Movimiento;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class OrdenDeTrabajoController extends Controller
 {
@@ -94,14 +95,12 @@ class OrdenDeTrabajoController extends Controller
     {
         $titulares = Titular::with([
             'vehiculos' => function ($query) {
-                // Seleccionamos el id de la tabla de vehiculos y la FK titular_id
-                // para que Eloquent pueda mapear correctamente la relación.
-                $query->select('id', 'patente', 'marca_id', 'modelo_id', 'anio', 'titular_id')
-                    ->with(['marca:id,nombre', 'modelo:id,nombre']);
+                $query->select('vehiculo.id', 'patente', 'marca_id', 'modelo_id', 'anio');
+                // si necesitás datos del pivot:
+                // $query->withPivot('titular_id', 'vehiculo_id'); // (opcional)
             }
-        ])
-            ->select('id', 'nombre', 'apellido', 'telefono', 'email')
-            ->get();
+        ])->select('id', 'nombre', 'apellido', 'telefono', 'email')
+        ->get();
 
         $estados = Estado::select('id', 'nombre')->get();
         $mediosDePago = MedioDePago::select('id', 'nombre')->get();
@@ -158,6 +157,12 @@ class OrdenDeTrabajoController extends Controller
             'detalles.*.atributos' => 'nullable|array',
             // cada valor del map categoriaId -> subcategoriaId
             'detalles.*.atributos.*' => 'nullable|integer|exists:subcategorias,id',
+            'numero_orden' => 'required|string|max:30|unique:orden_de_trabajo,numero_orden',
+            'fecha_entrega_estimada' => 'required|date|after_or_equal:fecha',
+            'es_garantia' => 'boolean',
+            'con_factura' => 'required|boolean',
+            'detalles.*.atributos' => 'nullable|array',
+            'detalles.*.atributos.*' => 'nullable|integer|exists:subcategorias,id',
 
             'pagos' => 'required|array|min:1',
             'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
@@ -210,6 +215,10 @@ class OrdenDeTrabajoController extends Controller
             'titular_vehiculo_id' => $pivot->id,
             'estado_id' => $data['estado_id'],
             'fecha' => $data['fecha'],
+            'fecha_entrega_estimada' => $data['fecha_entrega_estimada'],
+            'numero_orden' => $data['numero_orden'],
+            'con_factura' => (bool) ($data['con_factura'] ?? false),
+            'es_garantia' => (bool) ($data['es_garantia'] ?? false),
             'observacion' => $data['observacion'] ?? null,
             'compania_seguro_id' => $data['compania_seguro_id'] ?? null,
         ]);
@@ -301,21 +310,88 @@ private function registrarIngresosDesdeOT(OrdenDeTrabajo $orden)
 public function update(Request $request, OrdenDeTrabajo $orden)
 {
     $validated = $request->validate([
+        // Cabecera
         'estado_id' => 'required|exists:estado,id',
         'fecha' => 'required|date',
         'observacion' => 'nullable|string|max:500',
         'con_factura' => 'required|boolean',
-        'compania_seguro_id' => 'nullable|integer|exists:companias_seguros,id',
+
+        // Detalles
+        'detalles' => 'required|array|min:1',
+        'detalles.*.descripcion' => 'nullable|string|max:255',
+        'detalles.*.valor' => 'required|numeric|min:0',
+        'detalles.*.cantidad' => 'required|integer|min:1',
+        'detalles.*.colocacion_incluida' => 'boolean',
+        'detalles.*.articulo_id' => 'required|integer|exists:articulos,id',
+
+        // Pagos
+        'pagos' => 'required|array|min:1',
+        'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
+        'pagos.*.monto' => 'required|numeric|min:0',
+        'pagos.*.observacion' => 'nullable|string|max:255',
     ]);
 
-    $estadoAnterior = $orden->estado_id;
+    DB::transaction(function () use ($validated, $orden) {
 
-    $orden->update($validated);
+        $estadoAnterior = $orden->estado_id;
 
-    // Si pasó a estado "Pagado" (1) y antes no lo estaba, registramos ingresos
-    if ($estadoAnterior != 1 && $orden->estado_id == 1) {
-        $this->registrarIngresosDesdeOT($orden);
+        // 1) Cabecera
+        $orden->update([
+            'estado_id' => $validated['estado_id'],
+            'fecha' => $validated['fecha'],
+            'observacion' => $validated['observacion'] ?? null,
+            'con_factura' => (bool) $validated['con_factura'],
+        ]);
+
+// 2) Reemplazo detalles + atributos
+// IMPORTANTE: borrar atributos primero si no tenés cascade
+
+$orden->detalles()->delete();
+
+foreach ($validated['detalles'] as $d) {
+
+    $detalleCreado = DetalleOrdenDeTrabajo::create([
+        'orden_de_trabajo_id' => $orden->id,
+        'articulo_id' => $d['articulo_id'],
+        'descripcion' => $d['descripcion'] ?? null,
+        'valor' => $d['valor'],
+        'cantidad' => $d['cantidad'],
+        'colocacion_incluida' => $d['colocacion_incluida'] ?? false,
+    ]);
+
+    $atributos = $d['atributos'] ?? [];
+
+    foreach ($atributos as $categoriaId => $subcategoriaId) {
+        if (empty($subcategoriaId)) continue;
+
+        $sc = Subcategoria::find($subcategoriaId);
+        if (!$sc) continue;
+
+        DetalleOrdenAtributo::create([
+            'detalle_orden_de_trabajo_id' => $detalleCreado->id,
+            'categoria_id' => $sc->categoria_id,
+            'subcategoria_id' => $sc->id,
+        ]);
     }
+}
+
+        // 3) Reemplazo pagos
+        $orden->pagos()->delete();
+
+        foreach ($validated['pagos'] as $p) {
+            Precio::create([
+                'orden_de_trabajo_id' => $orden->id,
+                'medio_de_pago_id' => $p['medio_de_pago_id'],
+                'valor' => $p['monto'],
+                'observacion' => $p['observacion'] ?? null,
+            ]);
+        }
+
+        // 4) Si cambió a estado 1 => registrar ingresos (si querés)
+        if ($estadoAnterior != 1 && (int)$orden->estado_id === 1) {
+            $this->registrarIngresosDesdeOT($orden);
+        }
+    });
 
     return redirect()
         ->route('ordenes.show', $orden->id)
@@ -345,11 +421,18 @@ public function edit(OrdenDeTrabajo $orden)
         'titularVehiculo.titular',
         'titularVehiculo.vehiculo.marca',
         'titularVehiculo.vehiculo.modelo',
+        'detalles.atributos', // importante si armás relación
+        'pagos.medioDePago',
     ]);
 
     $estados = Estado::select('id','nombre')->orderBy('nombre')->get();
+    $mediosDePago = MedioDePago::select('id','nombre')->orderBy('nombre')->get();
 
-    $companiasSeguros = CompaniaSeguro::select('id','nombre')
+    $articulos = Articulo::with(['categorias.subcategorias'])
+        ->select('id','nombre')
+        ->get();
+
+    $companiasSeguros = CompaniaSeguro::select('id', 'nombre')
         ->where('activo', true)
         ->orderBy('nombre')
         ->get();
@@ -357,6 +440,8 @@ public function edit(OrdenDeTrabajo $orden)
     return Inertia::render('ordenes/edit', [
         'orden' => $orden,
         'estados' => $estados,
+        'mediosDePago' => $mediosDePago,
+        'articulos' => $articulos,
         'companiasSeguros' => $companiasSeguros,
     ]);
 }
