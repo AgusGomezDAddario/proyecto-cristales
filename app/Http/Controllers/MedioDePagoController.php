@@ -35,7 +35,7 @@ class MedioDePagoController extends Controller
 
         MedioDePago::create($request->only('nombre'));
 
-        return redirect()->back();
+        return redirect()->back()->with(['success' => 'Medio de pago creado correctamente.']);
     }
 
     public function update(Request $request, MedioDePago $MedioDePago)
@@ -46,16 +46,16 @@ class MedioDePagoController extends Controller
 
         $MedioDePago->update($request->only('nombre'));
 
-        return redirect()->back();
+        return redirect()->back()->with(['success' => 'Medio de pago actualizado correctamente.']);
     }
 
     public function destroy(MedioDePago $MedioDePago)
     {
         $cantMovimientos = $MedioDePago->movimientos()->count();
         if ($cantMovimientos > 0) {
-            return redirect()->back();
+            return redirect()->back()->with(['error' => 'No se puede eliminar el medio de pago porque tiene movimientos asociados.']);
         }
         $MedioDePago->delete();
-        return redirect()->back();
+        return redirect()->back()->with(['success' => 'Medio de pago eliminado correctamente.']);
     }
 }

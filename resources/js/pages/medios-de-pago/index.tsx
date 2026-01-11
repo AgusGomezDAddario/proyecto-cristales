@@ -41,7 +41,6 @@ export default function MediosPagoIndex({ medios, filters }: PageProps) {
     // ═══════════════════════════════════════════════════════════════
     // FILTRO (DEBOUNCE)
     // ═══════════════════════════════════════════════════════════════
-
     useEffect(() => {
         const timer = setTimeout(() => {
             router.get(
@@ -107,7 +106,6 @@ export default function MediosPagoIndex({ medios, filters }: PageProps) {
     return (
         <DashboardLayout>
             <Head title="Medios de Pago" />
-
             <div className="max-w-4xl mx-auto px-4 py-8">
                 {/* HEADER */}
                 <div className="mb-6">
