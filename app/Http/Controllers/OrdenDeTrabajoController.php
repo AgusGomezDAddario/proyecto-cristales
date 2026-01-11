@@ -31,7 +31,6 @@ class OrdenDeTrabajoController extends Controller
             'titularVehiculo.vehiculo.marca',
             'titularVehiculo.vehiculo.modelo',
             'estado',
-            'medioDePago',
         ])
 
         // 🔍 Búsqueda unificada
@@ -95,7 +94,9 @@ class OrdenDeTrabajoController extends Controller
     {
         $titulares = Titular::with([
             'vehiculos' => function ($query) {
-                $query->select('vehiculo.id', 'patente', 'marca_id', 'modelo_id', 'anio')
+                // Seleccionamos el id de la tabla de vehiculos y la FK titular_id
+                // para que Eloquent pueda mapear correctamente la relación.
+                $query->select('id', 'patente', 'marca_id', 'modelo_id', 'anio', 'titular_id')
                     ->with(['marca:id,nombre', 'modelo:id,nombre']);
             }
         ])
@@ -299,20 +300,65 @@ private function registrarIngresosDesdeOT(OrdenDeTrabajo $orden)
 
 public function update(Request $request, OrdenDeTrabajo $orden)
 {
-    // Validación similar a store()
     $validated = $request->validate([
         'estado_id' => 'required|exists:estado,id',
-        // ... otros campos ...
+        'fecha' => 'required|date',
+        'observacion' => 'nullable|string|max:500',
+        'con_factura' => 'required|boolean',
+        'compania_seguro_id' => 'nullable|integer|exists:companias_seguros,id',
     ]);
 
-    // Actualizar la orden
+    $estadoAnterior = $orden->estado_id;
+
     $orden->update($validated);
 
-    // El Observer detectará automáticamente si cambió a estado "Pagado"
-    
+    // Si pasó a estado "Pagado" (1) y antes no lo estaba, registramos ingresos
+    if ($estadoAnterior != 1 && $orden->estado_id == 1) {
+        $this->registrarIngresosDesdeOT($orden);
+    }
+
     return redirect()
-        ->route('ordenes.index')
+        ->route('ordenes.show', $orden->id)
         ->with('success', 'Orden actualizada correctamente ✅');
+}
+
+public function show(OrdenDeTrabajo $orden)
+{
+    $orden->load([
+        'titularVehiculo.titular',
+        'titularVehiculo.vehiculo.marca',
+        'titularVehiculo.vehiculo.modelo',
+        'estado',
+        'detalles',
+        'pagos.medioDePago',
+    ]);
+
+    return Inertia::render('ordenes/show', [
+        'orden' => $orden,
+    ]);
+}
+
+public function edit(OrdenDeTrabajo $orden)
+{
+    $orden->load([
+        'estado',
+        'titularVehiculo.titular',
+        'titularVehiculo.vehiculo.marca',
+        'titularVehiculo.vehiculo.modelo',
+    ]);
+
+    $estados = Estado::select('id','nombre')->orderBy('nombre')->get();
+
+    $companiasSeguros = CompaniaSeguro::select('id','nombre')
+        ->where('activo', true)
+        ->orderBy('nombre')
+        ->get();
+
+    return Inertia::render('ordenes/edit', [
+        'orden' => $orden,
+        'estados' => $estados,
+        'companiasSeguros' => $companiasSeguros,
+    ]);
 }
 
     // show/edit/update/destroy: los ajustamos después cuando usemos atributos en el detalle.
