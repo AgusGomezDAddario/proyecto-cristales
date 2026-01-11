@@ -57,7 +57,7 @@ export default function DashboardLayout({ children, title }: Props) {
               >
                 📊 Panel de Control
               </Link>
-              {isAdmin && (
+              {/* {isAdmin && (
                 <Link
                   href="/admin/users"
                   className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/admin/users')
@@ -67,7 +67,7 @@ export default function DashboardLayout({ children, title }: Props) {
                 >
                   👤 Gestión de Usuarios
                 </Link>
-              )}
+              )} */}
 
               <Link
                 href="/egresos"
