@@ -38,12 +38,14 @@ class OrdenDeTrabajoController extends Controller
         ->when($request->filled('q'), function ($query) use ($request) {
             $q = $request->q;
 
-            $query->whereHas('titularVehiculo.titular', function ($q2) use ($q) {
-                $q2->where('nombre', 'like', "%{$q}%")
-                   ->orWhere('apellido', 'like', "%{$q}%");
-            })
-            ->orWhereHas('titularVehiculo.vehiculo', function ($q2) use ($q) {
-                $q2->where('patente', 'like', "%{$q}%");
+            $query->where(function ($sub) use ($q) {
+                $sub->whereHas('titularVehiculo.titular', function ($q2) use ($q) {
+                        $q2->where('nombre', 'like', "%{$q}%")
+                        ->orWhere('apellido', 'like', "%{$q}%");
+                    })
+                    ->orWhereHas('titularVehiculo.vehiculo', function ($q2) use ($q) {
+                        $q2->where('patente', 'like', "%{$q}%");
+                    });
             });
         })
 
