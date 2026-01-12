@@ -130,7 +130,7 @@ class OrdenDeTrabajoController extends Controller
         // Cabecera
         'estado_id' => 'required|exists:estado,id',
         'fecha' => 'required|date',
-        'fecha_entrega_estimada' => 'nullable|date',
+        'fecha_entrega_estimada' => 'required|date|after_or_equal:fecha',
         'observacion' => 'nullable|string|max:500',
         'con_factura' => 'required|boolean',
         'compania_seguro_id' => 'nullable|integer|exists:companias_seguros,id',

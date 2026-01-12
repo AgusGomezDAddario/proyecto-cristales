@@ -18,6 +18,9 @@ class OrdenDeTrabajo extends Model
         'fecha',
         'con_factura',
         'observacion',
+        'fecha_entrega_estimada',
+        'numero_orden',
+        'es_garantia',
     ];
 
     protected $casts = [

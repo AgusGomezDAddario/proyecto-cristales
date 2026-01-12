@@ -22,6 +22,8 @@ type OrdenDetalleServer = {
   colocacion_incluida: boolean;
   // viene desde el controller (virtual)
   atributos_map?: Record<number, number | null>;
+  // algunos endpoints devuelven un array de atributos; soportamos ambas formas
+  atributos?: { categoria_id: number; subcategoria_id: number | null }[];
 };
 
 type OrdenPagoServer = {
@@ -120,14 +122,30 @@ export default function Edit({
     vehiculo_id: orden.titular_vehiculo?.vehiculo?.id ?? null,
     nuevo_vehiculo: null,
 
-    detalles: (orden.detalles || []).map((d) => ({
-      articulo_id: d.articulo_id ?? null,
-      descripcion: d.descripcion ?? "",
-      valor: Number(d.valor) || 0,
-      cantidad: Number(d.cantidad) || 1,
-      colocacion_incluida: !!d.colocacion_incluida,
-      atributos: (d.atributos_map ?? {}) as any,
-    })),
+    detalles: (orden.detalles || []).map((d) => {
+  const atributos: Record<number, number | null> = {};
+
+  // soportar tanto arreglo de atributos como el mapa (atributos_map)
+  if ((d as any).atributos && Array.isArray((d as any).atributos)) {
+    (d as any).atributos.forEach((a: any) => {
+      atributos[a.categoria_id] = a.subcategoria_id;
+    });
+  } else if (d.atributos_map) {
+    Object.entries(d.atributos_map).forEach(([k, v]) => {
+      atributos[Number(k)] = v ?? null;
+    });
+  }
+
+  return {
+    articulo_id: d.articulo_id,
+    descripcion: d.descripcion ?? "",
+    valor: d.valor ?? 0,
+    cantidad: d.cantidad ?? 1,
+    colocacion_incluida: !!d.colocacion_incluida,
+    atributos,
+  };
+}) as DetalleUI[],
+
 
     pagos: (orden.pagos || []).map((p) => ({
       medio_de_pago_id: p.medio_de_pago_id,
@@ -190,25 +208,18 @@ export default function Edit({
   };
 
   function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  e.preventDefault();
 
-    console.log("SUBMIT OK", data);
-    put(`/ordenes/${orden.id}`, {
-      onStart: () => console.log("PUT start"),
-      onFinish: () => console.log("PUT finish"),
-      onError: (errs) => console.log("PUT errors", errs),
-      onSuccess: () => console.log("PUT success"),
-    });
+  const fe = (data as any).fecha_entrega_estimada;
 
-    if (!validateBusiness()) return;
+  if (!fe) return alert("Completá la fecha de entrega estimada.");
+  if (data.fecha && fe < data.fecha) return alert("La fecha estimada no puede ser anterior a la fecha.");
 
-    put(`/ordenes/${orden.id}`, {
-      onError: (errs) => {
-        const mensajes = Object.values(errs as Record<string, string>);
-        if (mensajes.length > 0) toast.error(mensajes.join("\n"));
-      },
-    });
-  }
+  put(`/ordenes/${orden.id}`, {
+    onError: (errs) => console.log("Errores:", errs),
+  });
+}
+
 
   return (
     <DashboardLayout>
