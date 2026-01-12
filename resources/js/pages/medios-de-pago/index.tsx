@@ -105,12 +105,12 @@ export default function MediosPagoIndex({ medios, filters }: PageProps) {
 
     return (
         <DashboardLayout>
-            <Head title="Medios de Pago" />
+            <Head title="Medios de pago" />
             <div className="max-w-4xl mx-auto px-4 py-8">
                 {/* HEADER */}
                 <div className="mb-6">
                     <h1 className="text-2xl font-semibold text-slate-800">
-                        💳 Medios de Pago
+                        💳 Medios de pago
                     </h1>
                     <p className="text-slate-500 mt-1">
                         Administrá los medios de pago disponibles

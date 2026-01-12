@@ -180,6 +180,13 @@ export default function DashboardLayout({ children, title }: Props) {
                                             >
                                                 🏭 Proveedores
                                             </Link>
+                                            <Link
+                                                href="/medio-de-pago"
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/medio-de-pago') ? 'text-blue-600 font-medium' : 'text-gray-700'
+                                                    }`}
+                                            >
+                                                💳 Medios de pago
+                                            </Link>
                                             <div className="border-t border-gray-100 my-1"></div>
                                             <Link
                                                 href="/admin/users"
