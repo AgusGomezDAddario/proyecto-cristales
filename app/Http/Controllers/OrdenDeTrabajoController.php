@@ -127,48 +127,33 @@ class OrdenDeTrabajoController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'titular_id' => 'nullable|integer|exists:titular,id',
-            'vehiculo_id' => 'nullable|integer|exists:vehiculo,id',
+        // Cabecera
+        'estado_id' => 'required|exists:estado,id',
+        'fecha' => 'required|date',
+        'fecha_entrega_estimada' => 'nullable|date',
+        'observacion' => 'nullable|string|max:500',
+        'con_factura' => 'required|boolean',
+        'compania_seguro_id' => 'nullable|integer|exists:companias_seguros,id',
+        'es_garantia' => 'required|boolean',
+        'numero_orden' => 'nullable|string|max:32',
 
-            'nuevo_titular' => 'nullable|array',
-            'nuevo_titular.nombre' => 'required_without:titular_id|string|max:48',
-            'nuevo_titular.apellido' => 'required_without:titular_id|string|max:48',
-            'nuevo_titular.telefono' => 'nullable|string|max:20',
-            'nuevo_titular.email' => 'nullable|email|max:48',
+        // Detalles
+        'detalles' => 'required|array|min:1',
+        'detalles.*.articulo_id' => 'required|integer|exists:articulos,id',
+        'detalles.*.descripcion' => 'nullable|string|max:255',
+        'detalles.*.valor' => 'required|numeric|min:0',
+        'detalles.*.cantidad' => 'required|integer|min:1',
+        'detalles.*.colocacion_incluida' => 'boolean',
+        'detalles.*.atributos' => 'nullable|array',
+        'detalles.*.atributos.*' => 'nullable|integer|exists:subcategorias,id',
 
-            'nuevo_vehiculo' => 'nullable|array',
-            'nuevo_vehiculo.patente' => 'required_without:vehiculo_id|string|max:10',
-            'nuevo_vehiculo.marca_id' => 'nullable|integer|exists:marcas,id',
-            'nuevo_vehiculo.modelo_id' => 'nullable|integer|exists:modelos,id',
-            'nuevo_vehiculo.anio' => 'nullable|integer|min:1900|max:' . date('Y'),
+        // Pagos
+        'pagos' => 'required|array|min:1',
+        'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
+        'pagos.*.monto' => 'required|numeric|min:0',
+        'pagos.*.observacion' => 'nullable|string|max:255',
+    ]);
 
-            'estado_id' => 'required|exists:estado,id',
-            'fecha' => 'required|date',
-            'observacion' => 'nullable|string|max:500',
-            'compania_seguro_id' => 'nullable|integer|exists:companias_seguros,id',
-
-            // DETALLES (NUEVO MODELO)
-            'detalles' => 'required|array|min:1',
-            'detalles.*.articulo_id' => 'required|integer|exists:articulos,id',
-            'detalles.*.descripcion' => 'nullable|string|max:255',
-            'detalles.*.valor' => 'required|numeric|min:0',
-            'detalles.*.cantidad' => 'required|integer|min:1',
-            'detalles.*.colocacion_incluida' => 'boolean',
-            'detalles.*.atributos' => 'nullable|array',
-            // cada valor del map categoriaId -> subcategoriaId
-            'detalles.*.atributos.*' => 'nullable|integer|exists:subcategorias,id',
-            'numero_orden' => 'required|string|max:30|unique:orden_de_trabajo,numero_orden',
-            'fecha_entrega_estimada' => 'required|date|after_or_equal:fecha',
-            'es_garantia' => 'boolean',
-            'con_factura' => 'required|boolean',
-            'detalles.*.atributos' => 'nullable|array',
-            'detalles.*.atributos.*' => 'nullable|integer|exists:subcategorias,id',
-
-            'pagos' => 'required|array|min:1',
-            'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
-            'pagos.*.monto' => 'required|numeric|min:0',
-            'pagos.*.observacion' => 'nullable|string|max:255',
-        ]);
 
         $data = $request->all();
 
@@ -310,19 +295,45 @@ private function registrarIngresosDesdeOT(OrdenDeTrabajo $orden)
 public function update(Request $request, OrdenDeTrabajo $orden)
 {
     $validated = $request->validate([
+        // Cliente / Vehículo (editable)
+        'titular_id' => 'nullable|integer|exists:titular,id',
+        'vehiculo_id' => 'nullable|integer|exists:vehiculo,id',
+
+        'nuevo_titular' => 'nullable|array',
+        'nuevo_titular.nombre' => 'required_without:titular_id|string|max:48',
+        'nuevo_titular.apellido' => 'required_without:titular_id|string|max:48',
+        'nuevo_titular.telefono' => 'nullable|string|max:20',
+        'nuevo_titular.email' => 'nullable|email|max:48',
+
+        'nuevo_vehiculo' => 'nullable|array',
+        'nuevo_vehiculo.patente' => 'required_without:vehiculo_id|string|max:10',
+        'nuevo_vehiculo.marca_id' => 'nullable|integer|exists:marcas,id',
+        'nuevo_vehiculo.modelo_id' => 'nullable|integer|exists:modelos,id',
+        'nuevo_vehiculo.anio' => 'nullable|integer|min:1900|max:' . date('Y'),
+
         // Cabecera
         'estado_id' => 'required|exists:estado,id',
         'fecha' => 'required|date',
         'observacion' => 'nullable|string|max:500',
         'con_factura' => 'required|boolean',
 
+        // si ya existen en DB, activalos:
+        'fecha_entrega_estimada' => 'nullable|date',
+        'numero_orden' => 'nullable|string|max:50',
+        'es_garantia' => 'nullable|boolean',
+        'compania_seguro_id' => 'nullable|integer|exists:companias_seguros,id',
+
         // Detalles
         'detalles' => 'required|array|min:1',
+        'detalles.*.articulo_id' => 'required|integer|exists:articulos,id',
         'detalles.*.descripcion' => 'nullable|string|max:255',
         'detalles.*.valor' => 'required|numeric|min:0',
         'detalles.*.cantidad' => 'required|integer|min:1',
         'detalles.*.colocacion_incluida' => 'boolean',
-        'detalles.*.articulo_id' => 'required|integer|exists:articulos,id',
+
+        // Atributos (si los mandás desde DetallesSection)
+        'detalles.*.atributos' => 'nullable|array',
+        'detalles.*.atributos.*' => 'nullable|integer|exists:subcategorias,id',
 
         // Pagos
         'pagos' => 'required|array|min:1',
@@ -331,51 +342,107 @@ public function update(Request $request, OrdenDeTrabajo $orden)
         'pagos.*.observacion' => 'nullable|string|max:255',
     ]);
 
-    DB::transaction(function () use ($validated, $orden) {
+    $data = $request->all();
 
-        $estadoAnterior = $orden->estado_id;
+    $faltanDatos =
+        (empty($data['titular_id']) && empty($data['nuevo_titular'])) ||
+        (empty($data['vehiculo_id']) && empty($data['nuevo_vehiculo']));
 
-        // 1) Cabecera
+    if ($faltanDatos) {
+        return back()
+            ->withErrors(['titular_vehiculo' => 'Debe seleccionar o crear un titular y un vehículo antes de guardar la orden.'])
+            ->withInput();
+    }
+
+    DB::transaction(function () use ($validated, $data, $orden) {
+
+        $estadoAnterior = (int) $orden->estado_id;
+
+        // 1) Crear titular si corresponde
+        if (empty($data['titular_id']) && !empty($data['nuevo_titular'])) {
+            $nuevoTitular = Titular::create([
+                'nombre' => $data['nuevo_titular']['nombre'] ?? '',
+                'apellido' => $data['nuevo_titular']['apellido'] ?? '',
+                'telefono' => $data['nuevo_titular']['telefono'] ?? '',
+                'email' => $data['nuevo_titular']['email'] ?? null,
+            ]);
+            $data['titular_id'] = $nuevoTitular->id;
+        }
+
+        // 2) Crear vehículo si corresponde
+        if (empty($data['vehiculo_id']) && !empty($data['nuevo_vehiculo'])) {
+            $nuevoVehiculo = Vehiculo::create([
+                'patente' => strtoupper($data['nuevo_vehiculo']['patente']),
+                'marca_id' => $data['nuevo_vehiculo']['marca_id'] ?? null,
+                'modelo_id' => $data['nuevo_vehiculo']['modelo_id'] ?? null,
+                'anio' => $data['nuevo_vehiculo']['anio'] ?? null,
+            ]);
+            $data['vehiculo_id'] = $nuevoVehiculo->id;
+        }
+
+        // 3) Pivot titular-vehiculo (clave del update)
+        $pivot = TitularVehiculo::firstOrCreate([
+            'titular_id' => $data['titular_id'],
+            'vehiculo_id' => $data['vehiculo_id'],
+        ]);
+
+        // 4) Cabecera
         $orden->update([
+            'titular_vehiculo_id' => $pivot->id,
             'estado_id' => $validated['estado_id'],
             'fecha' => $validated['fecha'],
             'observacion' => $validated['observacion'] ?? null,
             'con_factura' => (bool) $validated['con_factura'],
+
+            // si existen en DB:
+            'fecha_entrega_estimada' => $validated['fecha_entrega_estimada'] ?? null,
+            'numero_orden' => $validated['numero_orden'] ?? $orden->numero_orden ?? null,
+            'es_garantia' => (bool)($validated['es_garantia'] ?? false),
+            'compania_seguro_id' => $validated['compania_seguro_id'] ?? null,
         ]);
 
-// 2) Reemplazo detalles + atributos
-// IMPORTANTE: borrar atributos primero si no tenés cascade
+        // 5) Reemplazo detalles (y atributos)
+        // OJO: si hay FK desde detalle_orden_atributo a detalle, borrá primero atributos.
+        // Recomendación: cascade en DB o delete manual.
+        foreach ($orden->detalles as $det) {
+            // si tenés relación atributos():
+            if (method_exists($det, 'atributos')) {
+                $det->atributos()->delete();
+            } else {
+                // fallback: tabla directa si no hay relación
+                DetalleOrdenAtributo::where('detalle_orden_de_trabajo_id', $det->id)->delete();
+            }
+        }
 
-$orden->detalles()->delete();
+        $orden->detalles()->delete();
 
-foreach ($validated['detalles'] as $d) {
+        foreach ($validated['detalles'] as $d) {
+            $detalleCreado = DetalleOrdenDeTrabajo::create([
+                'orden_de_trabajo_id' => $orden->id,
+                'articulo_id' => $d['articulo_id'],
+                'descripcion' => $d['descripcion'] ?? null,
+                'valor' => $d['valor'],
+                'cantidad' => $d['cantidad'],
+                'colocacion_incluida' => $d['colocacion_incluida'] ?? false,
+            ]);
 
-    $detalleCreado = DetalleOrdenDeTrabajo::create([
-        'orden_de_trabajo_id' => $orden->id,
-        'articulo_id' => $d['articulo_id'],
-        'descripcion' => $d['descripcion'] ?? null,
-        'valor' => $d['valor'],
-        'cantidad' => $d['cantidad'],
-        'colocacion_incluida' => $d['colocacion_incluida'] ?? false,
-    ]);
+            // Persistencia atributos (si llegan desde front)
+            $atributos = $d['atributos'] ?? [];
+            foreach ($atributos as $categoriaId => $subcategoriaId) {
+                if (empty($subcategoriaId)) continue;
 
-    $atributos = $d['atributos'] ?? [];
+                $sc = Subcategoria::with('categoria')->find($subcategoriaId);
+                if (!$sc) continue;
 
-    foreach ($atributos as $categoriaId => $subcategoriaId) {
-        if (empty($subcategoriaId)) continue;
+                DetalleOrdenAtributo::create([
+                    'detalle_orden_de_trabajo_id' => $detalleCreado->id,
+                    'categoria_id' => $sc->categoria_id,
+                    'subcategoria_id' => $sc->id,
+                ]);
+            }
+        }
 
-        $sc = Subcategoria::find($subcategoriaId);
-        if (!$sc) continue;
-
-        DetalleOrdenAtributo::create([
-            'detalle_orden_de_trabajo_id' => $detalleCreado->id,
-            'categoria_id' => $sc->categoria_id,
-            'subcategoria_id' => $sc->id,
-        ]);
-    }
-}
-
-        // 3) Reemplazo pagos
+        // 6) Reemplazo pagos
         $orden->pagos()->delete();
 
         foreach ($validated['pagos'] as $p) {
@@ -387,8 +454,8 @@ foreach ($validated['detalles'] as $d) {
             ]);
         }
 
-        // 4) Si cambió a estado 1 => registrar ingresos (si querés)
-        if ($estadoAnterior != 1 && (int)$orden->estado_id === 1) {
+        // 7) Si cambió a estado "Pagado" => registrar ingresos
+        if ($estadoAnterior !== 1 && (int)$orden->estado_id === 1) {
             $this->registrarIngresosDesdeOT($orden);
         }
     });
@@ -421,15 +488,19 @@ public function edit(OrdenDeTrabajo $orden)
         'titularVehiculo.titular',
         'titularVehiculo.vehiculo.marca',
         'titularVehiculo.vehiculo.modelo',
-        'detalles.atributos', // importante si armás relación
+        'detalles.atributos',     // si definís relación atributos en DetalleOrdenDeTrabajo
         'pagos.medioDePago',
     ]);
 
-    $estados = Estado::select('id','nombre')->orderBy('nombre')->get();
-    $mediosDePago = MedioDePago::select('id','nombre')->orderBy('nombre')->get();
+    $titulares = Titular::with([
+        'vehiculos' => function ($query) {
+            $query->select('vehiculo.id', 'patente', 'marca_id', 'modelo_id', 'anio');
+        }
+    ])->select('id', 'nombre', 'apellido', 'telefono', 'email')
+      ->get();
 
     $articulos = Articulo::with(['categorias.subcategorias'])
-        ->select('id','nombre')
+        ->select('id', 'nombre')
         ->get();
 
     $companiasSeguros = CompaniaSeguro::select('id', 'nombre')
@@ -437,14 +508,17 @@ public function edit(OrdenDeTrabajo $orden)
         ->orderBy('nombre')
         ->get();
 
+    $estados = Estado::select('id','nombre')->orderBy('nombre')->get();
+    $mediosDePago = MedioDePago::select('id','nombre')->orderBy('nombre')->get();
+
     return Inertia::render('ordenes/edit', [
         'orden' => $orden,
-        'estados' => $estados,
-        'mediosDePago' => $mediosDePago,
+        'titulares' => $titulares,
         'articulos' => $articulos,
         'companiasSeguros' => $companiasSeguros,
+        'estados' => $estados,
+        'mediosDePago' => $mediosDePago,
     ]);
 }
-
     // show/edit/update/destroy: los ajustamos después cuando usemos atributos en el detalle.
 }
