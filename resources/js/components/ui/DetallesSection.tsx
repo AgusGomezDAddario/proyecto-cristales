@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
-import { Plus, Trash2, DollarSign, Layers, Tag } from "lucide-react";
+import { Plus, Trash2, DollarSign, Layers, Tag, Delete } from "lucide-react";
+import DeleteButton from "../botones/boton-eliminar";
 
 export interface SubcategoriaDTO {
   id: number;
@@ -226,16 +227,10 @@ export default function DetallesSection({ detalles, setDetalles, articulos, erro
                       Coloc.
                     </label>
 
-                    <button
-                      type="button"
+                    <DeleteButton 
                       onClick={() => handleRemove(index)}
-                      className="p-2 rounded-lg bg-[#2596be] text-white hover:bg-[#1862fd] transition"
-                      aria-label="Eliminar ítem"
-                      title="Eliminar ítem"
                       disabled={detalles.length === 1}
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
+                    />
                   </div>
                 </div>
               </div>

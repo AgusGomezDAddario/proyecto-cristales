@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Select from "react-select";
-import { Search, Plus, Pencil, Trash2, X, AlertTriangle } from "lucide-react";
+import { Search, Plus, Pencil, X, AlertTriangle } from "lucide-react";
+import DeleteButton from "@/components/botones/boton-eliminar";
 
 // ═══════════════════════════════════════════════════════════════
 // TIPOS
@@ -290,13 +291,9 @@ export default function CatalogoVehiculos({ modelos, marcas, filters }: PageProp
                                                     >
                                                         <Pencil className="h-4 w-4" />
                                                     </button>
-                                                    <button
+                                                    <DeleteButton
                                                         onClick={() => openDeleteModal(modelo)}
-                                                        className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition shadow-sm"
-                                                        title="Eliminar"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>

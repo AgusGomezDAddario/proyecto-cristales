@@ -1,7 +1,8 @@
-import { Car, Plus, Trash2 } from "lucide-react";
+import { Car, Plus } from "lucide-react";
 import { useState, forwardRef, useImperativeHandle, useEffect } from "react";
 import Select from "react-select";
 import axios from "axios";
+import DeleteButton from "@/components/botones/boton-eliminar";
 
 interface Vehiculo {
   id: number;
@@ -302,14 +303,10 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
           </button>
 
           {hasSummary && (
-            <button
-              type="button"
+            <DeleteButton
               onClick={handleRemove}
-              className="h-11 w-11 flex items-center justify-center rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition"
-              title="Eliminar selección"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
+              size='xl'
+            />
           )}
         </div>
 

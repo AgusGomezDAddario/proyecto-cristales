@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { Head, Link, useForm, router, usePage } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
+import { Search, Plus, Pencil, X, AlertTriangle } from "lucide-react";
+import DeleteButton from "@/components/botones/boton-eliminar";
 
 type Vehiculo = {
   id: number;
@@ -428,12 +430,9 @@ export default function Index({ ordenes }: { ordenes: any }) {
                             >
                               Editar
                             </Link>
-                            <button
+                            <DeleteButton
                               onClick={() => handleDelete(orden.id)}
-                              className="text-red-600 hover:text-red-800 font-medium"
-                            >
-                              Eliminar
-                            </button>
+                            />
                           </div>
                         </td>
                       </tr>

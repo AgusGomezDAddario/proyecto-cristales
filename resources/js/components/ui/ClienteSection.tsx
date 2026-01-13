@@ -1,6 +1,7 @@
-import { User, Phone, Mail, Plus, Trash2 } from "lucide-react";
+import { User, Phone, Mail, Plus } from "lucide-react";
 import { useState, forwardRef, useImperativeHandle } from "react";
 import Select from "react-select";
+import DeleteButton from '@/components/botones/boton-eliminar';
 
 interface Titular {
   id: number;
@@ -220,14 +221,10 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
           </button>
 
           {hasSummary && (
-            <button
-              type="button"
+            <DeleteButton
               onClick={handleRemove}
-              className="h-11 w-11 flex items-center justify-center rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition"
-              title="Eliminar selección"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
+              size='xl'
+            />
           )}
         </div>
 

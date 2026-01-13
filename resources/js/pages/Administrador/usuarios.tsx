@@ -2,6 +2,7 @@ import { usePage, useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
 import { PageProps as InertiaPageProps } from '@inertiajs/core';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import DeleteButton from '@/components/botones/boton-eliminar';
 
 
 // 🔹 Interfaces para tipar datos que vienen del back
@@ -163,12 +164,9 @@ export default function UsersIndex() {
                     >
                       Editar
                     </button>
-                    <button
+                    <DeleteButton
                       onClick={() => destroy(`/admin/users/${u.id}`)}
-                      className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition"
-                    >
-                      Eliminar
-                    </button>
+                    />
                   </td>
                 </tr>
               ))}
