@@ -108,10 +108,10 @@ class OrdenDeTrabajoController extends Controller
             ->select('id', 'nombre')
             ->get();
 
-        $companiasSeguros = CompaniaSeguro::select('id', 'nombre')
-            ->where('activo', true)
-            ->orderBy('nombre')
-            ->get();
+        $companiasSeguros = \App\Models\CompaniaSeguro::query()
+    ->where('activo', 1)
+    ->orderBy('nombre')
+    ->get(['id', 'nombre']);
 
         return Inertia::render('ordenes/createOrdenes', [
             'titulares' => $titulares,

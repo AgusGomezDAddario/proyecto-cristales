@@ -12,6 +12,7 @@ use App\Http\Controllers\CatalogoVehiculoController;
 use App\Http\Controllers\DailySummaryController;
 use App\Http\Controllers\CashboxController;
 use App\Http\Controllers\MedioDePagoController;
+use App\Http\Controllers\CompaniaDeSeguroController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -63,6 +64,13 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('medio-de-pago', MedioDePagoController::class)
     ->only(['index', 'store', 'update', 'destroy']);
+
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/companias-seguros', [CompaniaDeSeguroController::class, 'index'])->name('companias-seguros.index');
+        Route::post('/companias-seguros', [CompaniaDeSeguroController::class, 'store']);
+        Route::put('/companias-seguros/{compania}', [CompaniaDeSeguroController::class, 'update']);
+        Route::delete('/companias-seguros/{compania}', [CompaniaDeSeguroController::class, 'destroy']);
+});
 });
 
 require __DIR__ . '/settings.php';

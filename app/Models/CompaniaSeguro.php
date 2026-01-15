@@ -3,13 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CompaniaSeguro extends Model
 {
-    protected $table = 'companias_seguros';
+    use SoftDeletes;
 
-    protected $fillable = [
-        'nombre',
-        'activo',
-    ];
+    protected $fillable = ['nombre', 'activo'];
+
+    public function ordenesDeTrabajo()
+    {
+        return $this->hasMany(OrdenDeTrabajo::class, 'compania_seguro_id');
+    }
 }
