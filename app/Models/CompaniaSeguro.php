@@ -9,6 +9,8 @@ class CompaniaSeguro extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'companias_seguros';
+
     protected $fillable = ['nombre', 'activo'];
 
     public function ordenesDeTrabajo()

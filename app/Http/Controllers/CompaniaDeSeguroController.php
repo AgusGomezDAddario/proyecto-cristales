@@ -6,7 +6,7 @@ use App\Models\CompaniaSeguro;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class CompaniaSeguroController extends Controller
+class CompaniaDeSeguroController extends Controller
 {
     /**
      * Listado + búsqueda
@@ -19,10 +19,12 @@ class CompaniaSeguroController extends Controller
             $query->where('nombre', 'like', '%' . $request->search . '%');
         }
 
-        $companias = $query
-            ->orderBy('nombre')
-            ->paginate(10)
-            ->withQueryString();
+        $companias = CompaniaSeguro::query()
+    ->when($request->filled('search'), fn($q) => $q->where('nombre', 'like', '%'.$request->search.'%'))
+    ->orderBy('nombre')
+    ->paginate(10)
+    ->withQueryString();
+
 
         return Inertia::render('companias-seguros/index', [
             'companias' => $companias,
