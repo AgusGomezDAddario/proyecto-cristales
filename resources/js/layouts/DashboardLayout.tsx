@@ -363,28 +363,27 @@ export default function DashboardLayout({ children, title }: Props) {
                             </Link>
                         </div>
                     </div>
-                )
-                }
-            </nav >
+                )}
+            </nav>
 
             {/* 🔹 CONTENIDO PRINCIPAL */}
-            < main className="flex-1" >
+            <main className="flex-1">
                 <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8">
                     {title && (
                         <h2 className="text-2xl font-bold text-gray-800 mb-4">{title}</h2>
                     )}
                     {children}
                 </div>
-            </main >
+            </main>
 
             {/* 🔹 FOOTER */}
-            < footer className="bg-white border-t border-gray-200 mt-auto" >
+            <footer className="bg-white border-t border-gray-200 mt-auto">
                 <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
                     <p className="text-center text-sm text-gray-500">
                         © 2025 Yets Solutions - Todos los derechos reservados
                     </p>
                 </div>
-            </footer >
-        </div >
+            </footer>
+        </div>
     );
 }
