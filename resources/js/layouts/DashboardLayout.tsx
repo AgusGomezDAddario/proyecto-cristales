@@ -15,7 +15,7 @@ export default function DashboardLayout({ children, title }: Props) {
     const isActive = (path: string) => url.startsWith(path);
     const isAdmin = auth?.user?.role_id === 1;
     const isAdminSection = isActive('/admin/users') || isActive('/catalogo-vehiculos');
-    
+
     /* TOAST */
     const { flash } = usePage().props as any;
 
@@ -24,34 +24,8 @@ export default function DashboardLayout({ children, title }: Props) {
         if (flash?.error) toast.error(flash.error);
     }, [flash]);
 
-<<<<<<< HEAD
     return (
         <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
-=======
-            {/* Menú de navegación (desktop) */}
-            <div className="hidden md:flex items-center gap-2">
-              <Link
-                href="/admin"
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/admin') && !isActive('/admin/users')
-                  ? 'bg-blue-50 text-blue-700 shadow-sm'
-                  : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-              >
-                📊 Panel de Control
-              </Link>
-              {/* {isAdmin && (
-                <Link
-                  href="/admin/users"
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/admin/users')
-                    ? 'bg-blue-50 text-blue-700 shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                >
-                  👤 Gestión de Usuarios
-                </Link>
-              )} */}
->>>>>>> dev
-
             {/* Toast */}
             <Toaster
                 position="bottom-right"
@@ -79,7 +53,7 @@ export default function DashboardLayout({ children, title }: Props) {
             {/* 🔹 NAVBAR */}
             <nav className="bg-white shadow-sm border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
+                    <div className="flex justify-between h-20">
                         {/* Logo + nombre */}
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
@@ -194,6 +168,13 @@ export default function DashboardLayout({ children, title }: Props) {
                                                 🚙 Vehículos
                                             </Link>
                                             <Link
+                                                href="/companias-seguros"
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/companias-seguros') ? 'text-blue-600 font-medium' : 'text-gray-700'
+                                                    }`}
+                                            >
+                                                🛡️ Seguros
+                                            </Link>
+                                            <Link
                                                 href="#"
                                                 className="block px-4 py-2 text-sm text-gray-400 cursor-not-allowed"
                                             >
@@ -302,6 +283,15 @@ export default function DashboardLayout({ children, title }: Props) {
                                         🚙 Vehículos
                                     </Link>
                                     <Link
+                                        href="/companias-seguros"
+                                        className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/companias-seguros')
+                                            ? 'bg-orange-50 text-orange-700'
+                                            : 'text-gray-700 hover:bg-gray-100'
+                                            }`}
+                                    >
+                                        �️ Seguros
+                                    </Link>
+                                    <Link
                                         href="#"
                                         className="block px-4 py-2 rounded-lg text-gray-400 cursor-not-allowed"
                                     >
@@ -373,27 +363,28 @@ export default function DashboardLayout({ children, title }: Props) {
                             </Link>
                         </div>
                     </div>
-                )}
-            </nav>
+                )
+                }
+            </nav >
 
             {/* 🔹 CONTENIDO PRINCIPAL */}
-            <main className="flex-1">
+            < main className="flex-1" >
                 <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8">
                     {title && (
                         <h2 className="text-2xl font-bold text-gray-800 mb-4">{title}</h2>
                     )}
                     {children}
                 </div>
-            </main>
+            </main >
 
             {/* 🔹 FOOTER */}
-            <footer className="bg-white border-t border-gray-200 mt-auto">
+            < footer className="bg-white border-t border-gray-200 mt-auto" >
                 <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
                     <p className="text-center text-sm text-gray-500">
                         © 2025 Yets Solutions - Todos los derechos reservados
                     </p>
                 </div>
-            </footer>
-        </div>
+            </footer >
+        </div >
     );
 }
