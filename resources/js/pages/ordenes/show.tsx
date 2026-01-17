@@ -24,11 +24,17 @@ type Orden = {
   estado: { nombre: string };
   titular_vehiculo: {
     titular: { nombre: string; apellido: string; telefono: string; email: string | null };
-    vehiculo: { patente: string; marca: string; modelo: string; anio: number | null };
+    vehiculo: {
+      patente: string;
+      marca?: { id: number; nombre: string };
+      modelo?: { id: number; nombre: string };
+      anio: number | null;
+    };
   };
   pagos: Pago[];
   detalles: Detalle[];
 };
+
 
 export default function Show({ orden }: { orden: Orden }) {
   const totalOrden = orden.detalles.reduce((acc, curr) => {
@@ -255,11 +261,15 @@ export default function Show({ orden }: { orden: Orden }) {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Marca</p>
-                    <p className="font-medium text-gray-900">{orden.titular_vehiculo.vehiculo.marca}</p>
+                    <p className="font-medium text-gray-900">
+                      {orden.titular_vehiculo.vehiculo.marca?.nombre ?? "-"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Modelo</p>
-                    <p className="font-medium text-gray-900">{orden.titular_vehiculo.vehiculo.modelo}</p>
+                    <p className="font-medium text-gray-900">
+                      {orden.titular_vehiculo.vehiculo.modelo?.nombre ?? "-"}
+                    </p>
                   </div>
                 </div>
 
