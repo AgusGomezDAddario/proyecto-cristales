@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             CatalogoArticulosSeeder::class,
             CompaniasSegurosSeeder::class,
             ConceptoSeeder::class,
+            MarcasModelosSeeder::class,
         ]);
     }
 }

@@ -38,14 +38,20 @@ class OrdenDeTrabajo extends Model
         return $this->belongsTo(Estado::class, 'estado_id');
     }
 
-    // ✅ Pagos múltiples por tabla precio
-    public function pagos()
-    {
-        return $this->hasMany(Precio::class, 'orden_de_trabajo_id');
-    }
-
     public function detalles()
     {
         return $this->hasMany(DetalleOrdenDeTrabajo::class, 'orden_de_trabajo_id');
     }
+
+public function companiaSeguro()
+{
+    return $this->belongsTo(\App\Models\CompaniaSeguro::class, 'compania_seguro_id')
+        ->withTrashed();
+}
+
+public function pagos()
+{
+    return $this->hasMany(\App\Models\Precio::class, 'orden_de_trabajo_id');
+}
+
 }

@@ -43,6 +43,8 @@ export default function Show({ orden }: { orden: Orden }) {
 
   const totalPagado = orden.pagos.reduce((acc, curr) => acc + Number(curr.valor), 0);
   const saldoPendiente = totalOrden - totalPagado;
+  const companiaNombre =
+    (orden as any).compania_seguro?.nombre ?? "Sin seguro / Particular";
 
   return (
     <DashboardLayout>
@@ -70,6 +72,10 @@ export default function Show({ orden }: { orden: Orden }) {
                   }`}>
                   {orden.estado.nombre}
                 </span>
+                <div>
+                  <span className="text-sm text-gray-500">Compañía de seguros</span>
+                  <div className="font-semibold text-gray-900">{companiaNombre}</div>
+                </div>
               </div>
             </div>
           </div>
