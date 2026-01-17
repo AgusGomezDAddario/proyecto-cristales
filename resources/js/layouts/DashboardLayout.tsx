@@ -15,7 +15,7 @@ export default function DashboardLayout({ children, title }: Props) {
     const isActive = (path: string) => url.startsWith(path);
     const isAdmin = auth?.user?.role_id === 1;
     const isAdminSection = isActive('/admin/users') || isActive('/catalogo-vehiculos');
-    
+
     /* TOAST */
     const { flash } = usePage().props as any;
 
@@ -91,17 +91,17 @@ export default function DashboardLayout({ children, title }: Props) {
                             >
                                 📊 Panel de Control
                             </Link>
-                            {isAdmin && (
-                                <Link
-                                    href="/admin/users"
-                                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/admin/users')
-                                        ? 'bg-blue-50 text-blue-700 shadow-sm'
-                                        : 'text-gray-700 hover:bg-gray-100'
-                                        }`}
-                                >
-                                    👤 Gestión de Usuarios
-                                </Link>
-                            )}
+                            {/* {isAdmin && (
+                <Link
+                  href="/admin/users"
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/admin/users')
+                    ? 'bg-blue-50 text-blue-700 shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                >
+                  👤 Gestión de Usuarios
+                </Link>
+              )} */}
 
                             <Link
                                 href="/egresos"
