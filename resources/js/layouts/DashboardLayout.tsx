@@ -24,8 +24,33 @@ export default function DashboardLayout({ children, title }: Props) {
         if (flash?.error) toast.error(flash.error);
     }, [flash]);
 
+<<<<<<< HEAD
     return (
         <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
+=======
+            {/* Menú de navegación (desktop) */}
+            <div className="hidden md:flex items-center gap-2">
+              <Link
+                href="/admin"
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/admin') && !isActive('/admin/users')
+                  ? 'bg-blue-50 text-blue-700 shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+              >
+                📊 Panel de Control
+              </Link>
+              {/* {isAdmin && (
+                <Link
+                  href="/admin/users"
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/admin/users')
+                    ? 'bg-blue-50 text-blue-700 shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                >
+                  👤 Gestión de Usuarios
+                </Link>
+              )} */}
+>>>>>>> dev
 
             {/* Toast */}
             <Toaster

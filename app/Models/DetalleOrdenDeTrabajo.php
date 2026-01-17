@@ -36,9 +36,49 @@ class DetalleOrdenDeTrabajo extends Model
 
     public function atributos()
     {
-        return $this->hasMany(
-            DetalleOrdenAtributo::class,
-            'detalle_orden_de_trabajo_id'
-        );
+        return $this->hasMany(\App\Models\DetalleOrdenAtributo::class, 'detalle_orden_de_trabajo_id');
     }
+    
+    public function edit(OrdenDeTrabajo $orden)
+{
+    $orden->load([
+        'estado',
+        'titularVehiculo.titular',
+        'titularVehiculo.vehiculo.marca',
+        'titularVehiculo.vehiculo.modelo',
+        'detalles.atributos',          // 👈 clave
+        'pagos.medioDePago',
+    ]);
+
+    $estados = Estado::select('id','nombre')->orderBy('nombre')->get();
+    $mediosDePago = MedioDePago::select('id','nombre')->orderBy('nombre')->get();
+
+    $articulos = Articulo::with(['categorias.subcategorias'])
+        ->select('id','nombre')
+        ->get();
+
+    $companiasSeguros = CompaniaSeguro::select('id','nombre')
+        ->where('activo', true)
+        ->orderBy('nombre')
+        ->get();
+
+    // Transformación para que el front reciba "atributos" como Record<categoriaId, subcategoriaId|null>
+    $orden->detalles->transform(function ($d) {
+        $map = [];
+        foreach ($d->atributos as $a) {
+            $map[(int)$a->categoria_id] = (int)$a->subcategoria_id;
+        }
+        $d->atributos_map = $map; // campo virtual
+        return $d;
+    });
+
+    return Inertia::render('ordenes/edit', [
+        'orden' => $orden,
+        'estados' => $estados,
+        'mediosDePago' => $mediosDePago,
+        'articulos' => $articulos,
+        'companiasSeguros' => $companiasSeguros,
+    ]);
+}
+
 }
