@@ -8,12 +8,54 @@ use Inertia\Inertia;
 
 class MedioDePagoController extends Controller
 {
-    public function index()
+        public function index(Request $request)
     {
-        $mediosDePago = MedioDePago::orderBy('nombre', 'asc')->get();
+        $search = $request->search;
+
+        $medios = MedioDePago::when($search, fn ($q) =>
+                $q->where('nombre', 'like', "%{$search}%")
+            )
+            ->orderBy('nombre')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('medios-de-pago/index', [
-            'mediosDePago' => $mediosDePago
+            'medios' => $medios,
+            'filters' => [
+                'search' => $search,
+            ],
         ]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nombre' => 'required|string|max:100|unique:medio_de_pago,nombre',
+        ]);
+
+        MedioDePago::create($request->only('nombre'));
+
+        return redirect()->back()->with(['success' => 'Medio de pago creado correctamente.']);
+    }
+
+    public function update(Request $request, MedioDePago $MedioDePago)
+    {
+        $request->validate([
+            'nombre' => 'required|string|max:100|unique:medio_de_pago,nombre,' . $MedioDePago->id,
+        ]);
+
+        $MedioDePago->update($request->only('nombre'));
+
+        return redirect()->back()->with(['success' => 'Medio de pago actualizado correctamente.']);
+    }
+
+    public function destroy(MedioDePago $MedioDePago)
+    {
+        $cantMovimientos = $MedioDePago->movimientos()->count();
+        if ($cantMovimientos > 0) {
+            return redirect()->back()->with(['error' => 'No se puede eliminar el medio de pago porque tiene movimientos asociados.']);
+        }
+        $MedioDePago->delete();
+        return redirect()->back()->with(['success' => 'Medio de pago eliminado correctamente.']);
     }
 }
