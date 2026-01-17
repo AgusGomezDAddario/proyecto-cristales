@@ -19,6 +19,7 @@ use App\Models\CompaniaSeguro;
 use App\Models\Movimiento;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class OrdenDeTrabajoController extends Controller
 {
@@ -121,6 +122,7 @@ class OrdenDeTrabajoController extends Controller
             'mediosDePago' => $mediosDePago,
             'articulos' => $articulos,
             'companiasSeguros' => $companiasSeguros,
+            'con_factura' => ($data['tipo_documento'] ?? 'OT') === 'FC',
         ]);
     }
 
@@ -132,8 +134,12 @@ class OrdenDeTrabajoController extends Controller
         'fecha' => 'required|date',
         'fecha_entrega_estimada' => 'required|date|after_or_equal:fecha',
         'observacion' => 'nullable|string|max:500',
-        'con_factura' => 'required|boolean',
-        'compania_seguro_id' => 'nullable|integer|exists:companias_seguros,id',
+        'tipo_documento' => 'required|in:FC,OT',
+        'compania_seguro_id' => [
+  'nullable',
+  'integer',
+  Rule::exists('companias_seguros', 'id')->whereNull('deleted_at')->where('activo', 1),
+],
         'es_garantia' => 'required|boolean',
         'numero_orden' => 'nullable|string|max:32',
 
@@ -268,7 +274,8 @@ class OrdenDeTrabajoController extends Controller
 private function registrarIngresosDesdeOT(OrdenDeTrabajo $orden)
 {
     try {
-        $pagos = $orden->fresh()->pagos; // fresh() asegura cargar los pagos recién creados
+        $orden = $orden->fresh(['pagos']);      // fuerza carga de relación
+        $pagos = $orden->pagos ?? collect();    // fallback seguro
 
         if ($pagos->isEmpty()) {
             Log::warning("La OT #{$orden->id} no tiene pagos registrados.");
@@ -279,7 +286,7 @@ private function registrarIngresosDesdeOT(OrdenDeTrabajo $orden)
             Movimiento::create([
                 'fecha' => $orden->fecha,
                 'monto' => $pago->valor,
-                'concepto_id' => 3, // "Cobro a clientes"
+                'concepto_id' => 3,
                 'medio_de_pago_id' => $pago->medio_de_pago_id,
                 'comprobante' => "OT-{$orden->id}",
                 'tipo' => 'ingreso',
@@ -321,7 +328,11 @@ public function update(Request $request, OrdenDeTrabajo $orden)
         'fecha_entrega_estimada' => 'nullable|date',
         'numero_orden' => 'nullable|string|max:50',
         'es_garantia' => 'nullable|boolean',
-        'compania_seguro_id' => 'nullable|integer|exists:companias_seguros,id',
+        'compania_seguro_id' => [
+  'nullable',
+  'integer',
+  Rule::exists('companias_seguros', 'id')->whereNull('deleted_at')->where('activo', 1),
+],
 
         // Detalles
         'detalles' => 'required|array|min:1',
@@ -467,6 +478,7 @@ public function update(Request $request, OrdenDeTrabajo $orden)
 
 public function show(OrdenDeTrabajo $orden)
 {
+    Log::info('SHOW OT', ['id' => $orden->id]);
     $orden->load([
         'titularVehiculo.titular',
         'titularVehiculo.vehiculo.marca',
@@ -474,6 +486,7 @@ public function show(OrdenDeTrabajo $orden)
         'estado',
         'detalles',
         'pagos.medioDePago',
+        'companiaSeguro',
     ]);
 
     return Inertia::render('ordenes/show', [
@@ -483,6 +496,7 @@ public function show(OrdenDeTrabajo $orden)
 
 public function edit(OrdenDeTrabajo $orden)
 {
+    Log::info('EDIT OT', ['id' => $orden->id]);
     $orden->load([
         'estado',
         'titularVehiculo.titular',
@@ -490,6 +504,7 @@ public function edit(OrdenDeTrabajo $orden)
         'titularVehiculo.vehiculo.modelo',
         'detalles.atributos',     // si definís relación atributos en DetalleOrdenDeTrabajo
         'pagos.medioDePago',
+        'companiaSeguro',
     ]);
 
     $titulares = Titular::with([
@@ -503,10 +518,10 @@ public function edit(OrdenDeTrabajo $orden)
         ->select('id', 'nombre')
         ->get();
 
-    $companiasSeguros = CompaniaSeguro::select('id', 'nombre')
-        ->where('activo', true)
-        ->orderBy('nombre')
-        ->get();
+    $companiasSeguros = CompaniaSeguro::query()
+    ->where('activo', 1)
+    ->orderBy('nombre')
+    ->get(['id', 'nombre']);
 
     $estados = Estado::select('id','nombre')->orderBy('nombre')->get();
     $mediosDePago = MedioDePago::select('id','nombre')->orderBy('nombre')->get();
