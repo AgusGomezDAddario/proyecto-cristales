@@ -3,11 +3,19 @@ import { Link, Head } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { User, Phone, Mail, Car, Calendar, FileText, DollarSign, CreditCard, ArrowLeft, Printer } from "lucide-react";
 
+type Atributo = {
+  id: number;
+  categoria: { id: number; nombre: string };
+  subcategoria: { id: number; nombre: string };
+};
+
 type Detalle = {
   descripcion: string;
   valor: number;
   cantidad: number;
   colocacion_incluida: boolean;
+  articulo: { id: number; nombre: string } | null;
+  atributos: Atributo[];
 };
 
 type Pago = {
@@ -122,10 +130,32 @@ export default function Show({ orden }: { orden: Orden }) {
                       {orden.detalles.map((detalle, index) => (
                         <tr key={index} className="text-sm text-gray-700">
                           <td className="py-3 pl-2">
-                            <div className="font-medium text-gray-900">{detalle.descripcion}</div>
-                            {detalle.colocacion_incluida && (
+                            <div className="font-medium text-gray-900">
+                              {detalle.articulo?.nombre || 'Artículo no especificado'}
+                            </div>
+                            {/* Atributos (Color, Posición, etc.) */}
+                            {detalle.atributos && detalle.atributos.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {detalle.atributos.map((attr) => (
+                                  <span
+                                    key={attr.id}
+                                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700"
+                                  >
+                                    {attr.categoria?.nombre}: {attr.subcategoria?.nombre}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {detalle.descripcion && (
+                              <div className="text-sm text-gray-500 mt-1">{detalle.descripcion}</div>
+                            )}
+                            {detalle.colocacion_incluida ? (
                               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 mt-1">
-                                Colocación incluida
+                                🔧 Colocación
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-700 mt-1">
+                                🏪 Retiro en local
                               </span>
                             )}
                           </td>
