@@ -57,10 +57,11 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
     const detalleInicial: Detalle = {
         articulo_id: null,
         descripcion: '',
-        valor: 0 as any, // si tu Detalle.valor es number -> dejalo en 0 (sin "as any")
+        valor: '', // string vacío para que funcione el placeholder
         cantidad: 1,
         colocacion_incluida: false,
-        atributos: [] as any, // si tu Detalle.atributos es {} u otro tipo, ajustá acá
+        retiro_local: false,
+        atributos: {} as any, // si tu Detalle.atributos es {} u otro tipo, ajustá acá
     } as Detalle;
 
     // 1) Initial values tipados

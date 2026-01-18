@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Plus, Trash2, DollarSign, Layers, Tag } from "lucide-react";
+import { Plus, Trash2, DollarSign, Layers, Tag, Wrench, Store } from "lucide-react";
 
 export interface SubcategoriaDTO {
   id: number;
@@ -26,6 +26,7 @@ export interface Detalle {
   valor: number | string;
   cantidad: number;
   colocacion_incluida: boolean;
+  retiro_local: boolean;
 
   // categoriaId -> subcategoriaId
   atributos: Record<number, number | null>;
@@ -92,16 +93,33 @@ export default function DetallesSection({ detalles, setDetalles, articulos, erro
 
   const handleAdd = () => {
     setDetalles([
-      ...detalles,
       {
         articulo_id: null,
         descripcion: "",
         valor: "",
         cantidad: 1,
         colocacion_incluida: false,
+        retiro_local: false,
         atributos: {},
       },
+      ...detalles,
     ]);
+  };
+
+  const handleToggleOption = (index: number, option: 'colocacion' | 'retiro') => {
+    const nuevos = [...detalles];
+    if (option === 'colocacion') {
+      nuevos[index].colocacion_incluida = !nuevos[index].colocacion_incluida;
+      if (nuevos[index].colocacion_incluida) {
+        nuevos[index].retiro_local = false;
+      }
+    } else {
+      nuevos[index].retiro_local = !nuevos[index].retiro_local;
+      if (nuevos[index].retiro_local) {
+        nuevos[index].colocacion_incluida = false;
+      }
+    }
+    setDetalles(nuevos);
   };
 
   const handleRemove = (index: number) => {
@@ -144,23 +162,30 @@ export default function DetallesSection({ detalles, setDetalles, articulos, erro
       <div className="space-y-6">
         {detalles.map((detalle, index) => {
           const articulo = detalle.articulo_id ? articulosById.get(detalle.articulo_id) : undefined;
+          const isItemConfigured = detalle.articulo_id !== null;
 
           return (
-            <div key={index} className="space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                {/* Artículo (6/12) */}
-                <div className="md:col-span-6">
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+            <div
+              key={index}
+              className={`rounded-xl border-2 p-4 transition-all ${isItemConfigured
+                  ? 'border-green-300 bg-green-50/30'
+                  : 'border-gray-200 bg-white'
+                }`}
+            >
+              {/* Fila principal compacta */}
+              <div className="flex flex-wrap items-end gap-3">
+                {/* Artículo */}
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
                     Artículo *
                   </label>
                   <div className="relative">
-                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+                    <Tag className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <select
                       value={detalle.articulo_id ?? ""}
                       onChange={(e) => handleArticuloChange(index, e.target.value)}
-                      className={`w-full pl-10 pr-3 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 ${
-                        getItemError(index, "articulo_id") ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                      }`}
+                      className={`w-full pl-8 pr-2 py-2 text-sm bg-white border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${getItemError(index, "articulo_id") ? "border-red-500 bg-red-50" : "border-gray-300 hover:border-gray-400"
+                        }`}
                     >
                       <option value="">Seleccionar artículo...</option>
                       {articulos.map((a) => (
@@ -170,18 +195,15 @@ export default function DetallesSection({ detalles, setDetalles, articulos, erro
                       ))}
                     </select>
                   </div>
-                  {getItemError(index, "articulo_id") && (
-                    <p className="mt-2 text-sm text-red-600">{getItemError(index, "articulo_id")}</p>
-                  )}
                 </div>
 
-                {/* Valor (3/12) */}
-                <div className="md:col-span-3">
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                {/* Valor */}
+                <div className="w-28">
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
                     Valor *
                   </label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+                    <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <input
                       type="number"
                       min={0}
@@ -189,68 +211,87 @@ export default function DetallesSection({ detalles, setDetalles, articulos, erro
                       value={detalle.valor === "" ? "" : detalle.valor}
                       onChange={(e) => handleChange(index, "valor", e.target.value === "" ? "" : e.target.value)}
                       placeholder="0"
-                      className={`w-full pl-10 pr-3 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 ${
-                        getItemError(index, "valor") ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                      }`}
+                      className={`w-full pl-8 pr-2 py-2 text-sm bg-white border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${getItemError(index, "valor") ? "border-red-500 bg-red-50" : "border-gray-300 hover:border-gray-400"
+                        }`}
                     />
                   </div>
-                  {getItemError(index, "valor") && (
-                    <p className="mt-2 text-sm text-red-600">{getItemError(index, "valor")}</p>
-                  )}
                 </div>
 
-                {/* Cantidad + Coloc. + Eliminar (3/12) */}
-                <div className="md:col-span-3">
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">
-                    Cantidad *
+                {/* Cantidad */}
+                <div className="w-20">
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    Cant. *
                   </label>
-
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <input
-                      type="number"
-                      min={1}
-                      value={detalle.cantidad}
-                      onChange={(e) => handleChange(index, "cantidad", Math.max(1, Number(e.target.value)))}
-                      className={`w-[96px] px-3 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 ${
-                        getItemError(index, "cantidad") ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                  <input
+                    type="number"
+                    min={1}
+                    value={detalle.cantidad}
+                    onChange={(e) => handleChange(index, "cantidad", Math.max(1, Number(e.target.value)))}
+                    className={`w-full px-2 py-2 text-sm bg-white border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-center ${getItemError(index, "cantidad") ? "border-red-500 bg-red-50" : "border-gray-300 hover:border-gray-400"
                       }`}
-                    />
-
-                    <label className="inline-flex items-center gap-2 text-sm font-medium text-gray-800 whitespace-nowrap select-none bg-white">
-                      <input
-                        type="checkbox"
-                        checked={detalle.colocacion_incluida}
-                        onChange={(e) => handleChange(index, "colocacion_incluida", e.target.checked)}
-                        className="w-5 h-5 rounded bg-white border border-gray-400 accent-[#2596be] focus:ring-2 focus:ring-[#1862fd] cursor-pointer"
-                      />
-                      Coloc.
-                    </label>
-
-                    <button
-                      type="button"
-                      onClick={() => handleRemove(index)}
-                      className="p-2 rounded-lg bg-[#2596be] text-white hover:bg-[#1862fd] transition"
-                      aria-label="Eliminar ítem"
-                      title="Eliminar ítem"
-                      disabled={detalles.length === 1}
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
-                  </div>
+                  />
                 </div>
+
+                {/* Toggle Buttons: Colocación / Retiro */}
+                <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleOption(index, 'colocacion')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${detalle.colocacion_incluida
+                        ? 'bg-blue-500 text-white shadow-sm'
+                        : 'bg-transparent text-gray-600 hover:bg-gray-200'
+                      }`}
+                    title="Incluye colocación"
+                  >
+                    <Wrench className="h-3.5 w-3.5" />
+                    Coloc.
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleOption(index, 'retiro')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${detalle.retiro_local
+                        ? 'bg-orange-500 text-white shadow-sm'
+                        : 'bg-transparent text-gray-600 hover:bg-gray-200'
+                      }`}
+                    title="Retiro en local"
+                  >
+                    <Store className="h-3.5 w-3.5" />
+                    Retiro
+                  </button>
+                </div>
+
+                {/* Eliminar */}
+                <button
+                  type="button"
+                  onClick={() => handleRemove(index)}
+                  className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Eliminar ítem"
+                  title="Eliminar ítem"
+                  disabled={detalles.length === 1}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
 
-              {/* Categorías/Subcategorías dinámicas */}
-              {articulo?.categorias?.length ? (
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                  <p className="text-sm font-semibold text-gray-800 mb-3">Atributos del artículo</p>
+              {/* Fila de errores */}
+              {(getItemError(index, "articulo_id") || getItemError(index, "valor") || getItemError(index, "cantidad")) && (
+                <div className="mt-2 flex flex-wrap gap-3 text-xs text-red-600">
+                  {getItemError(index, "articulo_id") && <span>{getItemError(index, "articulo_id")}</span>}
+                  {getItemError(index, "valor") && <span>{getItemError(index, "valor")}</span>}
+                  {getItemError(index, "cantidad") && <span>{getItemError(index, "cantidad")}</span>}
+                </div>
+              )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Atributos del artículo (colapsados visualmente) */}
+              {articulo?.categorias?.length ? (
+                <div className="mt-3 bg-white border border-gray-200 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-gray-600 mb-2">Atributos</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {articulo.categorias.map((cat) => {
                       const selected = detalle.atributos?.[cat.id] ?? null;
                       return (
                         <div key={cat.id}>
-                          <label className="block text-sm font-semibold text-gray-800 mb-2">
+                          <label className="block text-xs text-gray-500 mb-1">
                             {cat.nombre}
                           </label>
                           <select
@@ -262,7 +303,7 @@ export default function DetallesSection({ detalles, setDetalles, articulos, erro
                                 e.target.value ? Number(e.target.value) : null
                               )
                             }
-                            className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900"
+                            className="w-full px-2 py-1.5 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
                           >
                             <option value="">Seleccionar...</option>
                             {cat.subcategorias.map((sc) => (
@@ -277,26 +318,23 @@ export default function DetallesSection({ detalles, setDetalles, articulos, erro
                   </div>
                 </div>
               ) : (
-                <div className="text-sm text-gray-500">
-                  {detalle.articulo_id ? "Este artículo no tiene atributos configurados." : "Seleccione un artículo para ver atributos."}
-                </div>
+                !isItemConfigured && (
+                  <p className="mt-2 text-xs text-gray-400 italic">
+                    Seleccione un artículo para ver atributos.
+                  </p>
+                )
               )}
 
-              {/* Descripción libre opcional */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
-                  Descripción (opcional)
-                </label>
+              {/* Descripción opcional - más compacta */}
+              <div className="mt-3">
                 <input
                   type="text"
                   value={detalle.descripcion}
                   onChange={(e) => handleChange(index, "descripcion", e.target.value)}
-                  placeholder="Aclaración adicional..."
-                  className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900"
+                  placeholder="Descripción adicional (opcional)..."
+                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition placeholder:text-gray-400"
                 />
               </div>
-
-              {index < detalles.length - 1 && <div className="border-t border-gray-200 pt-3" />}
             </div>
           );
         })}
