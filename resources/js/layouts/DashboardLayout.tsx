@@ -19,7 +19,8 @@ export default function DashboardLayout({ children, title }: Props) {
         isActive('/catalogo-vehiculos') ||
         isActive('/clientes') ||
         isActive('/companias-seguros') ||
-        isActive('/medio-de-pago');
+        isActive('/medio-de-pago') ||
+        isActive('/admin/metrics');
 
     /* TOAST */
     const { flash } = usePage().props as any;
@@ -80,42 +81,47 @@ export default function DashboardLayout({ children, title }: Props) {
                         <div className="hidden items-center gap-2 md:flex">
                             <Link
                                 href="/admin"
-                                className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${isActive('/admin') && !isActive('/admin/users')
-                                    ? 'bg-blue-50 text-blue-700 shadow-sm'
-                                    : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
+                                className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
+                                    isActive('/admin') && !isActive('/admin/users')
+                                        ? 'bg-blue-50 text-blue-700 shadow-sm'
+                                        : 'text-gray-700 hover:bg-gray-100'
+                                }`}
                             >
                                 📊 Panel de Control
                             </Link>
 
                             <Link
                                 href="/egresos"
-                                className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${isActive('/egresos') ? 'bg-red-50 text-red-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
+                                className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
+                                    isActive('/egresos') ? 'bg-red-50 text-red-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
+                                }`}
                             >
                                 💸 Egresos
                             </Link>
 
                             <Link
                                 href="/ingresos"
-                                className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${isActive('/ingresos') ? 'bg-green-50 text-green-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
+                                className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
+                                    isActive('/ingresos') ? 'bg-green-50 text-green-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
+                                }`}
                             >
                                 💰 Ingresos
                             </Link>
 
                             <Link
                                 href="/resumen-del-dia"
-                                className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${isActive('/resumen-del-dia') ? 'bg-blue-50 text-blue-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
+                                className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
+                                    isActive('/resumen-del-dia') ? 'bg-blue-50 text-blue-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
+                                }`}
                             >
                                 🧾 Resumen del día
                             </Link>
 
                             <Link
                                 href="/ordenes"
-                                className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${isActive('/ordenes') ? 'bg-purple-50 text-purple-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
+                                className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
+                                    isActive('/ordenes') ? 'bg-purple-50 text-purple-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
+                                }`}
                             >
                                 🚗 Órdenes de Trabajo
                             </Link>
@@ -141,22 +147,25 @@ export default function DashboardLayout({ children, title }: Props) {
                                         <div className="absolute top-full right-0 z-50 mt-1 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
                                             <Link
                                                 href="/clientes"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/clientes') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                    isActive('/clientes') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
                                             >
                                                 👥 Clientes
                                             </Link>
                                             <Link
                                                 href="/catalogo-vehiculos"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/catalogo-vehiculos') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                    isActive('/catalogo-vehiculos') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
                                             >
                                                 🚙 Vehículos
                                             </Link>
                                             <Link
                                                 href="/companias-seguros"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/companias-seguros') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                    isActive('/companias-seguros') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
                                             >
                                                 🛡️ Seguros
                                             </Link>
@@ -168,16 +177,26 @@ export default function DashboardLayout({ children, title }: Props) {
                                             </Link>
                                             <Link
                                                 href="/medio-de-pago"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/medio-de-pago') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                    isActive('/medio-de-pago') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
                                             >
                                                 💳 Medios de pago
+                                            </Link>
+                                            <Link
+                                                href="/admin/metrics"
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                    isActive('/admin/metrics') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
+                                            >
+                                                📈 Métricas
                                             </Link>
                                             <div className="my-1 border-t border-gray-100"></div>
                                             <Link
                                                 href="/admin/users"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/admin/users') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                    isActive('/admin/users') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
                                             >
                                                 👤 Usuarios
                                             </Link>
@@ -218,8 +237,9 @@ export default function DashboardLayout({ children, title }: Props) {
                         <div className="space-y-1 px-4 py-2">
                             <Link
                                 href="/admin"
-                                className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/admin') && !isActive('/admin/users') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
+                                className={`block rounded-lg px-4 py-2 font-semibold ${
+                                    isActive('/admin') && !isActive('/admin/users') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                                }`}
                             >
                                 📊 Panel de Control
                             </Link>
@@ -229,22 +249,25 @@ export default function DashboardLayout({ children, title }: Props) {
                                     <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase">⚙️ Administración</div>
                                     <Link
                                         href="/clientes"
-                                        className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/clientes') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
-                                            }`}
+                                        className={`block rounded-lg px-4 py-2 font-semibold ${
+                                            isActive('/clientes') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
+                                        }`}
                                     >
                                         👥 Clientes
                                     </Link>
                                     <Link
                                         href="/catalogo-vehiculos"
-                                        className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/catalogo-vehiculos') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
-                                            }`}
+                                        className={`block rounded-lg px-4 py-2 font-semibold ${
+                                            isActive('/catalogo-vehiculos') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
+                                        }`}
                                     >
                                         🚙 Vehículos
                                     </Link>
                                     <Link
                                         href="/companias-seguros"
-                                        className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/companias-seguros') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
-                                            }`}
+                                        className={`block rounded-lg px-4 py-2 font-semibold ${
+                                            isActive('/companias-seguros') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
+                                        }`}
                                     >
                                         🛡️ Seguros
                                     </Link>
@@ -256,15 +279,25 @@ export default function DashboardLayout({ children, title }: Props) {
                                     </Link>
                                     <Link
                                         href="/medio-de-pago"
-                                        className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/medio-de-pago') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
-                                            }`}
+                                        className={`block rounded-lg px-4 py-2 font-semibold ${
+                                            isActive('/medio-de-pago') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
+                                        }`}
                                     >
                                         💳 Medios de pago
                                     </Link>
                                     <Link
+                                        href="/admin/metrics"
+                                        className={`block rounded-lg px-4 py-2 font-semibold ${
+                                            isActive('/admin/metrics') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
+                                        }`}
+                                    >
+                                        📈 Métricas
+                                    </Link>
+                                    <Link
                                         href="/admin/users"
-                                        className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/admin/users') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
-                                            }`}
+                                        className={`block rounded-lg px-4 py-2 font-semibold ${
+                                            isActive('/admin/users') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
+                                        }`}
                                     >
                                         👤 Usuarios
                                     </Link>
@@ -274,30 +307,34 @@ export default function DashboardLayout({ children, title }: Props) {
 
                             <Link
                                 href="/egresos"
-                                className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/egresos') ? 'bg-red-50 text-red-700' : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
+                                className={`block rounded-lg px-4 py-2 font-semibold ${
+                                    isActive('/egresos') ? 'bg-red-50 text-red-700' : 'text-gray-700 hover:bg-gray-100'
+                                }`}
                             >
                                 💸 Egresos
                             </Link>
                             <Link
                                 href="/ingresos"
-                                className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/ingresos') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
+                                className={`block rounded-lg px-4 py-2 font-semibold ${
+                                    isActive('/ingresos') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-100'
+                                }`}
                             >
                                 💰 Ingresos
                             </Link>
                             <Link
                                 href="/resumen-del-dia"
-                                className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/resumen-del-dia') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
+                                className={`block rounded-lg px-4 py-2 font-semibold ${
+                                    isActive('/resumen-del-dia') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                                }`}
                             >
                                 🧾 Resumen del día
                             </Link>
 
                             <Link
                                 href="/ordenes"
-                                className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/ordenes') ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
+                                className={`block rounded-lg px-4 py-2 font-semibold ${
+                                    isActive('/ordenes') ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-100'
+                                }`}
                             >
                                 🚗 Órdenes de Trabajo
                             </Link>

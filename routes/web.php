@@ -6,11 +6,11 @@ use App\Http\Controllers\OrdenDeTrabajoController;
 use App\Http\Controllers\Administrador\UserController;
 use App\Http\Controllers\IngresoController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MetricsController;
 use App\Http\Controllers\EgresoController;
 use App\Http\Controllers\MovimientoController;
 use App\Http\Controllers\CatalogoVehiculoController;
 use App\Http\Controllers\DailySummaryController;
-use App\Http\Controllers\CashboxController;
 use App\Http\Controllers\MedioDePagoController;
 use App\Http\Controllers\CompaniaDeSeguroController;
 use App\Http\Controllers\ClienteController;
@@ -30,6 +30,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('admin/users', [UserController::class, 'store'])->name('admin.users.store');
         Route::put('admin/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
         Route::delete('admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+
+        // 📈 Métricas (solo admins)
+        Route::get('admin/metrics', [MetricsController::class, 'index'])->name('admin.metrics.index');
 
         // 📚 Catálogo de Marcas/Modelos (solo admins)
         Route::resource('catalogo-vehiculos', CatalogoVehiculoController::class)
@@ -73,9 +76,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('api/modelos/{marcaId}', [CatalogoVehiculoController::class, 'getModelosByMarca'])->name('api.modelos');
     // 👉 Rutas para Resumen del día
     Route::get('/resumen-del-dia', [DailySummaryController::class, 'show'])->name('daily-summary.show');
-
-    Route::post('/caja/abrir', [CashboxController::class, 'open'])->name('cashbox.open');
-    Route::post('/caja/cerrar', [CashboxController::class, 'close'])->name('cashbox.close');
 
     Route::get('/resumen-del-dia/imprimir', [DailySummaryController::class, 'print'])
         ->name('daily-summary.print');
