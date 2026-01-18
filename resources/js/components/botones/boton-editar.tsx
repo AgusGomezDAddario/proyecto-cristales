@@ -24,8 +24,8 @@ export default function EditButton({
             title={title}
             className={`
                 p-2
-                bg-slate-500
-                hover:bg-slate-600
+                bg-amber-500
+                hover:bg-amber-600
                 text-white
                 rounded-lg
                 transition

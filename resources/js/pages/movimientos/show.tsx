@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Movimiento } from '@/types/movimiento';
+import ViewButton from '@/components/botones/boton-ver';
 
 interface Props {
     movimiento: Movimiento;
@@ -75,13 +76,11 @@ export default function Show({ movimiento, label, tipo }: Props) {
                                             {c.ruta_archivo.split('/').pop()}
                                         </span>
 
-                                        <a
-                                            href={`/storage/${c.ruta_archivo}`}
-                                            target="_blank"
-                                            className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition"
-                                        >
-                                            Ver
-                                        </a>
+                                        <ViewButton
+                                            onClick={() => {
+                                                window.open(`/storage/${c.ruta_archivo}`, '_blank');
+                                            }}
+                                        />
                                     </li>
                                 ))}
                             </ul>

@@ -3,6 +3,8 @@ import DashboardLayout from '@/layouts/DashboardLayout';
 import { FormEventHandler } from 'react';
 import { Concepto, MedioDePago, Movimiento } from '@/types/movimiento';
 import DeleteButton from '@/components/botones/boton-eliminar';
+import { View } from 'lucide-react';
+import ViewButton from '@/components/botones/boton-ver';
 
 interface Props {
     movimiento: Movimiento;
@@ -162,14 +164,12 @@ export default function Edit({ movimiento, conceptos, mediosDePago, tipo, label 
                                         >
                                             <span className="truncate max-w-[200px]">{c.ruta_archivo.split('/').pop()}</span>
 
-                                            <div className="flex gap-3">
-                                                <a
-                                                    href={`/storage/${c.ruta_archivo}`}
-                                                    target="_blank"
-                                                    className="text-blue-600 text-sm"
-                                                >
-                                                    Ver
-                                                </a>
+                                            <div className="flex gap-2">
+                                                <ViewButton
+                                                    onClick={() => {
+                                                        window.open(`/storage/${c.ruta_archivo}`, '_blank');
+                                                    }}
+                                                />
 
                                                 {/* Botón para marcar como eliminado */}
                                                 <DeleteButton
