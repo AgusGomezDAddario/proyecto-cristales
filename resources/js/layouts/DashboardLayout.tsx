@@ -14,7 +14,12 @@ export default function DashboardLayout({ children, title }: Props) {
 
     const isActive = (path: string) => url.startsWith(path);
     const isAdmin = auth?.user?.role_id === 1;
-    const isAdminSection = isActive('/admin/users') || isActive('/catalogo-vehiculos') || isActive('/clientes');
+    const isAdminSection =
+        isActive('/admin/users') ||
+        isActive('/catalogo-vehiculos') ||
+        isActive('/clientes') ||
+        isActive('/companias-seguros') ||
+        isActive('/medio-de-pago');
 
     /* TOAST */
     const { flash } = usePage().props as any;
@@ -25,8 +30,7 @@ export default function DashboardLayout({ children, title }: Props) {
     }, [flash]);
 
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
-
+        <div className="flex min-h-screen flex-col bg-gray-50 text-gray-900">
             {/* Toast */}
             <Toaster
                 position="bottom-right"
@@ -52,18 +56,13 @@ export default function DashboardLayout({ children, title }: Props) {
             />
 
             {/* 🔹 NAVBAR */}
-            <nav className="bg-white shadow-sm border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
+            <nav className="border-b border-gray-200 bg-white shadow-sm">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="flex h-16 justify-between">
                         {/* Logo + nombre */}
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
-                                <svg
-                                    className="w-6 h-6 text-white"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
+                                <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
@@ -73,18 +72,15 @@ export default function DashboardLayout({ children, title }: Props) {
                                 </svg>
                             </div>
                             <div className="hidden md:block">
-                                <h1 className="text-xl font-bold text-gray-900">
-                                    Sistema Parabrisas
-                                </h1>
-                                <p className="text-xs text-gray-500">Gestión integral</p>
+                                <h1 className="text-l font-bold text-gray-900">Sistema de Gestión Integral</h1>
                             </div>
                         </div>
 
                         {/* Menú de navegación (desktop) */}
-                        <div className="hidden md:flex items-center gap-2">
+                        <div className="hidden items-center gap-2 md:flex">
                             <Link
                                 href="/admin"
-                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${isActive('/admin') && !isActive('/admin/users')
+                                className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${isActive('/admin') && !isActive('/admin/users')
                                     ? 'bg-blue-50 text-blue-700 shadow-sm'
                                     : 'text-gray-700 hover:bg-gray-100'
                                     }`}
@@ -94,9 +90,7 @@ export default function DashboardLayout({ children, title }: Props) {
 
                             <Link
                                 href="/egresos"
-                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${isActive('/egresos')
-                                    ? 'bg-red-50 text-red-700 shadow-sm'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                                className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${isActive('/egresos') ? 'bg-red-50 text-red-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
                                     }`}
                             >
                                 💸 Egresos
@@ -104,9 +98,7 @@ export default function DashboardLayout({ children, title }: Props) {
 
                             <Link
                                 href="/ingresos"
-                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${isActive('/ingresos')
-                                    ? 'bg-green-50 text-green-700 shadow-sm'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                                className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${isActive('/ingresos') ? 'bg-green-50 text-green-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
                                     }`}
                             >
                                 💰 Ingresos
@@ -114,9 +106,7 @@ export default function DashboardLayout({ children, title }: Props) {
 
                             <Link
                                 href="/resumen-del-dia"
-                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${isActive('/resumen-del-dia')
-                                    ? 'bg-blue-50 text-blue-700 shadow-sm'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                                className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${isActive('/resumen-del-dia') ? 'bg-blue-50 text-blue-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
                                     }`}
                             >
                                 🧾 Resumen del día
@@ -124,9 +114,7 @@ export default function DashboardLayout({ children, title }: Props) {
 
                             <Link
                                 href="/ordenes"
-                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${isActive('/ordenes')
-                                    ? 'bg-purple-50 text-purple-700 shadow-sm'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                                className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${isActive('/ordenes') ? 'bg-purple-50 text-purple-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
                                     }`}
                             >
                                 🚗 Órdenes de Trabajo
@@ -136,53 +124,59 @@ export default function DashboardLayout({ children, title }: Props) {
                                 <div className="relative">
                                     <button
                                         onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
-                                        className="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1 whitespace-nowrap text-gray-700 bg-gray-100 hover:bg-gray-200"
+                                        className="flex items-center gap-1 rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold whitespace-nowrap text-gray-700 transition-all hover:bg-gray-200"
                                     >
                                         ⚙️ Administración
-                                        <svg className={`w-4 h-4 transition-transform ${adminDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg
+                                            className={`h-4 w-4 transition-transform ${adminDropdownOpen ? 'rotate-180' : ''}`}
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                         </svg>
                                     </button>
 
                                     {adminDropdownOpen && (
-                                        <div className="absolute top-full right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                                        <div className="absolute top-full right-0 z-50 mt-1 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
                                             <Link
                                                 href="/clientes"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/clientes') ? 'text-orange-600 font-medium' : 'text-gray-700'
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/clientes') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                     }`}
                                             >
                                                 👥 Clientes
                                             </Link>
                                             <Link
                                                 href="/catalogo-vehiculos"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/catalogo-vehiculos') ? 'text-orange-600 font-medium' : 'text-gray-700'
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/catalogo-vehiculos') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                     }`}
                                             >
                                                 🚙 Vehículos
                                             </Link>
                                             <Link
-                                                href="#"
-                                                className="block px-4 py-2 text-sm text-gray-400 cursor-not-allowed"
+                                                href="/companias-seguros"
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/companias-seguros') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                    }`}
                                             >
+                                                🛡️ Seguros
+                                            </Link>
+                                            <Link href="#" className="block cursor-not-allowed px-4 py-2 text-sm text-gray-400">
                                                 📦 Artículos
                                             </Link>
-                                            <Link
-                                                href="#"
-                                                className="block px-4 py-2 text-sm text-gray-400 cursor-not-allowed"
-                                            >
+                                            <Link href="#" className="block cursor-not-allowed px-4 py-2 text-sm text-gray-400">
                                                 🏭 Proveedores
                                             </Link>
                                             <Link
                                                 href="/medio-de-pago"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/medio-de-pago') ? 'text-orange-600 font-medium' : 'text-gray-700'
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/medio-de-pago') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                     }`}
                                             >
                                                 💳 Medios de pago
                                             </Link>
-                                            <div className="border-t border-gray-100 my-1"></div>
+                                            <div className="my-1 border-t border-gray-100"></div>
                                             <Link
                                                 href="/admin/users"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/admin/users') ? 'text-orange-600 font-medium' : 'text-gray-700'
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/admin/users') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                     }`}
                                             >
                                                 👤 Usuarios
@@ -197,38 +191,20 @@ export default function DashboardLayout({ children, title }: Props) {
                                 href="/logout"
                                 method="post"
                                 as="button"
-                                className="ml-4 px-4 py-2 rounded-lg text-sm font-semibold text-red-600 bg-white hover:bg-red-50 transition-all whitespace-nowrap"
+                                className="ml-4 rounded-lg bg-white px-4 py-2 text-sm font-semibold whitespace-nowrap text-red-600 transition-all hover:bg-red-50"
                             >
                                 🚪 Salir
                             </Link>
                         </div>
 
                         {/* Botón de menú móvil */}
-                        <div className="md:hidden flex items-center">
-                            <button
-                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                                className="p-2 rounded-lg text-gray-700 hover:bg-gray-100"
-                            >
-                                <svg
-                                    className="w-6 h-6"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
+                        <div className="flex items-center md:hidden">
+                            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="rounded-lg p-2 text-gray-700 hover:bg-gray-100">
+                                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     {mobileMenuOpen ? (
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M6 18L18 6M6 6l12 12"
-                                        />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                     ) : (
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M4 6h16M4 12h16M4 18h16"
-                                        />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                                     )}
                                 </svg>
                             </button>
@@ -238,13 +214,11 @@ export default function DashboardLayout({ children, title }: Props) {
 
                 {/* Menú móvil */}
                 {mobileMenuOpen && (
-                    <div className="md:hidden border-t border-gray-200 bg-white">
-                        <div className="px-4 py-2 space-y-1">
+                    <div className="border-t border-gray-200 bg-white md:hidden">
+                        <div className="space-y-1 px-4 py-2">
                             <Link
                                 href="/admin"
-                                className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/admin') && !isActive('/admin/users')
-                                    ? 'bg-blue-50 text-blue-700'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                                className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/admin') && !isActive('/admin/users') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
                                     }`}
                             >
                                 📊 Panel de Control
@@ -255,70 +229,66 @@ export default function DashboardLayout({ children, title }: Props) {
                                     <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase">⚙️ Administración</div>
                                     <Link
                                         href="/clientes"
-                                        className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/clientes')
-                                            ? 'bg-orange-50 text-orange-700'
-                                            : 'text-gray-700 hover:bg-gray-100'
+                                        className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/clientes') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
                                             }`}
                                     >
                                         👥 Clientes
                                     </Link>
                                     <Link
                                         href="/catalogo-vehiculos"
-                                        className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/catalogo-vehiculos')
-                                            ? 'bg-orange-50 text-orange-700'
-                                            : 'text-gray-700 hover:bg-gray-100'
+                                        className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/catalogo-vehiculos') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
                                             }`}
                                     >
                                         🚙 Vehículos
                                     </Link>
                                     <Link
-                                        href="#"
-                                        className="block px-4 py-2 rounded-lg text-gray-400 cursor-not-allowed"
+                                        href="/companias-seguros"
+                                        className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/companias-seguros') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
+                                            }`}
                                     >
+                                        🛡️ Seguros
+                                    </Link>
+                                    <Link href="#" className="block cursor-not-allowed rounded-lg px-4 py-2 text-gray-400">
                                         📦 Artículos
                                     </Link>
-                                    <Link
-                                        href="#"
-                                        className="block px-4 py-2 rounded-lg text-gray-400 cursor-not-allowed"
-                                    >
+                                    <Link href="#" className="block cursor-not-allowed rounded-lg px-4 py-2 text-gray-400">
                                         🏭 Proveedores
                                     </Link>
                                     <Link
+                                        href="/medio-de-pago"
+                                        className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/medio-de-pago') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
+                                            }`}
+                                    >
+                                        💳 Medios de pago
+                                    </Link>
+                                    <Link
                                         href="/admin/users"
-                                        className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/admin/users')
-                                            ? 'bg-orange-50 text-orange-700'
-                                            : 'text-gray-700 hover:bg-gray-100'
+                                        className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/admin/users') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
                                             }`}
                                     >
                                         👤 Usuarios
                                     </Link>
-                                    <div className="border-t border-gray-200 my-2"></div>
+                                    <div className="my-2 border-t border-gray-200"></div>
                                 </>
                             )}
 
                             <Link
-                                href="/movimientos"
-                                className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/movimientos')
-                                    ? 'bg-red-50 text-red-700'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                                href="/egresos"
+                                className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/egresos') ? 'bg-red-50 text-red-700' : 'text-gray-700 hover:bg-gray-100'
                                     }`}
                             >
                                 💸 Egresos
                             </Link>
                             <Link
                                 href="/ingresos"
-                                className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/ingresos')
-                                    ? 'bg-green-50 text-green-700'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                                className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/ingresos') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-100'
                                     }`}
                             >
                                 💰 Ingresos
                             </Link>
                             <Link
                                 href="/resumen-del-dia"
-                                className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/resumen-del-dia')
-                                    ? 'bg-blue-50 text-blue-700'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                                className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/resumen-del-dia') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
                                     }`}
                             >
                                 🧾 Resumen del día
@@ -326,9 +296,7 @@ export default function DashboardLayout({ children, title }: Props) {
 
                             <Link
                                 href="/ordenes"
-                                className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/ordenes')
-                                    ? 'bg-purple-50 text-purple-700'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                                className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/ordenes') ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-100'
                                     }`}
                             >
                                 🚗 Órdenes de Trabajo
@@ -337,7 +305,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                 href="/logout"
                                 method="post"
                                 as="button"
-                                className="block w-full text-left px-4 py-2 rounded-lg font-semibold text-red-600 hover:bg-red-50"
+                                className="block w-full rounded-lg px-4 py-2 text-left font-semibold text-red-600 hover:bg-red-50"
                             >
                                 🚪 Salir
                             </Link>
@@ -348,20 +316,16 @@ export default function DashboardLayout({ children, title }: Props) {
 
             {/* 🔹 CONTENIDO PRINCIPAL */}
             <main className="flex-1">
-                <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8">
-                    {title && (
-                        <h2 className="text-2xl font-bold text-gray-800 mb-4">{title}</h2>
-                    )}
+                <div className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8">
+                    {title && <h2 className="mb-4 text-2xl font-bold text-gray-800">{title}</h2>}
                     {children}
                 </div>
             </main>
 
             {/* 🔹 FOOTER */}
-            <footer className="bg-white border-t border-gray-200 mt-auto">
-                <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-                    <p className="text-center text-sm text-gray-500">
-                        © 2025 Yets Solutions - Todos los derechos reservados
-                    </p>
+            <footer className="mt-auto border-t border-gray-200 bg-white">
+                <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+                    <p className="text-center text-sm text-gray-500">© 2025 Yets Solutions - Todos los derechos reservados</p>
                 </div>
             </footer>
         </div>
