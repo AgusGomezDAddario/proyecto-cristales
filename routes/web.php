@@ -12,6 +12,7 @@ use App\Http\Controllers\CatalogoVehiculoController;
 use App\Http\Controllers\DailySummaryController;
 use App\Http\Controllers\CashboxController;
 use App\Http\Controllers\MedioDePagoController;
+use App\Http\Controllers\CompaniaDeSeguroController;
 use App\Http\Controllers\ClienteController;
 
 Route::get('/', function () {
@@ -79,8 +80,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/resumen-del-dia/imprimir', [DailySummaryController::class, 'print'])
         ->name('daily-summary.print');
 
-    Route::resource('medio-de-pago', MedioDePagoController::class)
-        ->only(['index', 'store', 'update', 'destroy']);
+    Route::resource('medio-de-pago', MedioDePagoController::class) 
+    ->only(['index', 'store', 'update', 'destroy']);
+
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/companias-seguros', [CompaniaDeSeguroController::class, 'index'])->name('companias-seguros.index');
+        Route::post('/companias-seguros', [CompaniaDeSeguroController::class, 'store']);
+        Route::put('/companias-seguros/{compania}', [CompaniaDeSeguroController::class, 'update']);
+        Route::delete('/companias-seguros/{compania}', [CompaniaDeSeguroController::class, 'destroy']);
+});
 });
 
 require __DIR__ . '/settings.php';

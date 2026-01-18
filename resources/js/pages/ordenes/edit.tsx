@@ -46,6 +46,7 @@ type Orden = {
   numero_orden?: string | null;
   es_garantia?: boolean;
   compania_seguro_id?: number | null;
+  companiaSeguro?: { id: number; nombre: string } | null;
 
   detalles: OrdenDetalleServer[];
   pagos: OrdenPagoServer[];
@@ -123,28 +124,28 @@ export default function Edit({
     nuevo_vehiculo: null,
 
     detalles: (orden.detalles || []).map((d) => {
-  const atributos: Record<number, number | null> = {};
+      const atributos: Record<number, number | null> = {};
 
-  // soportar tanto arreglo de atributos como el mapa (atributos_map)
-  if ((d as any).atributos && Array.isArray((d as any).atributos)) {
-    (d as any).atributos.forEach((a: any) => {
-      atributos[a.categoria_id] = a.subcategoria_id;
-    });
-  } else if (d.atributos_map) {
-    Object.entries(d.atributos_map).forEach(([k, v]) => {
-      atributos[Number(k)] = v ?? null;
-    });
-  }
+      // soportar tanto arreglo de atributos como el mapa (atributos_map)
+      if ((d as any).atributos && Array.isArray((d as any).atributos)) {
+        (d as any).atributos.forEach((a: any) => {
+          atributos[a.categoria_id] = a.subcategoria_id;
+        });
+      } else if (d.atributos_map) {
+        Object.entries(d.atributos_map).forEach(([k, v]) => {
+          atributos[Number(k)] = v ?? null;
+        });
+      }
 
-  return {
-    articulo_id: d.articulo_id,
-    descripcion: d.descripcion ?? "",
-    valor: d.valor ?? 0,
-    cantidad: d.cantidad ?? 1,
-    colocacion_incluida: !!d.colocacion_incluida,
-    atributos,
-  };
-}) as DetalleUI[],
+      return {
+        articulo_id: d.articulo_id,
+        descripcion: d.descripcion ?? "",
+        valor: d.valor ?? 0,
+        cantidad: d.cantidad ?? 1,
+        colocacion_incluida: !!d.colocacion_incluida,
+        atributos,
+      };
+    }) as DetalleUI[],
 
 
     pagos: (orden.pagos || []).map((p) => ({
@@ -162,6 +163,20 @@ export default function Edit({
   const errors = form.errors as Record<string, string>;
 
   const uiErrors = errors as Record<string, string>;
+
+  const selectedId = data.compania_seguro_id ?? null;
+  const selectedCompania = (orden as any).compania_seguro ?? null;
+
+  const catalogHasSelected =
+    selectedId != null && companiasSeguros.some((c) => c.id === selectedId);
+
+  const companiasOptions: CatalogItem[] = [
+    ...(!catalogHasSelected && selectedCompania?.id
+      ? [{ id: selectedCompania.id, nombre: selectedCompania.nombre }]
+      : []),
+    ...companiasSeguros,
+  ];
+
 
   // Vehículos del titular (si ClienteSection/VehiculoSection permiten edición)
   const vehiculosDelTitular = (titulares || []).find((t: any) => t.id === data.titular_id)?.vehiculos || [];
@@ -208,17 +223,17 @@ export default function Edit({
   };
 
   function handleSubmit(e: React.FormEvent) {
-  e.preventDefault();
+    e.preventDefault();
 
-  const fe = (data as any).fecha_entrega_estimada;
+    const fe = (data as any).fecha_entrega_estimada;
 
-  if (!fe) return alert("Completá la fecha de entrega estimada.");
-  if (data.fecha && fe < data.fecha) return alert("La fecha estimada no puede ser anterior a la fecha.");
+    if (!fe) return alert("Completá la fecha de entrega estimada.");
+    if (data.fecha && fe < data.fecha) return alert("La fecha estimada no puede ser anterior a la fecha.");
 
-  put(`/ordenes/${orden.id}`, {
-    onError: (errs) => console.log("Errores:", errs),
-  });
-}
+    put(`/ordenes/${orden.id}`, {
+      onError: (errs) => console.log("Errores:", errs),
+    });
+  }
 
 
   return (
@@ -290,9 +305,8 @@ export default function Edit({
                   type="date"
                   value={data.fecha}
                   onChange={(e) => setData((prev: FormData) => ({ ...prev, fecha: e.target.value }))}
-                  className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none ${
-                    uiErrors.fecha ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                  }`}
+                  className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none ${uiErrors.fecha ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                    }`}
                 />
                 {errors.fecha && <p className="mt-2 text-sm text-red-600">{errors.fecha}</p>}
               </div>
@@ -304,9 +318,8 @@ export default function Edit({
                   value={data.fecha_entrega_estimada}
                   min={data.fecha || undefined}
                   onChange={(e) => setData((prev: FormData) => ({ ...prev, fecha_entrega_estimada: e.target.value }))}
-                  className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none ${
-                    uiErrors.fecha_entrega_estimada ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                  }`}
+                  className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none ${uiErrors.fecha_entrega_estimada ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                    }`}
                 />
                 {errors.fecha_entrega_estimada && <p className="mt-2 text-sm text-red-600">{errors.fecha_entrega_estimada}</p>}
               </div>
@@ -333,12 +346,11 @@ export default function Edit({
                   const v = e.target.value ? Number(e.target.value) : null;
                   setData((prev: FormData) => ({ ...prev, compania_seguro_id: v }));
                 }}
-                className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none ${
-                  uiErrors.compania_seguro_id ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                }`}
+                className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none ${uiErrors.compania_seguro_id ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                  }`}
               >
                 <option value="">Sin seguro / Particular</option>
-                {companiasSeguros.map((c) => (
+                {companiasOptions.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.nombre}
                   </option>
