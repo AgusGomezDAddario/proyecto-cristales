@@ -4,6 +4,7 @@ import { Head, useForm, Link } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 import { Concepto, MedioDePago, MovimientoFormData } from '@/types/movimiento';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import DeleteButton from '@/components/botones/boton-eliminar';
 
 interface Props {
     conceptos: Concepto[];
@@ -277,17 +278,14 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                                         </div>
 
                                         {/* Botón eliminar */}
-                                        <button
-                                            type="button"
-                                            onClick={() => {
+                                        <DeleteButton
+                                        onClick={() => {
                                                 const copia = [...data.comprobantes];
                                                 copia.splice(index, 1); // eliminar
                                                 setData("comprobantes", copia);
-                                            }}
-                                            className="text-red-600 hover:text-red-800 font-bold"
-                                        >
-                                            ✕
-                                        </button>
+                                            }}>
+                                            
+                                        </DeleteButton>
                                     </div>
                                 ))}
                             </div>

@@ -2,6 +2,7 @@ import { Head, useForm, Link } from '@inertiajs/react';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { FormEventHandler } from 'react';
 import { Concepto, MedioDePago, Movimiento } from '@/types/movimiento';
+import DeleteButton from '@/components/botones/boton-eliminar';
 
 interface Props {
     movimiento: Movimiento;
@@ -171,18 +172,15 @@ export default function Edit({ movimiento, conceptos, mediosDePago, tipo, label 
                                                 </a>
 
                                                 {/* Botón para marcar como eliminado */}
-                                                <button
-                                                    type="button"
+                                                <DeleteButton
                                                     onClick={() =>
                                                         setData("comprobantes_a_eliminar", [
                                                             ...data.comprobantes_a_eliminar,
                                                             c.id
                                                         ])
-                                                    }
-                                                    className="text-red-600 text-sm font-bold"
-                                                >
-                                                    Eliminar
-                                                </button>
+                                                    }>
+
+                                                </DeleteButton>
                                             </div>
                                         </div>
                                     ))
@@ -226,18 +224,13 @@ export default function Edit({ movimiento, conceptos, mediosDePago, tipo, label 
                                         className="flex items-center justify-between bg-gray-50 border px-4 py-2 rounded-xl"
                                     >
                                         <span>{file.name}</span>
-
-                                        <button
-                                            type="button"
+                                        <DeleteButton
                                             onClick={() => {
                                                 const copia = [...data.comprobantes];
                                                 copia.splice(index, 1);
                                                 setData("comprobantes", copia);
-                                            }}
-                                            className="text-red-600 hover:text-red-800 font-bold"
-                                        >
-                                            ✕
-                                        </button>
+                                            }}>
+                                        </DeleteButton>
                                     </div>
                                 ))}
                             </div>

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import { Search, Plus, Pencil, Trash2, X, AlertTriangle } from "lucide-react";
+import { Search, Plus, Pencil,X, AlertTriangle } from "lucide-react";
+import DeleteButton from "@/components/botones/boton-eliminar";
+import EditButton from "@/components/botones/boton-editar";
 
 type CompaniaSeguro = {
     id: number;
@@ -150,18 +152,14 @@ export default function CompaniasSegurosIndex({ companias, filters }: PageProps)
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex justify-end gap-2">
-                                                <button
+                                                <EditButton
                                                     onClick={() => openEditModal(c)}
-                                                    className="p-2 bg-slate-500 hover:bg-slate-600 text-white rounded-lg"
                                                 >
-                                                    <Pencil className="h-4 w-4" />
-                                                </button>
-                                                <button
+                                                </EditButton>
+                                                <DeleteButton
                                                     onClick={() => openDeleteModal(c)}
-                                                    className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
+                                                </DeleteButton>
                                             </div>
                                         </td>
                                     </tr>

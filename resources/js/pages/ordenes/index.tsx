@@ -3,6 +3,8 @@ import { Head, Link, useForm, router, usePage } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { Search, Plus, Pencil, X, AlertTriangle } from "lucide-react";
 import DeleteButton from "@/components/botones/boton-eliminar";
+import Edit from "./edit";
+import EditButton from "@/components/botones/boton-editar";
 
 type Vehiculo = {
   id: number;
@@ -426,12 +428,9 @@ const returnUrl = `${window.location.pathname}${window.location.search}`;
                             >
                               Ver
                             </Link>
-                            <Link
-  href={`/ordenes/${orden.id}/edit?return=${encodeURIComponent(returnUrl)}`}
-  className="text-green-600 hover:text-green-800 font-medium"
->
-  Editar
-</Link>
+                            <EditButton
+                              onClick={() => router.visit(`/ordenes/${orden.id}/edit?return=${encodeURIComponent(returnUrl)}`)}
+                            />
                             <DeleteButton
                               onClick={() => handleDelete(orden.id)}
                             />

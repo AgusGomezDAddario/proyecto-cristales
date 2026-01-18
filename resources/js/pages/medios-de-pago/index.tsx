@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { Search, Plus, Pencil, Trash2, X, AlertTriangle } from "lucide-react";
+import EditButton from "@/components/botones/boton-editar";
+import DeleteButton from "@/components/botones/boton-eliminar";
 
 // ═══════════════════════════════════════════════════════════════
 // TIPOS
@@ -171,18 +173,12 @@ export default function MediosPagoIndex({ medios, filters }: PageProps) {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    <button
+                                                    <EditButton
                                                         onClick={() => openEditModal(medio)}
-                                                        className="p-2 bg-slate-500 hover:bg-slate-600 text-white rounded-lg"
-                                                    >
-                                                        <Pencil className="h-4 w-4" />
-                                                    </button>
-                                                    <button
+                                                    />
+                                                    <DeleteButton
                                                         onClick={() => openDeleteModal(medio)}
-                                                        className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>

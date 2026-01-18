@@ -3,6 +3,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { Movimiento } from '@/types/movimiento';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import EditButton from '@/components/botones/boton-editar';
 
 interface Props {
     movimientos: Movimiento[];
@@ -120,12 +121,12 @@ export default function Index({ movimientos, tipo, label }: Props) {
                                                     >
                                                         Ver
                                                     </Link>
-                                                    <Link
-                                                        href={`/${tipoPlural}/${movimiento.id}/edit`}
-                                                        className="text-green-600 hover:text-green-800 font-medium"
-                                                    >
-                                                        Editar
-                                                    </Link>
+                                                    
+                                                    <EditButton 
+                                                        onClick={() => {
+                                                            window.location.href = `/${tipoPlural}/${movimiento.id}/edit`;
+                                                        }}
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>
