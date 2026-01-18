@@ -25,8 +25,7 @@ export interface Detalle {
 
   valor: number | string;
   cantidad: number;
-  colocacion_incluida: boolean;
-  retiro_local: boolean;
+  colocacion_incluida: boolean; // true = Colocación, false = Retiro en local
 
   // categoriaId -> subcategoriaId
   atributos: Record<number, number | null>;
@@ -98,27 +97,16 @@ export default function DetallesSection({ detalles, setDetalles, articulos, erro
         descripcion: "",
         valor: "",
         cantidad: 1,
-        colocacion_incluida: false,
-        retiro_local: false,
+        colocacion_incluida: true, // Por defecto: Colocación
         atributos: {},
       },
       ...detalles,
     ]);
   };
 
-  const handleToggleOption = (index: number, option: 'colocacion' | 'retiro') => {
+  const handleToggleColocacion = (index: number, value: boolean) => {
     const nuevos = [...detalles];
-    if (option === 'colocacion') {
-      nuevos[index].colocacion_incluida = !nuevos[index].colocacion_incluida;
-      if (nuevos[index].colocacion_incluida) {
-        nuevos[index].retiro_local = false;
-      }
-    } else {
-      nuevos[index].retiro_local = !nuevos[index].retiro_local;
-      if (nuevos[index].retiro_local) {
-        nuevos[index].colocacion_incluida = false;
-      }
-    }
+    nuevos[index].colocacion_incluida = value;
     setDetalles(nuevos);
   };
 
@@ -168,8 +156,8 @@ export default function DetallesSection({ detalles, setDetalles, articulos, erro
             <div
               key={index}
               className={`rounded-xl border-2 p-4 transition-all ${isItemConfigured
-                  ? 'border-green-300 bg-green-50/30'
-                  : 'border-gray-200 bg-white'
+                ? 'border-green-300 bg-green-50/30'
+                : 'border-gray-200 bg-white'
                 }`}
             >
               {/* Fila principal compacta */}
@@ -236,10 +224,10 @@ export default function DetallesSection({ detalles, setDetalles, articulos, erro
                 <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
                   <button
                     type="button"
-                    onClick={() => handleToggleOption(index, 'colocacion')}
+                    onClick={() => handleToggleColocacion(index, true)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${detalle.colocacion_incluida
-                        ? 'bg-blue-500 text-white shadow-sm'
-                        : 'bg-transparent text-gray-600 hover:bg-gray-200'
+                      ? 'bg-blue-500 text-white shadow-sm'
+                      : 'bg-transparent text-gray-600 hover:bg-gray-200'
                       }`}
                     title="Incluye colocación"
                   >
@@ -248,10 +236,10 @@ export default function DetallesSection({ detalles, setDetalles, articulos, erro
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleToggleOption(index, 'retiro')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${detalle.retiro_local
-                        ? 'bg-orange-500 text-white shadow-sm'
-                        : 'bg-transparent text-gray-600 hover:bg-gray-200'
+                    onClick={() => handleToggleColocacion(index, false)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${!detalle.colocacion_incluida
+                      ? 'bg-orange-500 text-white shadow-sm'
+                      : 'bg-transparent text-gray-600 hover:bg-gray-200'
                       }`}
                     title="Retiro en local"
                   >

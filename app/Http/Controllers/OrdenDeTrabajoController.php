@@ -479,7 +479,9 @@ class OrdenDeTrabajoController extends Controller
             'titularVehiculo.vehiculo.marca',
             'titularVehiculo.vehiculo.modelo',
             'estado',
-            'detalles',
+            'detalles.articulo',
+            'detalles.atributos.categoria',
+            'detalles.atributos.subcategoria',
             'pagos.medioDePago',
         ]);
 

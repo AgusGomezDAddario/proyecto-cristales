@@ -59,9 +59,8 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
         descripcion: '',
         valor: '', // string vacío para que funcione el placeholder
         cantidad: 1,
-        colocacion_incluida: false,
-        retiro_local: false,
-        atributos: {} as any, // si tu Detalle.atributos es {} u otro tipo, ajustá acá
+        colocacion_incluida: true, // Por defecto: Colocación
+        atributos: {} as any,
     } as Detalle;
 
     // 1) Initial values tipados
