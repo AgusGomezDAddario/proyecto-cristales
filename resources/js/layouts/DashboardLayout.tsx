@@ -84,46 +84,37 @@ export default function DashboardLayout({ children, title }: Props) {
                         <div className="hidden md:flex items-center gap-2">
                             <Link
                                 href="/admin"
-                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/admin') && !isActive('/admin/users')
+                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${isActive('/admin') && !isActive('/admin/users')
                                     ? 'bg-blue-50 text-blue-700 shadow-sm'
                                     : 'text-gray-700 hover:bg-gray-100'
                                     }`}
                             >
                                 📊 Panel de Control
                             </Link>
-                            {/* {isAdmin && (
-                <Link
-                  href="/admin/users"
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/admin/users')
-                    ? 'bg-blue-50 text-blue-700 shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                >
-                  👤 Gestión de Usuarios
-                </Link>
-              )} */}
 
                             <Link
                                 href="/egresos"
-                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/egresos')
+                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${isActive('/egresos')
                                     ? 'bg-red-50 text-red-700 shadow-sm'
                                     : 'text-gray-700 hover:bg-gray-100'
                                     }`}
                             >
                                 💸 Egresos
                             </Link>
+
                             <Link
                                 href="/ingresos"
-                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/ingresos')
+                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${isActive('/ingresos')
                                     ? 'bg-green-50 text-green-700 shadow-sm'
                                     : 'text-gray-700 hover:bg-gray-100'
                                     }`}
                             >
                                 💰 Ingresos
                             </Link>
+
                             <Link
                                 href="/resumen-del-dia"
-                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/resumen-del-dia')
+                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${isActive('/resumen-del-dia')
                                     ? 'bg-blue-50 text-blue-700 shadow-sm'
                                     : 'text-gray-700 hover:bg-gray-100'
                                     }`}
@@ -133,7 +124,7 @@ export default function DashboardLayout({ children, title }: Props) {
 
                             <Link
                                 href="/ordenes"
-                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive('/ordenes')
+                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${isActive('/ordenes')
                                     ? 'bg-purple-50 text-purple-700 shadow-sm'
                                     : 'text-gray-700 hover:bg-gray-100'
                                     }`}
@@ -145,7 +136,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                 <div className="relative">
                                     <button
                                         onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
-                                        className="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1 text-gray-700 bg-transparent hover:bg-gray-100"
+                                        className="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1 whitespace-nowrap text-gray-700 bg-gray-100 hover:bg-gray-200"
                                     >
                                         ⚙️ Administración
                                         <svg className={`w-4 h-4 transition-transform ${adminDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,14 +148,14 @@ export default function DashboardLayout({ children, title }: Props) {
                                         <div className="absolute top-full right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                                             <Link
                                                 href="/clientes"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/clientes') ? 'text-blue-600 font-medium' : 'text-gray-700'
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/clientes') ? 'text-orange-600 font-medium' : 'text-gray-700'
                                                     }`}
                                             >
                                                 👥 Clientes
                                             </Link>
                                             <Link
                                                 href="/catalogo-vehiculos"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/catalogo-vehiculos') ? 'text-blue-600 font-medium' : 'text-gray-700'
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/catalogo-vehiculos') ? 'text-orange-600 font-medium' : 'text-gray-700'
                                                     }`}
                                             >
                                                 🚙 Vehículos
@@ -183,7 +174,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                             </Link>
                                             <Link
                                                 href="/medio-de-pago"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/medio-de-pago') ? 'text-blue-600 font-medium' : 'text-gray-700'
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/medio-de-pago') ? 'text-orange-600 font-medium' : 'text-gray-700'
                                                     }`}
                                             >
                                                 💳 Medios de pago
@@ -191,7 +182,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                             <div className="border-t border-gray-100 my-1"></div>
                                             <Link
                                                 href="/admin/users"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/admin/users') ? 'text-blue-600 font-medium' : 'text-gray-700'
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/admin/users') ? 'text-orange-600 font-medium' : 'text-gray-700'
                                                     }`}
                                             >
                                                 👤 Usuarios
@@ -206,7 +197,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                 href="/logout"
                                 method="post"
                                 as="button"
-                                className="ml-4 px-4 py-2 rounded-lg text-sm font-semibold text-red-600 bg-white hover:bg-red-50 transition-all"
+                                className="ml-4 px-4 py-2 rounded-lg text-sm font-semibold text-red-600 bg-white hover:bg-red-50 transition-all whitespace-nowrap"
                             >
                                 🚪 Salir
                             </Link>
