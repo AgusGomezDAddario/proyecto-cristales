@@ -17,7 +17,12 @@ class ClienteController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Titular::with(['vehiculos.marca', 'vehiculos.modelo']);
+        $query = Titular::with([
+            'vehiculos.marca',
+            'vehiculos.modelo',
+            'vehiculos.titularVehiculos.ordenesDeTrabajo:id,titular_vehiculo_id,fecha,estado_id',
+            'vehiculos.titularVehiculos.ordenesDeTrabajo.estado:id,nombre',
+        ]);
 
         // Búsqueda por nombre, apellido, teléfono o email
         if ($request->filled('search')) {
@@ -146,6 +151,13 @@ class ClienteController extends Controller
         }
 
         $cliente->vehiculos()->detach($vehiculo->id);
+
+        // Si el vehículo ya no tiene dueños, eliminarlo completamente
+        $tieneDuenos = $vehiculo->titulares()->count() > 0;
+        if (!$tieneDuenos) {
+            $vehiculo->delete();
+            return redirect()->back()->with('success', 'Vehículo eliminado (no tenía otros dueños).');
+        }
 
         return redirect()->back()->with('success', 'Vehículo desasociado correctamente.');
     }

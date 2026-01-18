@@ -92,6 +92,11 @@ export default function ClientesIndex({ clientes, filters, stats, marcas }: Page
     const [vehiculoErrors, setVehiculoErrors] = useState<Record<string, string>>({});
     const [creatingVehiculo, setCreatingVehiculo] = useState(false);
 
+    // Estado para modal de ODTs
+    const [showOdtModal, setShowOdtModal] = useState(false);
+    const [odtList, setOdtList] = useState<any[]>([]);
+    const [odtPatente, setOdtPatente] = useState("");
+
     // Form para cliente
     const { data, setData, post, put, processing, errors, reset } = useForm({
         nombre: "",
@@ -486,13 +491,32 @@ export default function ClientesIndex({ clientes, filters, stats, marcas }: Page
                                                                             {v.marca?.nombre} {v.modelo?.nombre} {v.anio && `(${v.anio})`}
                                                                         </p>
                                                                     </div>
-                                                                    <button
-                                                                        onClick={() => handleDetachVehicle(cliente.id, v.id)}
-                                                                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition"
-                                                                        title="Desasociar vehículo"
-                                                                    >
-                                                                        <X className="h-4 w-4" />
-                                                                    </button>
+                                                                    <div className="flex items-center gap-2">
+                                                                        {(() => {
+                                                                            const allOdts = (v as any).titular_vehiculos?.flatMap((tv: any) => tv.ordenes_de_trabajo || []) || [];
+                                                                            if (allOdts.length === 0) return null;
+                                                                            return (
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        setOdtList(allOdts);
+                                                                                        setOdtPatente(v.patente);
+                                                                                        setShowOdtModal(true);
+                                                                                    }}
+                                                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold rounded-full hover:from-orange-600 hover:to-amber-600 transition shadow-md hover:shadow-lg"
+                                                                                    title="Ver órdenes de trabajo"
+                                                                                >
+                                                                                    🔧 {allOdts.length} ODT
+                                                                                </button>
+                                                                            );
+                                                                        })()}
+                                                                        <button
+                                                                            onClick={() => handleDetachVehicle(cliente.id, v.id)}
+                                                                            className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition shadow-sm"
+                                                                            title="Desasociar vehículo"
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -681,7 +705,7 @@ export default function ClientesIndex({ clientes, filters, stats, marcas }: Page
                                                     <p className="font-medium text-slate-800">{v.patente}</p>
                                                     <p className="text-sm text-slate-500">{v.marca?.nombre} {v.modelo?.nombre} {v.anio && `(${v.anio})`}</p>
                                                 </div>
-                                                <button onClick={() => handleDetachVehicle(vehiculosModalCliente.id, v.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition" title="Desasociar">
+                                                <button onClick={() => handleDetachVehicle(vehiculosModalCliente.id, v.id)} className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition shadow-sm" title="Desasociar">
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
                                             </div>
@@ -765,7 +789,7 @@ export default function ClientesIndex({ clientes, filters, stats, marcas }: Page
                                             <button
                                                 type="button"
                                                 onClick={() => { setShowNuevoVehiculo(false); resetNuevoVehiculo(); }}
-                                                className="flex-1 py-2 px-3 border border-slate-300 text-slate-600 font-medium rounded-lg hover:bg-slate-50 transition text-sm"
+                                                className="flex-1 py-2 px-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition text-sm"
                                             >
                                                 Cancelar
                                             </button>
@@ -780,41 +804,59 @@ export default function ClientesIndex({ clientes, filters, stats, marcas }: Page
                                     </form>
                                 )}
                             </div>
-
-                            {/* Vehículos disponibles */}
-                            <div className="border-t border-slate-200 pt-4">
-                                <h3 className="text-sm font-medium text-slate-700 mb-3">Vehículos existentes disponibles</h3>
-                                {loadingVehiculos ? (
-                                    <p className="text-sm text-slate-400">Cargando...</p>
-                                ) : vehiculosDisponibles.length === 0 ? (
-                                    <p className="text-sm text-slate-400">No hay vehículos disponibles para asociar</p>
-                                ) : (
-                                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                                        {vehiculosDisponibles.map((v) => (
-                                            <div key={v.id} className="bg-white rounded-lg border border-slate-200 p-3 flex items-center justify-between hover:bg-slate-50 transition">
-                                                <div>
-                                                    <p className="font-medium text-slate-800">{v.patente}</p>
-                                                    <p className="text-sm text-slate-500">{v.marca?.nombre} {v.modelo?.nombre} {v.anio && `(${v.anio})`}</p>
-                                                </div>
-                                                <div className="flex gap-1">
-                                                    <button onClick={() => handleAttachVehicle(v.id)} className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition" title="Asociar a cliente">
-                                                        <Plus className="h-4 w-4" />
-                                                    </button>
-                                                    <button onClick={() => handleDeleteVehicle(v.id)} className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition" title="Eliminar vehículo">
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
                         </div>
 
                         {/* Footer */}
                         <div className="px-6 py-4 border-t border-slate-100">
                             <button
                                 onClick={() => setShowVehiculosModal(false)}
+                                className="w-full py-2.5 px-4 bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg transition"
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Mini Modal de ODTs */}
+            {showOdtModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowOdtModal(false)}>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                        <div className="px-6 py-4 bg-gradient-to-r from-orange-500 to-amber-500">
+                            <h3 className="text-lg font-bold text-white">🔧 ODTs del vehículo {odtPatente}</h3>
+                            <p className="text-orange-100 text-sm">Seleccioná una orden para ver el detalle</p>
+                        </div>
+                        <div className="p-4 max-h-80 overflow-y-auto space-y-2">
+                            {odtList.map((odt) => (
+                                <a
+                                    key={odt.id}
+                                    href={`/ordenes/${odt.id}`}
+                                    className="block bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 rounded-xl p-4 transition group"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="font-bold text-slate-800 group-hover:text-orange-600">
+                                                Orden #{odt.id}
+                                            </p>
+                                            <p className="text-sm text-slate-500">
+                                                📅 {odt.fecha ? new Date(odt.fecha).toLocaleDateString('es-AR') : 'Sin fecha'}
+                                            </p>
+                                        </div>
+                                        <span className={`px-3 py-1 text-xs font-medium rounded-full ${odt.estado?.nombre === 'Pendiente' ? 'bg-yellow-100 text-yellow-700' :
+                                                odt.estado?.nombre === 'En proceso' ? 'bg-blue-100 text-blue-700' :
+                                                    odt.estado?.nombre === 'Finalizado' || odt.estado?.nombre === 'Listo' ? 'bg-green-100 text-green-700' :
+                                                        'bg-slate-100 text-slate-700'
+                                            }`}>
+                                            {odt.estado?.nombre || 'Sin estado'}
+                                        </span>
+                                    </div>
+                                </a>
+                            ))}
+                        </div>
+                        <div className="px-6 py-4 border-t border-slate-100">
+                            <button
+                                onClick={() => setShowOdtModal(false)}
                                 className="w-full py-2.5 px-4 bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg transition"
                             >
                                 Cerrar
