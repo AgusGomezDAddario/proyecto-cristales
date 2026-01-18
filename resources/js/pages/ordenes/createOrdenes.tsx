@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 
@@ -180,7 +180,13 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
             return toast.error('La fecha de entrega estimada no puede ser anterior a la fecha.');
         }
 
-        post('/ordenes', {
+        // Agregar con_factura al enviar (el backend lo espera)
+        const dataToSend = {
+            ...data,
+            con_factura: data.tipo_documento === 'FC',
+        };
+
+        router.post('/ordenes', dataToSend as any, {
             onError: (errs) => {
                 const mensajes = Object.values(errs as Record<string, string>);
                 if (mensajes.length > 0) toast.error(mensajes.join('\n'));
@@ -222,22 +228,20 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                                         <button
                                             type="button"
                                             onClick={() => setField("tipo_documento", "OT")}
-                                            className={`flex-1 rounded-xl border px-4 py-3 font-bold transition ${
-                                                data.tipo_documento === 'OT'
-                                                    ? 'border-green-600 bg-green-600 text-white'
-                                                    : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-100'
-                                            }`}
+                                            className={`flex-1 rounded-xl border px-4 py-3 font-bold transition ${data.tipo_documento === 'OT'
+                                                ? 'border-green-600 bg-green-600 text-white'
+                                                : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-100'
+                                                }`}
                                         >
                                             Sin factura (OT)
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => setField('tipo_documento', 'FC')}
-                                            className={`flex-1 rounded-xl border px-4 py-3 font-bold transition ${
-                                                data.tipo_documento === 'FC'
-                                                    ? 'border-blue-600 bg-blue-600 text-white'
-                                                    : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-100'
-                                            }`}
+                                            className={`flex-1 rounded-xl border px-4 py-3 font-bold transition ${data.tipo_documento === 'FC'
+                                                ? 'border-blue-600 bg-blue-600 text-white'
+                                                : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-100'
+                                                }`}
                                         >
                                             Con factura (FC)
                                         </button>
@@ -257,9 +261,8 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                                                 numero_orden_manual: true,
                                             }));
                                         }}
-                                        className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none ${
-                                            (errors as any).numero_orden ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                        }`}
+                                        className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none ${(errors as any).numero_orden ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                                            }`}
                                         placeholder="OT-000000 / FC-000000"
                                     />
                                     {(errors as any).numero_orden && <p className="mt-2 text-sm text-red-600">{(errors as any).numero_orden}</p>}
@@ -288,9 +291,8 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                                     type="date"
                                     value={data.fecha}
                                     onChange={(e) => setField('fecha', e.target.value)}
-                                    className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 ... ${
-                                        uiErrors.fecha ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                    }`}
+                                    className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 ... ${uiErrors.fecha ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                                        }`}
                                 />
                                 {(errors as any).fecha && <p className="mt-2 text-sm text-red-600">{(errors as any).fecha}</p>}
                             </div>
@@ -302,9 +304,8 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                                     value={data.fecha_entrega_estimada}
                                     min={data.fecha || undefined}
                                     onChange={(e) => setField('fecha_entrega_estimada', e.target.value)}
-                                    className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 ... ${
-                                        uiErrors.fecha_entrega_estimada ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                    }`}
+                                    className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 ... ${uiErrors.fecha_entrega_estimada ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                                        }`}
                                 />
                                 {(errors as any).fecha_entrega_estimada && (
                                     <p className="mt-2 text-sm text-red-600">{(errors as any).fecha_entrega_estimada}</p>
@@ -325,9 +326,8 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                                         compania_seguro_id: value,
                                     }));
                                 }}
-                                className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none ${
-                                    (errors as any).compania_seguro_id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                }`}
+                                className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none ${(errors as any).compania_seguro_id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                                    }`}
                             >
                                 <option value="">Sin seguro / Particular</option>
                                 {companiasSeguros.map((c) => (
