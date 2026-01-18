@@ -76,14 +76,25 @@ export default function MedioPagoSection({
 
   return (
     <div className="space-y-4">
-      <label className="block text-sm font-semibold text-gray-800">Medios de Pago</label>
+      <div className="flex items-center justify-between">
+        <label className="block text-sm font-semibold text-gray-800">Medios de Pago</label>
+        {pagos.length > 0 && (
+          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+            {pagos.length} pago{pagos.length > 1 ? 's' : ''} agregado{pagos.length > 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-start">
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+      {/* Formulario para agregar nuevo pago (ARRIBA) */}
+      <div className="p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+        <p className="text-xs font-medium text-gray-600 mb-3">
+          {pagos.length === 0 ? '➕ Agregá un medio de pago:' : '➕ Agregar otro medio de pago:'}
+        </p>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
           <select
             value={selectedMedio}
             onChange={(e) => setSelectedMedio(e.target.value)}
-            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900"
+            className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 text-sm"
           >
             <option value="">Seleccione medio...</option>
             {mediosDePago.map((m) => (
@@ -95,46 +106,49 @@ export default function MedioPagoSection({
 
           <input
             type="number"
-            placeholder="Monto"
+            placeholder="$0"
             value={monto}
             onChange={(e) => setMonto(e.target.value)}
-            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900"
+            className="w-full md:w-32 px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 text-sm"
           />
 
           <input
             type="text"
-            placeholder="Observación (opcional)"
+            placeholder="Obs. (opcional)"
             value={observacion}
             onChange={(e) => setObservacion(e.target.value)}
-            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900"
+            className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 text-sm"
           />
-        </div>
 
-        <button
-          type="button"
-          onClick={handleAddPago}
-          disabled={!selectedMedio || !monto}
-          className="h-[50px] px-6 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition shadow-sm"
-        >
-          +
-        </button>
+          <button
+            type="button"
+            onClick={handleAddPago}
+            disabled={!selectedMedio || !monto}
+            className="px-4 py-2.5 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition shadow-sm whitespace-nowrap text-sm"
+          >
+            Agregar
+          </button>
+        </div>
       </div>
 
-      <div className="space-y-2">
-        {pagos.map((pago: Pago, index: number) => {
-          const medioNombre = mediosDePago.find((m) => m.id === pago.medio_de_pago_id)?.nombre;
+      {/* Lista de pagos agregados (ABAJO) */}
+      {pagos.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-gray-500">Pagos agregados:</p>
+          {pagos.map((pago: Pago, index: number) => {
+            const medioNombre = mediosDePago.find((m) => m.id === pago.medio_de_pago_id)?.nombre;
 
-          return (
-            <div
-              key={index}
-              className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200"
-            >
-              <div className="flex flex-col">
-                <span className="text-gray-900 font-medium">
-                  {medioNombre || "Medio desconocido"} - ${Number(pago.monto).toLocaleString()}
-                </span>
-                {!!pago.observacion && <span className="text-sm text-gray-500">{pago.observacion}</span>}
-              </div>
+            return (
+              <div
+                key={index}
+                className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200"
+              >
+                <div className="flex flex-col">
+                  <span className="text-gray-900 font-medium">
+                    {medioNombre || "Medio desconocido"} - ${Number(pago.monto).toLocaleString()}
+                  </span>
+                  {!!pago.observacion && <span className="text-sm text-gray-500">{pago.observacion}</span>}
+                </div>
 
               <DeleteButton 
                 onClick={() => handleRemovePago(index)} 
@@ -143,7 +157,7 @@ export default function MedioPagoSection({
           );
         })}
       </div>
-
+    )}
       {pagos.length > 0 && (
         <div className="pt-4 border-t border-gray-200 space-y-2">
           <div className="flex justify-between items-center">

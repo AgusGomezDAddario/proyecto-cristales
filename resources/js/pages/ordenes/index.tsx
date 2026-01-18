@@ -164,6 +164,8 @@ export default function Index({ ordenes }: { ordenes: any }) {
     );
   }
 
+const returnUrl = `${window.location.pathname}${window.location.search}`;
+
   return (
     <DashboardLayout>
       <Head title="Órdenes de Trabajo" />
@@ -414,7 +416,7 @@ export default function Index({ ordenes }: { ordenes: any }) {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {orden.medio_de_pago?.nombre ?? "Ver detalle"}
+                          {"Ver detalle"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex justify-end gap-3">
@@ -425,11 +427,11 @@ export default function Index({ ordenes }: { ordenes: any }) {
                               Ver
                             </Link>
                             <Link
-                              href={`/ordenes/${orden.id}/edit`}
-                              className="text-green-600 hover:text-green-800 font-medium"
-                            >
-                              Editar
-                            </Link>
+  href={`/ordenes/${orden.id}/edit?return=${encodeURIComponent(returnUrl)}`}
+  className="text-green-600 hover:text-green-800 font-medium"
+>
+  Editar
+</Link>
                             <DeleteButton
                               onClick={() => handleDelete(orden.id)}
                             />

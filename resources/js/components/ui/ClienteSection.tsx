@@ -148,6 +148,9 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
       setFormData({
         titular_id: option.value,
         nuevo_titular: null,
+        nombreCliente: option.label,
+        telefono: option.telefono || "",
+        email: option.email || "",
       });
 
       setLocalErrors((p) => {
