@@ -12,6 +12,7 @@ use App\Http\Controllers\CatalogoVehiculoController;
 use App\Http\Controllers\DailySummaryController;
 use App\Http\Controllers\CashboxController;
 use App\Http\Controllers\MedioDePagoController;
+use App\Http\Controllers\ClienteController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -33,6 +34,23 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('catalogo-vehiculos', CatalogoVehiculoController::class)
             ->parameters(['catalogo-vehiculos' => 'modelo'])
             ->except(['create', 'show', 'edit']);
+
+        // 👥 Maestro de Clientes (solo admins)
+        Route::resource('clientes', ClienteController::class)
+            ->parameters(['clientes' => 'cliente'])
+            ->except(['create', 'show', 'edit']);
+        Route::post('clientes/{cliente}/vehiculos/{vehiculo}', [ClienteController::class, 'attachVehicle'])
+            ->name('clientes.attach-vehicle');
+        Route::delete('clientes/{cliente}/vehiculos/{vehiculo}', [ClienteController::class, 'detachVehicle'])
+            ->name('clientes.detach-vehicle');
+        Route::get('api/clientes/{cliente}/vehiculos-disponibles', [ClienteController::class, 'getVehiculosDisponibles'])
+            ->name('api.clientes.vehiculos-disponibles');
+        Route::post('clientes/{cliente}/vehiculos', [ClienteController::class, 'createAndAttachVehicle'])
+            ->name('clientes.create-vehicle');
+        Route::get('api/clientes/modelos/{marcaId}', [ClienteController::class, 'getModelosByMarca'])
+            ->name('api.clientes.modelos');
+        Route::delete('vehiculos/{vehiculo}', [ClienteController::class, 'destroyVehicle'])
+            ->name('vehiculos.destroy');
     });
 
     Route::resource('egresos', EgresoController::class);
@@ -59,10 +77,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/caja/cerrar', [CashboxController::class, 'close'])->name('cashbox.close');
 
     Route::get('/resumen-del-dia/imprimir', [DailySummaryController::class, 'print'])
-    ->name('daily-summary.print');
+        ->name('daily-summary.print');
 
     Route::resource('medio-de-pago', MedioDePagoController::class)
-    ->only(['index', 'store', 'update', 'destroy']);
+        ->only(['index', 'store', 'update', 'destroy']);
 });
 
 require __DIR__ . '/settings.php';
