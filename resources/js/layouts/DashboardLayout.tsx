@@ -14,7 +14,7 @@ export default function DashboardLayout({ children, title }: Props) {
 
     const isActive = (path: string) => url.startsWith(path);
     const isAdmin = auth?.user?.role_id === 1;
-    const isAdminSection = isActive('/admin/users') || isActive('/catalogo-vehiculos');
+    const isAdminSection = isActive('/admin/users') || isActive('/catalogo-vehiculos') || isActive('/clientes');
 
     /* TOAST */
     const { flash } = usePage().props as any;
@@ -156,8 +156,9 @@ export default function DashboardLayout({ children, title }: Props) {
                                     {adminDropdownOpen && (
                                         <div className="absolute top-full right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                                             <Link
-                                                href="#"
-                                                className="block px-4 py-2 text-sm text-gray-400 cursor-not-allowed"
+                                                href="/clientes"
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/clientes') ? 'text-blue-600 font-medium' : 'text-gray-700'
+                                                    }`}
                                             >
                                                 👥 Clientes
                                             </Link>
@@ -262,8 +263,11 @@ export default function DashboardLayout({ children, title }: Props) {
                                 <>
                                     <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase">⚙️ Administración</div>
                                     <Link
-                                        href="#"
-                                        className="block px-4 py-2 rounded-lg text-gray-400 cursor-not-allowed"
+                                        href="/clientes"
+                                        className={`block px-4 py-2 rounded-lg font-semibold ${isActive('/clientes')
+                                            ? 'bg-orange-50 text-orange-700'
+                                            : 'text-gray-700 hover:bg-gray-100'
+                                            }`}
                                     >
                                         👥 Clientes
                                     </Link>
