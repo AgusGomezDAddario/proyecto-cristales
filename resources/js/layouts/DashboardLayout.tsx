@@ -20,7 +20,8 @@ export default function DashboardLayout({ children, title }: Props) {
         isActive('/catalogo-vehiculos') ||
         isActive('/clientes') ||
         isActive('/companias-seguros') ||
-        isActive('/medio-de-pago');
+        isActive('/medio-de-pago') ||
+        isActive('/admin/metrics');
 
     /* TOAST */
     const { flash } = usePage().props as any;
@@ -200,6 +201,14 @@ export default function DashboardLayout({ children, title }: Props) {
                                                 }`}
                                             >
                                                 💳 Medios de pago
+                                            </Link>
+                                            <Link
+                                                href="/admin/metrics"
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                    isActive('/admin/metrics') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
+                                            >
+                                                📈 Métricas
                                             </Link>
                                             <div className="my-1 border-t border-gray-100"></div>
                                             <Link
@@ -471,6 +480,14 @@ export default function DashboardLayout({ children, title }: Props) {
                                         💳 Medios de pago
                                     </Link>
                                     <Link
+                                        href="/admin/metrics"
+                                        className={`block rounded-lg px-4 py-2 font-semibold ${
+                                            isActive('/admin/metrics') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
+                                        }`}
+                                    >
+                                        📈 Métricas
+                                    </Link>
+                                    <Link
                                         href="/admin/users"
                                         className={`block rounded-lg px-4 py-2 font-semibold ${
                                             isActive('/admin/users') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
@@ -481,6 +498,39 @@ export default function DashboardLayout({ children, title }: Props) {
                                 </>
                             )}
 
+                            <Link
+                                href="/egresos"
+                                className={`block rounded-lg px-4 py-2 font-semibold ${
+                                    isActive('/egresos') ? 'bg-red-50 text-red-700' : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                            >
+                                💸 Egresos
+                            </Link>
+                            <Link
+                                href="/ingresos"
+                                className={`block rounded-lg px-4 py-2 font-semibold ${
+                                    isActive('/ingresos') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                            >
+                                💰 Ingresos
+                            </Link>
+                            <Link
+                                href="/resumen-del-dia"
+                                className={`block rounded-lg px-4 py-2 font-semibold ${
+                                    isActive('/resumen-del-dia') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                            >
+                                🧾 Resumen del día
+                            </Link>
+
+                            <Link
+                                href="/ordenes"
+                                className={`block rounded-lg px-4 py-2 font-semibold ${
+                                    isActive('/ordenes') ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                            >
+                                🚗 Órdenes de Trabajo
+                            </Link>
                             <div className="my-2 border-t border-gray-200"></div>
 
                             <Link
