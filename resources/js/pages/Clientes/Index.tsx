@@ -7,6 +7,8 @@ import {
     Users, Car, UserCheck, UserX, Phone, Mail, ChevronDown, ChevronUp
 } from "lucide-react";
 import axios from "axios";
+import DeleteButton from "@/components/botones/boton-eliminar";
+import EditButton from "@/components/botones/boton-editar";
 
 // ═══════════════════════════════════════════════════════════════
 // TIPOS
@@ -458,20 +460,12 @@ export default function ClientesIndex({ clientes, filters, stats, marcas }: Page
                                                         >
                                                             <Car className="h-4 w-4" />
                                                         </button>
-                                                        <button
+                                                        <EditButton
                                                             onClick={() => openEditModal(cliente)}
-                                                            className="p-2 bg-slate-500 hover:bg-slate-600 text-white rounded-lg transition shadow-sm"
-                                                            title="Editar"
-                                                        >
-                                                            <Pencil className="h-4 w-4" />
-                                                        </button>
-                                                        <button
+                                                        />
+                                                        <DeleteButton
                                                             onClick={() => openDeleteModal(cliente)}
-                                                            className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition shadow-sm"
-                                                            title="Eliminar"
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </button>
+                                                        />
                                                     </div>
                                                 </td>
                                             </tr>
@@ -509,13 +503,10 @@ export default function ClientesIndex({ clientes, filters, stats, marcas }: Page
                                                                                 </button>
                                                                             );
                                                                         })()}
-                                                                        <button
-                                                                            onClick={() => handleDetachVehicle(cliente.id, v.id)}
-                                                                            className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition shadow-sm"
+                                                                        <DeleteButton
+                                                                            onClick={() => handleDeleteVehicle(v.id)}
                                                                             title="Desasociar vehículo"
-                                                                        >
-                                                                            <Trash2 className="h-4 w-4" />
-                                                                        </button>
+                                                                        />
                                                                     </div>
                                                                 </div>
                                                             ))}
@@ -705,9 +696,10 @@ export default function ClientesIndex({ clientes, filters, stats, marcas }: Page
                                                     <p className="font-medium text-slate-800">{v.patente}</p>
                                                     <p className="text-sm text-slate-500">{v.marca?.nombre} {v.modelo?.nombre} {v.anio && `(${v.anio})`}</p>
                                                 </div>
-                                                <button onClick={() => handleDetachVehicle(vehiculosModalCliente.id, v.id)} className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition shadow-sm" title="Desasociar">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
+                                                <DeleteButton
+                                                    onClick={() => handleDetachVehicle(vehiculosModalCliente.id, v.id)}
+                                                    title="Desasociar vehículo"
+                                                />
                                             </div>
                                         ))}
                                     </div>
@@ -844,9 +836,9 @@ export default function ClientesIndex({ clientes, filters, stats, marcas }: Page
                                             </p>
                                         </div>
                                         <span className={`px-3 py-1 text-xs font-medium rounded-full ${odt.estado?.nombre === 'Pendiente' ? 'bg-yellow-100 text-yellow-700' :
-                                                odt.estado?.nombre === 'En proceso' ? 'bg-blue-100 text-blue-700' :
-                                                    odt.estado?.nombre === 'Finalizado' || odt.estado?.nombre === 'Listo' ? 'bg-green-100 text-green-700' :
-                                                        'bg-slate-100 text-slate-700'
+                                            odt.estado?.nombre === 'En proceso' ? 'bg-blue-100 text-blue-700' :
+                                                odt.estado?.nombre === 'Finalizado' || odt.estado?.nombre === 'Listo' ? 'bg-green-100 text-green-700' :
+                                                    'bg-slate-100 text-slate-700'
                                             }`}>
                                             {odt.estado?.nombre || 'Sin estado'}
                                         </span>

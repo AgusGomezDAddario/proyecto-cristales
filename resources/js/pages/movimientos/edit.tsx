@@ -2,6 +2,9 @@ import { Head, useForm, Link } from '@inertiajs/react';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { FormEventHandler } from 'react';
 import { Concepto, MedioDePago, Movimiento } from '@/types/movimiento';
+import DeleteButton from '@/components/botones/boton-eliminar';
+import { View } from 'lucide-react';
+import ViewButton from '@/components/botones/boton-ver';
 
 interface Props {
     movimiento: Movimiento;
@@ -161,28 +164,23 @@ export default function Edit({ movimiento, conceptos, mediosDePago, tipo, label 
                                         >
                                             <span className="truncate max-w-[200px]">{c.ruta_archivo.split('/').pop()}</span>
 
-                                            <div className="flex gap-3">
-                                                <a
-                                                    href={`/storage/${c.ruta_archivo}`}
-                                                    target="_blank"
-                                                    className="text-blue-600 text-sm"
-                                                >
-                                                    Ver
-                                                </a>
+                                            <div className="flex gap-2">
+                                                <ViewButton
+                                                    onClick={() => {
+                                                        window.open(`/storage/${c.ruta_archivo}`, '_blank');
+                                                    }}
+                                                />
 
                                                 {/* Botón para marcar como eliminado */}
-                                                <button
-                                                    type="button"
+                                                <DeleteButton
                                                     onClick={() =>
                                                         setData("comprobantes_a_eliminar", [
                                                             ...data.comprobantes_a_eliminar,
                                                             c.id
                                                         ])
-                                                    }
-                                                    className="text-red-600 text-sm font-bold"
-                                                >
-                                                    Eliminar
-                                                </button>
+                                                    }>
+
+                                                </DeleteButton>
                                             </div>
                                         </div>
                                     ))
@@ -226,18 +224,13 @@ export default function Edit({ movimiento, conceptos, mediosDePago, tipo, label 
                                         className="flex items-center justify-between bg-gray-50 border px-4 py-2 rounded-xl"
                                     >
                                         <span>{file.name}</span>
-
-                                        <button
-                                            type="button"
+                                        <DeleteButton
                                             onClick={() => {
                                                 const copia = [...data.comprobantes];
                                                 copia.splice(index, 1);
                                                 setData("comprobantes", copia);
-                                            }}
-                                            className="text-red-600 hover:text-red-800 font-bold"
-                                        >
-                                            ✕
-                                        </button>
+                                            }}>
+                                        </DeleteButton>
                                     </div>
                                 ))}
                             </div>
