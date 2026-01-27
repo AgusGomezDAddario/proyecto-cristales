@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Select from "react-select";
-import { Search, Plus, Pencil, Trash2, X, AlertTriangle } from "lucide-react";
+import { Search, Plus, X, AlertTriangle } from "lucide-react";
+import DeleteButton from "@/components/botones/boton-eliminar";
+import EditButton from "@/components/botones/boton-editar";
 
 // ═══════════════════════════════════════════════════════════════
 // TIPOS
@@ -283,20 +285,12 @@ export default function CatalogoVehiculos({ modelos, marcas, filters }: PageProp
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    <button
+                                                    <EditButton
                                                         onClick={() => openEditModal(modelo)}
-                                                        className="p-2 bg-slate-500 hover:bg-slate-600 text-white rounded-lg transition shadow-sm"
-                                                        title="Editar"
-                                                    >
-                                                        <Pencil className="h-4 w-4" />
-                                                    </button>
-                                                    <button
+                                                    />
+                                                    <DeleteButton
                                                         onClick={() => openDeleteModal(modelo)}
-                                                        className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition shadow-sm"
-                                                        title="Eliminar"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>

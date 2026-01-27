@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { Plus, Trash2, DollarSign, Layers, Tag, Wrench, Store } from "lucide-react";
+import DeleteButton from "../botones/boton-eliminar";
 
 export interface SubcategoriaDTO {
   id: number;

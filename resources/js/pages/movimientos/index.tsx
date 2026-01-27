@@ -3,6 +3,8 @@
 import { Head, Link } from '@inertiajs/react';
 import { Movimiento } from '@/types/movimiento';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import EditButton from '@/components/botones/boton-editar';
+import ViewButton from '@/components/botones/boton-ver';
 
 interface Props {
     movimientos: Movimiento[];
@@ -114,18 +116,16 @@ export default function Index({ movimientos, tipo, label }: Props) {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                                                 <div className="flex justify-end gap-2">
-                                                    <Link
-                                                        href={`/${tipoPlural}/${movimiento.id}`}
-                                                        className="text-blue-600 hover:text-blue-800 font-medium"
-                                                    >
-                                                        Ver
-                                                    </Link>
-                                                    <Link
-                                                        href={`/${tipoPlural}/${movimiento.id}/edit`}
-                                                        className="text-green-600 hover:text-green-800 font-medium"
-                                                    >
-                                                        Editar
-                                                    </Link>
+                                                    <ViewButton
+                                                        onClick={() => {
+                                                            window.location.href = `/${tipoPlural}/${movimiento.id}`;
+                                                        }}
+                                                    />
+                                                    <EditButton 
+                                                        onClick={() => {
+                                                            window.location.href = `/${tipoPlural}/${movimiento.id}/edit`;
+                                                        }}
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>

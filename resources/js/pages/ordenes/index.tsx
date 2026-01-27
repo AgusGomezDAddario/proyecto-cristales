@@ -1,6 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { Head, Link, useForm, router, usePage } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
+import DeleteButton from "@/components/botones/boton-eliminar";
+import EditButton from "@/components/botones/boton-editar";
+import ViewButton from "@/components/botones/boton-ver";
 
 type Vehiculo = {
   id: number;
@@ -417,25 +420,16 @@ const returnUrl = `${window.location.pathname}${window.location.search}`;
                           {"Ver detalle"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex justify-end gap-3">
-                            <Link
-                              href={`/ordenes/${orden.id}`}
-                              className="text-blue-600 hover:text-blue-800 font-medium"
-                            >
-                              Ver
-                            </Link>
-                            <Link
-  href={`/ordenes/${orden.id}/edit?return=${encodeURIComponent(returnUrl)}`}
-  className="text-green-600 hover:text-green-800 font-medium"
->
-  Editar
-</Link>
-                            <button
+                          <div className="flex justify-end gap-2">
+                            <ViewButton
+                              onClick={() => router.visit(`/ordenes/${orden.id}?return=${encodeURIComponent(returnUrl)}`)}
+                            />
+                            <EditButton
+                              onClick={() => router.visit(`/ordenes/${orden.id}/edit?return=${encodeURIComponent(returnUrl)}`)}
+                            />
+                            <DeleteButton
                               onClick={() => handleDelete(orden.id)}
-                              className="text-red-600 hover:text-red-800 font-medium"
-                            >
-                              Eliminar
-                            </button>
+                            />
                           </div>
                         </td>
                       </tr>

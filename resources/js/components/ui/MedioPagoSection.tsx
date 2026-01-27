@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Trash2 } from "lucide-react";
+import DeleteButton from "@/components/botones/boton-eliminar";
 
 interface MedioPago {
   id: number;
@@ -150,20 +150,14 @@ export default function MedioPagoSection({
                   {!!pago.observacion && <span className="text-sm text-gray-500">{pago.observacion}</span>}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleRemovePago(index)}
-                  className="h-10 w-10 flex items-center justify-center rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition"
-                  title="Eliminar pago"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
+              <DeleteButton 
+                onClick={() => handleRemovePago(index)} 
+              />
+            </div>
+          );
+        })}
+      </div>
+    )}
       {pagos.length > 0 && (
         <div className="pt-4 border-t border-gray-200 space-y-2">
           <div className="flex justify-between items-center">
