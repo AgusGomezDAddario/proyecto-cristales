@@ -210,9 +210,9 @@ export default function Metrics({ range, kpis, composicionEgresos, mediosDePago,
                 {/* A) KPIs del último mes */}
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                     <MetricCard
-                        title="Ingresos del mes"
+                        title="Ingresos"
                         value={formatCurrency(kpis.ingresos)}
-                        subtitle="Suma de ingresos (30 días)"
+                        subtitle="Suma de ingresos"
                         accent="green"
                         icon={
                             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,9 +222,9 @@ export default function Metrics({ range, kpis, composicionEgresos, mediosDePago,
                     />
 
                     <MetricCard
-                        title="Egresos del mes"
+                        title="Egresos"
                         value={formatCurrency(kpis.egresos)}
-                        subtitle="Suma de egresos (30 días)"
+                        subtitle="Suma de egresos"
                         accent="red"
                         icon={
                             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +267,7 @@ export default function Metrics({ range, kpis, composicionEgresos, mediosDePago,
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
                         <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-xl font-bold text-gray-900">Composición de Egresos (último mes)</h2>
+                            <h2 className="text-xl font-bold text-gray-900">Composición de Egresos</h2>
                         </div>
 
                         {composicionEgresos.length === 0 ? (
@@ -294,7 +294,7 @@ export default function Metrics({ range, kpis, composicionEgresos, mediosDePago,
 
                     <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
                         <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-xl font-bold text-gray-900">Medios de pago (último mes)</h2>
+                            <h2 className="text-xl font-bold text-gray-900">Medios de pago</h2>
                         </div>
 
                         {mediosDePago.length === 0 ? (
@@ -324,7 +324,7 @@ export default function Metrics({ range, kpis, composicionEgresos, mediosDePago,
                 {/* D) Actividad operativa */}
                 <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
                     <div className="mb-4 flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-gray-900">Actividad operativa (último mes)</h2>
+                        <h2 className="text-xl font-bold text-gray-900">Actividad operativa</h2>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
