@@ -19,7 +19,11 @@ interface Props {
   setFormData: (patch: any) => void;
   errors: Record<string, string>;
   totalOrden: number;
+  companiaSeguroId?: number | null;
 }
+
+// Nombre del medio de pago especial para seguros
+const VOUCHER_SEGURO_NOMBRE = "Voucher de Compañía de Seguros";
 
 export default function MedioPagoSection({
   mediosDePago,
@@ -27,6 +31,7 @@ export default function MedioPagoSection({
   setFormData,
   errors,
   totalOrden,
+  companiaSeguroId,
 }: Props) {
   const [selectedMedio, setSelectedMedio] = useState<string>("");
   const [monto, setMonto] = useState<string>("");
@@ -40,6 +45,17 @@ export default function MedioPagoSection({
 
   const saldoRestante = Math.max(0, totalOrden - totalPagado);
   const exceso = Math.max(0, totalPagado - totalOrden);
+
+  // Filtrar medios de pago: el voucher de seguros solo se muestra si hay compañía seleccionada
+  const mediosFiltrados = useMemo(() => {
+    return mediosDePago.filter((m) => {
+      // Si es el voucher de seguros, solo mostrarlo si hay compañía de seguros seleccionada
+      if (m.nombre === VOUCHER_SEGURO_NOMBRE) {
+        return !!companiaSeguroId;
+      }
+      return true;
+    });
+  }, [mediosDePago, companiaSeguroId]);
 
   const handleAddPago = () => {
     if (!selectedMedio || !monto) return;
@@ -97,7 +113,7 @@ export default function MedioPagoSection({
             className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 text-sm"
           >
             <option value="">Seleccione medio...</option>
-            {mediosDePago.map((m) => (
+            {mediosFiltrados.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.nombre}
               </option>
@@ -150,14 +166,14 @@ export default function MedioPagoSection({
                   {!!pago.observacion && <span className="text-sm text-gray-500">{pago.observacion}</span>}
                 </div>
 
-              <DeleteButton 
-                onClick={() => handleRemovePago(index)} 
-              />
-            </div>
-          );
-        })}
-      </div>
-    )}
+                <DeleteButton
+                  onClick={() => handleRemovePago(index)}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
       {pagos.length > 0 && (
         <div className="pt-4 border-t border-gray-200 space-y-2">
           <div className="flex justify-between items-center">

@@ -366,6 +366,7 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                                 setFormData={(nd: any) => mergeForm(nd)}
                                 errors={errors as Record<string, string>}
                                 totalOrden={totalOrden}
+                                companiaSeguroId={data.compania_seguro_id}
                             />
                         </div>
 
