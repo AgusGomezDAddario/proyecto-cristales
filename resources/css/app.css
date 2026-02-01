@@ -62,13 +62,16 @@
 
 /* SOLO MODO CLARO */
 :root {
-    --background: oklch(1 0 0); /* Blanco */
-    --foreground: oklch(0.145 0 0); /* Negro */
+    --background: oklch(1 0 0);
+    /* Blanco */
+    --foreground: oklch(0.145 0 0);
+    /* Negro */
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    --primary: #2596be; /* Azul corporativo */
+    --primary: #2596be;
+    /* Azul corporativo */
     --primary-foreground: oklch(0.985 0 0);
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
@@ -116,8 +119,13 @@
         @apply bg-white text-foreground;
     }
 
-    select { @apply bg-white text-foreground; }
-    option { @apply bg-white text-foreground; }
+    select {
+        @apply bg-white text-foreground;
+    }
+
+    option {
+        @apply bg-white text-foreground;
+    }
 
     /* Botones globales */
     button,
@@ -125,6 +133,7 @@
     [type='submit'] {
         @apply rounded-md bg-[#2596be] font-semibold text-white;
     }
+
     button:hover,
     .btn:hover,
     [type='submit']:hover {
@@ -133,23 +142,86 @@
 
     /* ✅ Checkbox corporativo global */
     /* ✅ Checkbox corporativo global (nativo, con tilde visible) */
-@layer base {
-  input[type="checkbox"] {
-    /* SIN appearance-none: dejamos el tilde nativo */
-    @apply w-5 h-5 rounded border border-gray-400 bg-white
-           cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1862fd] transition;
-    accent-color: #2596be; /* color del tilde y del checkbox marcado */
-  }
+    @layer base {
+        input[type="checkbox"] {
+            /* SIN appearance-none: dejamos el tilde nativo */
+            @apply w-5 h-5 rounded border border-gray-400 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1862fd] transition;
+            accent-color: #2596be;
+            /* color del tilde y del checkbox marcado */
+        }
 
-  input[type="checkbox"]:checked {
-    @apply border-[#2596be]; /* borde azul al marcar */
-    /* el fondo y tilde los maneja accent-color */
-  }
+        input[type="checkbox"]:checked {
+            @apply border-[#2596be];
+            /* borde azul al marcar */
+            /* el fondo y tilde los maneja accent-color */
+        }
 
-  input[type="checkbox"]:disabled {
-    @apply opacity-50 cursor-not-allowed;
-  }
+        input[type="checkbox"]:disabled {
+            @apply opacity-50 cursor-not-allowed;
+        }
+    }
+
 }
 
+/* ============================================
+   ESTILOS DE IMPRESIÓN PROFESIONAL
+   ============================================ */
+
+/* Configuración de página A4 */
+@page {
+    size: A4;
+    margin: 8mm;
 }
 
+@media print {
+
+    /* Ocultar TODO el dashboard y navegación */
+    nav,
+    aside,
+    header,
+    .sidebar,
+    .navigation,
+    .no-print,
+    button,
+    a[href],
+    .print\\:hidden {
+        display: none !important;
+    }
+
+    /* Reset de estilos base para impresión */
+    html,
+    body {
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        font-size: 9pt !important;
+    }
+
+    /* Mostrar el componente imprimible */
+    .print-only {
+        display: block !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+    }
+
+    /* Evitar cortes de página en medio de elementos */
+    .print-only table,
+    .print-only div {
+        page-break-inside: avoid;
+    }
+
+    /* Preservar colores de fondo */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
