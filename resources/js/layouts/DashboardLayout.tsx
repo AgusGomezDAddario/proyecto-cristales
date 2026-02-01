@@ -189,7 +189,12 @@ export default function DashboardLayout({ children, title }: Props) {
                                             >
                                                 🛡️ Seguros
                                             </Link>
-                                            <Link href="#" className="block cursor-not-allowed px-4 py-2 text-sm text-gray-400">
+                                            <Link
+                                                href="/articulos"
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                    isActive('/articulos') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
+                                            >
                                                 📦 Artículos
                                             </Link>
                                             <Link href="#" className="block cursor-not-allowed px-4 py-2 text-sm text-gray-400">
