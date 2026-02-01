@@ -14,6 +14,7 @@ use App\Http\Controllers\DailySummaryController;
 use App\Http\Controllers\MedioDePagoController;
 use App\Http\Controllers\CompaniaDeSeguroController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\ConceptoController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -55,6 +56,10 @@ Route::middleware(['auth'])->group(function () {
             ->name('api.clientes.modelos');
         Route::delete('vehiculos/{vehiculo}', [ClienteController::class, 'destroyVehicle'])
             ->name('vehiculos.destroy');
+
+        // 🏷️ Maestro de Conceptos (solo admins)
+        Route::resource('conceptos', ConceptoController::class)
+            ->only(['index', 'store', 'update', 'destroy']);
     });
 
     Route::resource('egresos', EgresoController::class);
