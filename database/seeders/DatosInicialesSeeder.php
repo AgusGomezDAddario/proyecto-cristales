@@ -54,9 +54,9 @@ class DatosInicialesSeeder extends Seeder
         // ---- Tabla estado ----
         DB::table('estado')->insert([
             ['nombre' => 'Iniciado'],
-            ['nombre' => 'Pendiente'],
-            ['nombre' => 'Completada'],
-            ['nombre' => 'Pagado'],
+            ['nombre' => 'En taller'],
+            ['nombre' => 'Completada por taller'],
+            ['nombre' => 'Finalizada'],
         ]);
     }
 }
