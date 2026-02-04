@@ -2,6 +2,7 @@ import React from "react";
 import { Link, Head } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { User, Phone, Mail, Car, Calendar, FileText, DollarSign, CreditCard, ArrowLeft, Printer } from "lucide-react";
+import PrintableODT from "@/components/print/PrintableODT";
 
 type Atributo = {
   id: number;
@@ -58,7 +59,7 @@ export default function Show({ orden }: { orden: Orden }) {
     <DashboardLayout>
       <Head title={`Orden #${orden.id}`} />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 print:hidden">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
@@ -320,6 +321,10 @@ export default function Show({ orden }: { orden: Orden }) {
           </div>
         </div>
       </div>
+
+      {/* Componente de impresión profesional - Oculto en pantalla, visible al imprimir */}
+      <PrintableODT orden={orden as any} />
     </DashboardLayout>
   );
 }
+
