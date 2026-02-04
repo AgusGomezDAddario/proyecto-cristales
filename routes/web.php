@@ -42,10 +42,13 @@ Route::middleware(['auth'])->group(function () {
     // Route::delete('ingresos/{ingreso}', [IngresoController::class, 'destroy'])->name('ingresos.destroy');
 
     // 👉 Rutas para Órdenes de Trabajo
+   Route::middleware('is_admin')->group(function () {
     Route::resource('ordenes', OrdenDeTrabajoController::class)
         ->parameters([
             'ordenes' => 'orden'
         ]);
+    });
+
 
     // 👉 Rutas para cuando se logue el perfil taller
     Route::middleware(['auth', 'rol.taller'])->group(function () {

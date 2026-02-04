@@ -4,6 +4,7 @@ import { Calendar, Car, User, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 
+
 interface OT {
   id: number;
   fecha: string;
@@ -24,12 +25,20 @@ interface OT {
   } | null;
 }
 
-interface Props {
-  ots: OT[];
+interface Estado {
+  id: number;
+  nombre: string;
 }
 
 
-export default function OrdenesTaller({ ots }: Props) {
+interface Props {
+  ots: OT[];
+  estados: Estado[];
+}
+
+
+
+export default function OrdenesTaller({ ots, estados }: Props) {
   const [open, setOpen] = useState(false);
   const [ordenSeleccionada, setOrdenSeleccionada] = useState<OT | null>(null);
   const [estadoId, setEstadoId] = useState<number | null>(null);
@@ -147,9 +156,11 @@ export default function OrdenesTaller({ ots }: Props) {
               onChange={(e) => setEstadoId(Number(e.target.value))}
               className="w-full border border-gray-300 rounded-lg p-2"
             >
-              <option value={1}>Iniciado</option>
-              <option value={2}>Pendiente</option>
-              <option value={3}>Completada</option>
+               {estados.map((estado) => (
+                <option key={estado.id} value={estado.id}>
+                  {estado.nombre}
+                </option>
+              ))}
             </select>
 
             {/* Botones */}

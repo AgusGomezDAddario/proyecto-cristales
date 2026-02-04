@@ -40,6 +40,8 @@ export default function Show({ orden }: { orden: Orden }) {
   const { auth } = usePage().props as any;
   const esTaller = auth?.role_id === 3; // 👈 ajustá si tu ID es otro
   const esAdmin  = auth?.role_id === 1;
+  const backUrl = esTaller ? '/taller/ots' : '/ordenes';
+
 
 
   return (
@@ -51,7 +53,7 @@ export default function Show({ orden }: { orden: Orden }) {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
             <Link
-              href="/ordenes"
+              href={backUrl}
               className="p-2 rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition shadow-sm"
             >
               <ArrowLeft className="w-5 h-5" />

@@ -215,21 +215,25 @@ class OrdenDeTrabajoController extends Controller
     }
 
     public function pendientes()
-    {
-        $ots = OrdenDeTrabajo::with([
-                'estado',
-                'titularVehiculo.titular',
-                'titularVehiculo.vehiculo'
-            ])
-            ->whereHas('estado', fn ($q) =>
-                $q->whereIn('nombre', ['Iniciado', 'Pendiente'])
-            )
-            ->get();
+{
+    $ots = OrdenDeTrabajo::with([
+            'estado',
+            'titularVehiculo.titular',
+            'titularVehiculo.vehiculo'
+        ])
+        ->whereIn('estado_id', Estado::ESTADOS_TALLER)
+        ->get();
 
-        return Inertia::render('taller/ordenes', [
-            'ots' => $ots,
-        ]);
-    }
+    $estados = Estado::select('id', 'nombre')
+        ->whereIn('id', Estado::ESTADOS_CAMBIO_TALLER)
+        ->orderBy('id')
+        ->get();
+
+    return Inertia::render('taller/ordenes', [
+        'ots' => $ots,
+        'estados' => $estados, // 👈 ESTO
+    ]);
+}
 
     public function cambiarEstadoTaller(Request $request, OrdenDeTrabajo $orden)
     {
