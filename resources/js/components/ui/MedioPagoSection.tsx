@@ -57,6 +57,18 @@ export default function MedioPagoSection({
     });
   }, [mediosDePago, companiaSeguroId]);
 
+  // Handler para cambio de medio de pago (sin autocompletado)
+  const handleMedioChange = (value: string) => {
+    setSelectedMedio(value);
+  };
+
+  // Cargar saldo restante en el campo de monto
+  const handleCargarTodo = () => {
+    if (saldoRestante > 0) {
+      setMonto(saldoRestante.toString());
+    }
+  };
+
   const handleAddPago = () => {
     if (!selectedMedio || !monto) return;
 
@@ -106,13 +118,13 @@ export default function MedioPagoSection({
         <p className="text-xs font-medium text-gray-600 mb-3">
           {pagos.length === 0 ? '➕ Agregá un medio de pago:' : '➕ Agregar otro medio de pago:'}
         </p>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        <div className="flex items-center gap-2">
           <select
             value={selectedMedio}
-            onChange={(e) => setSelectedMedio(e.target.value)}
-            className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 text-sm"
+            onChange={(e) => handleMedioChange(e.target.value)}
+            className="w-40 px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 text-sm"
           >
-            <option value="">Seleccione medio...</option>
+            <option value="">Medio...</option>
             {mediosFiltrados.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.nombre}
@@ -120,27 +132,38 @@ export default function MedioPagoSection({
             ))}
           </select>
 
-          <input
-            type="number"
-            placeholder="$0"
-            value={monto}
-            onChange={(e) => setMonto(e.target.value)}
-            className="w-full md:w-32 px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 text-sm"
-          />
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              placeholder="$0"
+              value={monto}
+              onChange={(e) => setMonto(e.target.value)}
+              className="w-24 px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 text-sm"
+            />
+            {saldoRestante > 0 && (
+              <button
+                type="button"
+                onClick={handleCargarTodo}
+                className="px-2 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition text-xs font-medium whitespace-nowrap"
+              >
+                Cargar total
+              </button>
+            )}
+          </div>
 
           <input
             type="text"
-            placeholder="Obs. (opcional)"
+            placeholder="Obs."
             value={observacion}
             onChange={(e) => setObservacion(e.target.value)}
-            className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 text-sm"
+            className="flex-1 min-w-0 px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 text-sm"
           />
 
           <button
             type="button"
             onClick={handleAddPago}
             disabled={!selectedMedio || !monto}
-            className="px-4 py-2.5 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition shadow-sm whitespace-nowrap text-sm"
+            className="px-4 py-2 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition shadow-sm text-sm"
           >
             Agregar
           </button>
