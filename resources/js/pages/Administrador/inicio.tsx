@@ -9,6 +9,16 @@ interface Movimiento {
     medioDePago?: { nombre: string };
 }
 
+interface OrdenDeTrabajo {
+    id: number;
+    numero_orden: string;
+    monto: number;
+    created_at: string;
+    concepto?: { nombre: string };
+    medioDePago?: { nombre: string };
+    detalles_sum_valor: number; // Suma de los montos de los detalles de la orden
+}
+
 interface DashboardStats {
     totalEgresos: number;
     totalIngresos: number;
@@ -20,9 +30,10 @@ interface Props {
     stats: DashboardStats;
     ultimosEgresos: Movimiento[];
     ultimosIngresos: Movimiento[];
+    ultimasOrdenes: OrdenDeTrabajo[];
 }
 
-export default function AdminDashboard({ stats, ultimosEgresos, ultimosIngresos }: Props) {
+export default function AdminDashboard({ stats, ultimosEgresos, ultimosIngresos, ultimasOrdenes }: Props) {
     const formatMoney = (amount: number) => {
         return new Intl.NumberFormat('es-AR', {
             style: 'currency',
@@ -280,21 +291,59 @@ export default function AdminDashboard({ stats, ultimosEgresos, ultimosIngresos 
                             </Link>
                         </div>
                         <div className="space-y-3">
-                            <div className="py-8 text-center">
-                                <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-purple-100">
-                                    <svg className="h-8 w-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                                        />
-                                    </svg>
+                            {ultimasOrdenes && ultimasOrdenes.length > 0 ? (
+                                <>
+                                    {ultimasOrdenes.map((orden) => (
+                                        <div
+                                            key={orden.id}
+                                            className="flex items-center justify-between border-b border-gray-100 py-3 last:border-0"
+                                        >
+                                            <div className="flex-1">
+                                                <p className="font-semibold text-gray-900">{orden.numero_orden || 'Sin número de orden'}</p>
+                                                <p className="text-sm text-gray-500">
+                                                    {formatTimeAgo(orden.created_at)}
+                                                    {orden.medioDePago && <span className="ml-2">• {orden.numero_orden}</span>}
+                                                </p>
+                                            </div>
+                                            <span className="ml-4 font-bold text-red-600">{formatMoney(orden.detalles_sum_valor)}</span>
+                                        </div>
+                                    ))}
+                                    <Link
+                                        href="/ordenes/create"
+                                        className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-red-50 py-3 font-semibold text-red-600 transition hover:bg-red-100"
+                                    >
+                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        Registrar nueva orden
+                                    </Link>
+                                </>
+                            ) : (
+                                <div className="py-8 text-center">
+                                    <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+                                        <svg className="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <p className="mb-3 font-medium text-gray-500">No hay órdenes registradas</p>
+                                    <Link
+                                        href="/ordenes/create"
+                                        className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-5 py-2.5 font-semibold text-white transition hover:bg-red-700"
+                                    >
+                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        Registrar la primera
+                                    </Link>
                                 </div>
-                                <p className="mb-2 font-medium text-gray-500">Sección en desarrollo</p>
-                                <p className="text-sm text-gray-400">Las órdenes de trabajo estarán disponibles pronto</p>
-                            </div>
+                            )}
                         </div>
+                    
                     </div>
                 </div>
             </div>

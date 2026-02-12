@@ -46,6 +46,12 @@ class DashboardController extends Controller
         
         // Calcular el total de ordenes del día
         $totalOrdenes = count($ordenesHoy);
+
+        // Últimas 5 ordenes (de cualquier fecha, ordenados por creación)
+        $ultimasOrdenes = OrdenDeTrabajo::orderBy('updated_at', 'desc')
+            ->withSum('detalles', 'valor')
+            ->limit(5)
+            ->get();
         
         // Balance del día (ingresos - egresos)
         $balanceDelDia = $totalIngresos - $totalEgresos;
@@ -55,6 +61,7 @@ class DashboardController extends Controller
             'totalIngresos' => (float) $totalIngresos,
             'totalOrdenes' => $totalOrdenes,
             'balanceDelDia' => (float) $balanceDelDia,
+            'ultimasOrdenes' => $ultimasOrdenes
         ];
 
         // Renderizar vista según el rol del usuario
@@ -63,7 +70,8 @@ class DashboardController extends Controller
             return Inertia::render('Administrador/inicio', [
                 'stats' => $stats,
                 'ultimosEgresos' => $ultimosEgresos,
-                'ultimosIngresos' => $ultimosIngresos
+                'ultimosIngresos' => $ultimosIngresos,
+                'ultimasOrdenes' => $ultimasOrdenes
             ]);
         }
 
