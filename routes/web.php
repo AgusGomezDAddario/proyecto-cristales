@@ -43,10 +43,16 @@ Route::middleware(['auth'])->group(function () {
 
     // 👉 Rutas para Órdenes de Trabajo
    Route::middleware('is_admin')->group(function () {
-    Route::resource('ordenes', OrdenDeTrabajoController::class)
-        ->parameters([
-            'ordenes' => 'orden'
-        ]);
+        Route::resource('ordenes', OrdenDeTrabajoController::class)
+            ->except(['show'])
+            ->parameters([
+                'ordenes' => 'orden'
+            ]);
+
+        Route::get(
+            '/ordenes/{orden}',
+            [OrdenDeTrabajoController::class, 'show']
+            )->name('ordenes.show');
     });
 
 
@@ -54,6 +60,11 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['auth', 'rol.taller'])->group(function () {
         Route::get('/taller/ots', [OrdenDeTrabajoController::class, 'pendientes'])
         ->name('taller.ots');
+
+        Route::get(
+            '/taller/ordenes/{orden}',
+            [OrdenDeTrabajoController::class, 'show']
+        )->name('taller.ordenes.show');
 
         Route::patch(
         '/taller/ordenes/{orden}/estado',

@@ -116,7 +116,7 @@ export default function OrdenesTaller({ ots, estados }: Props) {
               {/* Acción */}
               <div className="flex justify-end items-center gap-3">
                 <Link
-                  href={`/ordenes/${ot.id}`}
+                  href={`/taller/ordenes/${ot.id}`}
                   className="inline-flex items-center gap-2 px-5 py-2 rounded-xl 
                             bg-purple-600 text-white font-semibold
                             hover:bg-purple-700 transition shadow-sm"
