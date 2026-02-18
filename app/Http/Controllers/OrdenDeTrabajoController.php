@@ -220,6 +220,14 @@ class OrdenDeTrabajoController extends Controller
                 'compania_seguro_id' => $validated['compania_seguro_id'] ?? null,
             ]);
 
+            // 👇 Guardar estado inicial en historial
+            OrdenDeTrabajoHistorialEstado::create([
+                'orden_de_trabajo_id' => $orden->id,
+                'estado_id' => $orden->estado_id,
+                'user_id' => auth()->id()
+            ]);
+
+
             // 5) Pagos
             foreach (($validated['pagos'] ?? []) as $pago) {
                 Precio::create([
@@ -405,6 +413,17 @@ class OrdenDeTrabajoController extends Controller
                 'es_garantia' => (bool) ($validated['es_garantia'] ?? false),
                 'compania_seguro_id' => $validated['compania_seguro_id'] ?? null,
             ]);
+
+            // Si cambió el estado, guardamos en historial
+            if ($estadoAnterior !== (int) $orden->estado_id) {
+
+                OrdenDeTrabajoHistorialEstado::create([
+                    'orden_de_trabajo_id' => $orden->id,
+                    'estado_id' => $orden->estado_id,
+                    'user_id' => auth()->id()
+                ]);
+            }
+
 
             foreach ($orden->detalles as $det) {
                 if (method_exists($det, 'atributos')) {
