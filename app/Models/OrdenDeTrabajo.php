@@ -43,15 +43,22 @@ class OrdenDeTrabajo extends Model
         return $this->hasMany(DetalleOrdenDeTrabajo::class, 'orden_de_trabajo_id');
     }
 
-public function companiaSeguro()
-{
-    return $this->belongsTo(\App\Models\CompaniaSeguro::class, 'compania_seguro_id')
-        ->withTrashed();
-}
+    public function companiaSeguro()
+    {
+        return $this->belongsTo(\App\Models\CompaniaSeguro::class, 'compania_seguro_id')
+            ->withTrashed();
+    }
 
-public function pagos()
-{
-    return $this->hasMany(\App\Models\Precio::class, 'orden_de_trabajo_id');
-}
+    public function pagos()
+    {
+        return $this->hasMany(\App\Models\Precio::class, 'orden_de_trabajo_id');
+    }
+
+    public function historialEstados()
+    {
+        return $this->hasMany(OrdenDeTrabajoHistorialEstado::class, 'orden_de_trabajo_id')
+                    ->orderBy('created_at', 'asc');
+    }
+
 
 }
