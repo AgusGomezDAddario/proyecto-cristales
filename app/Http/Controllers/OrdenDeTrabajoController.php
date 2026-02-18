@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use App\Models\OrdenDeTrabajoHistorialEstado;
+
+
 
 class OrdenDeTrabajoController extends Controller
 {
@@ -497,6 +500,8 @@ class OrdenDeTrabajoController extends Controller
             'detalles.atributos.subcategoria',
             'pagos.medioDePago',
             'companiaSeguro',
+            'historialEstados.estado',
+            'historialEstados.user',
         ]);
 
         return Inertia::render('ordenes/show', [
