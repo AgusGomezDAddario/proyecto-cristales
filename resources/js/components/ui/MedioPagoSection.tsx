@@ -19,7 +19,11 @@ interface Props {
   setFormData: (patch: any) => void;
   errors: Record<string, string>;
   totalOrden: number;
+  companiaSeguroId?: number | null;
 }
+
+// Nombre del medio de pago especial para seguros
+const VOUCHER_SEGURO_NOMBRE = "Voucher de Compañía de Seguros";
 
 export default function MedioPagoSection({
   mediosDePago,
@@ -27,6 +31,7 @@ export default function MedioPagoSection({
   setFormData,
   errors,
   totalOrden,
+  companiaSeguroId,
 }: Props) {
   const [selectedMedio, setSelectedMedio] = useState<string>("");
   const [monto, setMonto] = useState<string>("");
@@ -40,6 +45,29 @@ export default function MedioPagoSection({
 
   const saldoRestante = Math.max(0, totalOrden - totalPagado);
   const exceso = Math.max(0, totalPagado - totalOrden);
+
+  // Filtrar medios de pago: el voucher de seguros solo se muestra si hay compañía seleccionada
+  const mediosFiltrados = useMemo(() => {
+    return mediosDePago.filter((m) => {
+      // Si es el voucher de seguros, solo mostrarlo si hay compañía de seguros seleccionada
+      if (m.nombre === VOUCHER_SEGURO_NOMBRE) {
+        return !!companiaSeguroId;
+      }
+      return true;
+    });
+  }, [mediosDePago, companiaSeguroId]);
+
+  // Handler para cambio de medio de pago (sin autocompletado)
+  const handleMedioChange = (value: string) => {
+    setSelectedMedio(value);
+  };
+
+  // Cargar saldo restante en el campo de monto
+  const handleCargarTodo = () => {
+    if (saldoRestante > 0) {
+      setMonto(saldoRestante.toString());
+    }
+  };
 
   const handleAddPago = () => {
     if (!selectedMedio || !monto) return;
@@ -90,41 +118,52 @@ export default function MedioPagoSection({
         <p className="text-xs font-medium text-gray-600 mb-3">
           {pagos.length === 0 ? '➕ Agregá un medio de pago:' : '➕ Agregar otro medio de pago:'}
         </p>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        <div className="flex items-center gap-2">
           <select
             value={selectedMedio}
-            onChange={(e) => setSelectedMedio(e.target.value)}
-            className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 text-sm"
+            onChange={(e) => handleMedioChange(e.target.value)}
+            className="w-40 px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 text-sm"
           >
-            <option value="">Seleccione medio...</option>
-            {mediosDePago.map((m) => (
+            <option value="">Medio...</option>
+            {mediosFiltrados.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.nombre}
               </option>
             ))}
           </select>
 
-          <input
-            type="number"
-            placeholder="$0"
-            value={monto}
-            onChange={(e) => setMonto(e.target.value)}
-            className="w-full md:w-32 px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 text-sm"
-          />
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              placeholder="$0"
+              value={monto}
+              onChange={(e) => setMonto(e.target.value)}
+              className="w-24 px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 text-sm"
+            />
+            {saldoRestante > 0 && (
+              <button
+                type="button"
+                onClick={handleCargarTodo}
+                className="px-2 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition text-xs font-medium whitespace-nowrap"
+              >
+                Cargar total
+              </button>
+            )}
+          </div>
 
           <input
             type="text"
-            placeholder="Obs. (opcional)"
+            placeholder="Obs."
             value={observacion}
             onChange={(e) => setObservacion(e.target.value)}
-            className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 text-sm"
+            className="flex-1 min-w-0 px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition text-gray-900 text-sm"
           />
 
           <button
             type="button"
             onClick={handleAddPago}
             disabled={!selectedMedio || !monto}
-            className="px-4 py-2.5 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition shadow-sm whitespace-nowrap text-sm"
+            className="px-4 py-2 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition shadow-sm text-sm"
           >
             Agregar
           </button>
@@ -150,14 +189,14 @@ export default function MedioPagoSection({
                   {!!pago.observacion && <span className="text-sm text-gray-500">{pago.observacion}</span>}
                 </div>
 
-              <DeleteButton 
-                onClick={() => handleRemovePago(index)} 
-              />
-            </div>
-          );
-        })}
-      </div>
-    )}
+                <DeleteButton
+                  onClick={() => handleRemovePago(index)}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
       {pagos.length > 0 && (
         <div className="pt-4 border-t border-gray-200 space-y-2">
           <div className="flex justify-between items-center">
