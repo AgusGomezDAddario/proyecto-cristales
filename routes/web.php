@@ -15,6 +15,7 @@ use App\Http\Controllers\MedioDePagoController;
 use App\Http\Controllers\CompaniaDeSeguroController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ConceptoController;
+use App\Http\Controllers\ArticuloController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -60,6 +61,30 @@ Route::middleware(['auth'])->group(function () {
         // 🏷️ Maestro de Conceptos (solo admins)
         Route::resource('conceptos', ConceptoController::class)
             ->only(['index', 'store', 'update', 'destroy']);
+
+        // 📦 Maestro de Artículos (solo admins)
+        Route::resource('articulos', ArticuloController::class)
+            ->only(['index', 'store', 'update', 'destroy']);
+
+        // Rutas para categorías
+        Route::get('articulos/{articulo}/categorias', [ArticuloController::class, 'getCategorias'])
+            ->name('articulos.categorias');
+        Route::post('articulos/{articulo}/categorias', [ArticuloController::class, 'storeCategoria'])
+            ->name('articulos.categorias.store');
+        Route::put('categorias/{categoria}', [ArticuloController::class, 'updateCategoria'])
+            ->name('categorias.update');
+        Route::delete('categorias/{categoria}', [ArticuloController::class, 'destroyCategoria'])
+            ->name('categorias.destroy');
+
+        // Rutas para subcategorías
+        Route::get('categorias/{categoria}/subcategorias', [ArticuloController::class, 'getSubcategorias'])
+            ->name('categorias.subcategorias');
+        Route::post('categorias/{categoria}/subcategorias', [ArticuloController::class, 'storeSubcategoria'])
+            ->name('categorias.subcategorias.store');
+        Route::put('subcategorias/{subcategoria}', [ArticuloController::class, 'updateSubcategoria'])
+            ->name('subcategorias.update');
+        Route::delete('subcategorias/{subcategoria}', [ArticuloController::class, 'destroySubcategoria'])
+            ->name('subcategorias.destroy');
     });
 
     Route::resource('egresos', EgresoController::class);
