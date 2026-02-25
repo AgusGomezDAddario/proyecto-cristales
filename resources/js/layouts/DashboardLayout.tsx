@@ -21,6 +21,7 @@ export default function DashboardLayout({ children, title }: Props) {
         isActive('/clientes') ||
         isActive('/companias-seguros') ||
         isActive('/medio-de-pago') ||
+        isActive('/conceptos') ||
         isActive('/admin/metrics');
 
     /* TOAST */
@@ -202,6 +203,15 @@ export default function DashboardLayout({ children, title }: Props) {
                                             >
                                                 💳 Medios de pago
                                             </Link>
+                                            {/* 🏷️ CONCEPTOS */}
+                                            <Link
+                                                href="/conceptos"
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                    isActive('/conceptos') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
+                                            >
+                                                🏷️ Conceptos
+                                            </Link>
                                             <Link
                                                 href="/admin/metrics"
                                                 className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
@@ -350,6 +360,25 @@ export default function DashboardLayout({ children, title }: Props) {
                                                 >
                                                     💳 Medios de pago
                                                 </Link>
+                                                {/* 🏷️ CONCEPTOS */}
+                                                <Link
+                                                    href="/conceptos"
+                                                    onClick={() => setMoreMenuOpen(false)}
+                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                        isActive('/conceptos') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                    }`}
+                                                >
+                                                    🏷️ Conceptos
+                                                </Link>
+                                                <Link
+                                                    href="/admin/metrics"
+                                                    onClick={() => setMoreMenuOpen(false)}
+                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                        isActive('/admin/metrics') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                    }`}
+                                                >
+                                                    📈 Métricas
+                                                </Link>
                                                 <Link
                                                     href="/admin/users"
                                                     onClick={() => setMoreMenuOpen(false)}
@@ -479,6 +508,15 @@ export default function DashboardLayout({ children, title }: Props) {
                                     >
                                         💳 Medios de pago
                                     </Link>
+                                    {/* 🏷️ CONCEPTOS */}
+                                    <Link
+                                        href="/conceptos"
+                                        className={`block rounded-lg px-4 py-2 font-semibold ${
+                                            isActive('/conceptos') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
+                                        }`}
+                                    >
+                                        🏷️ Conceptos
+                                    </Link>
                                     <Link
                                         href="/admin/metrics"
                                         className={`block rounded-lg px-4 py-2 font-semibold ${
@@ -498,39 +536,6 @@ export default function DashboardLayout({ children, title }: Props) {
                                 </>
                             )}
 
-                            <Link
-                                href="/egresos"
-                                className={`block rounded-lg px-4 py-2 font-semibold ${
-                                    isActive('/egresos') ? 'bg-red-50 text-red-700' : 'text-gray-700 hover:bg-gray-100'
-                                }`}
-                            >
-                                💸 Egresos
-                            </Link>
-                            <Link
-                                href="/ingresos"
-                                className={`block rounded-lg px-4 py-2 font-semibold ${
-                                    isActive('/ingresos') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-100'
-                                }`}
-                            >
-                                💰 Ingresos
-                            </Link>
-                            <Link
-                                href="/resumen-del-dia"
-                                className={`block rounded-lg px-4 py-2 font-semibold ${
-                                    isActive('/resumen-del-dia') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                                }`}
-                            >
-                                🧾 Resumen del día
-                            </Link>
-
-                            <Link
-                                href="/ordenes"
-                                className={`block rounded-lg px-4 py-2 font-semibold ${
-                                    isActive('/ordenes') ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-100'
-                                }`}
-                            >
-                                🚗 Órdenes de Trabajo
-                            </Link>
                             <div className="my-2 border-t border-gray-200"></div>
 
                             <Link
