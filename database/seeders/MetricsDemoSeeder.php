@@ -40,12 +40,17 @@ class MetricsDemoSeeder extends Seeder
             $medioPagoIds = MedioDePago::query()->pluck('id');
         }
 
-        $estados = Estado::query()->pluck('id', 'nombre');
-        if ($estados->isEmpty()) {
-            foreach (['Iniciado', 'Pendiente', 'Completada', 'Pagado'] as $nombre) {
-                Estado::query()->firstOrCreate(['nombre' => $nombre]);
-            }
-            $estados = Estado::query()->pluck('id', 'nombre');
+        /* =====================
+         * Estados actualizados
+         * ===================== */
+
+        $estadoIniciadoId = Estado::where('nombre', 'Iniciado')->value('id');
+        $estadoEnTallerId = Estado::where('nombre', 'En taller')->value('id');
+        $estadoCompletadaId = Estado::where('nombre', 'Completada por taller')->value('id');
+        $estadoFinalizadaId = Estado::where('nombre', 'Finalizada')->value('id');
+
+        if (!$estadoIniciadoId || !$estadoEnTallerId || !$estadoCompletadaId || !$estadoFinalizadaId) {
+            throw new \Exception('Faltan estados requeridos para MetricsDemoSeeder');
         }
 
         $conceptoIngresoIds = collect([
@@ -60,56 +65,56 @@ class MetricsDemoSeeder extends Seeder
             Concepto::query()->firstOrCreate(['nombre' => 'Otros', 'tipo' => Movimiento::TIPO_EGRESO])->id,
         ]);
 
-        // Marcas/Modelos (para Vehículo)
+        /* =====================
+         * Marca / Modelo
+         * ===================== */
+
         $marcaId = Marca::query()->value('id');
         $modeloId = Modelo::query()->value('id');
 
         if (!$marcaId || !$modeloId) {
             $marca = Marca::query()->firstOrCreate(['nombre' => 'Genérica']);
-            $modelo = Modelo::query()->firstOrCreate(['nombre' => 'Base', 'marca_id' => $marca->id]);
+            $modelo = Modelo::query()->firstOrCreate([
+                'nombre' => 'Base',
+                'marca_id' => $marca->id
+            ]);
             $marcaId = $marca->id;
             $modeloId = $modelo->id;
         }
 
         /* =====================
-         * Titulares + Vehículos + Pivot
+         * Titulares + Vehículos
          * ===================== */
 
-        $titularVehiculoIds = TitularVehiculo::query()->pluck('id');
-
-        if ($titularVehiculoIds->count() < 10) {
+        if (TitularVehiculo::count() < 10) {
             for ($i = 0; $i < 12; $i++) {
-                $titular = Titular::query()->create([
+
+                $titular = Titular::create([
                     'nombre' => $faker->firstName,
                     'apellido' => $faker->lastName,
                     'telefono' => $faker->phoneNumber,
                     'email' => $faker->unique()->safeEmail,
                 ]);
 
-                $vehiculo = Vehiculo::query()->create([
+                $vehiculo = Vehiculo::create([
                     'patente' => strtoupper($faker->bothify('??###??')),
                     'marca_id' => $marcaId,
                     'modelo_id' => $modeloId,
                     'anio' => $faker->numberBetween(2008, (int) $to->format('Y')),
                 ]);
 
-                TitularVehiculo::query()->firstOrCreate([
+                TitularVehiculo::firstOrCreate([
                     'titular_id' => $titular->id,
                     'vehiculo_id' => $vehiculo->id,
                 ]);
             }
         }
 
-        $titularVehiculoIds = TitularVehiculo::query()->pluck('id');
+        $titularVehiculoIds = TitularVehiculo::pluck('id');
 
         /* =====================
-         * Órdenes de trabajo (últimos 30 días)
+         * Órdenes de trabajo
          * ===================== */
-
-        $estadoIniciadoId = $estados->get('Iniciado');
-        $estadoPendienteId = $estados->get('Pendiente');
-        $estadoCompletadaId = $estados->get('Completada');
-        $estadoPagadoId = $estados->get('Pagado');
 
         $ordenes = collect();
 
@@ -119,26 +124,27 @@ class MetricsDemoSeeder extends Seeder
             $to,
             $titularVehiculoIds,
             $estadoIniciadoId,
-            $estadoPendienteId,
+            $estadoEnTallerId,
             $estadoCompletadaId,
-            $estadoPagadoId,
+            $estadoFinalizadaId,
             &$ordenes
         ) {
-            $totalOT = 40;
-            for ($i = 0; $i < $totalOT; $i++) {
-                $fechaOt = Carbon::instance($faker->dateTimeBetween($from->toDateString(), $to->toDateString()));
+            for ($i = 0; $i < 40; $i++) {
 
-                // Distribución: más Pendiente/Completada para que se vea el KPI de cerradas
+                $fechaOt = Carbon::instance(
+                    $faker->dateTimeBetween($from->toDateString(), $to->toDateString())
+                );
+
                 $estadoId = $faker->randomElement([
                     $estadoCompletadaId,
                     $estadoCompletadaId,
-                    $estadoPendienteId,
-                    $estadoPendienteId,
+                    $estadoEnTallerId,
+                    $estadoEnTallerId,
                     $estadoIniciadoId,
-                    $estadoPagadoId,
+                    $estadoFinalizadaId,
                 ]);
 
-                $orden = OrdenDeTrabajo::query()->create([
+                $orden = OrdenDeTrabajo::create([
                     'titular_vehiculo_id' => $titularVehiculoIds->random(),
                     'compania_seguro_id' => null,
                     'estado_id' => $estadoId,
@@ -151,7 +157,9 @@ class MetricsDemoSeeder extends Seeder
                         'Polarizado',
                         'Reparación de mecanismo',
                     ]),
-                    'fecha_entrega_estimada' => $fechaOt->copy()->addDays($faker->numberBetween(1, 7))->toDateString(),
+                    'fecha_entrega_estimada' => $fechaOt->copy()->addDays(
+                        $faker->numberBetween(1, 7)
+                    )->toDateString(),
                     'numero_orden' => 'OT-' . strtoupper(bin2hex(random_bytes(4))),
                     'es_garantia' => (bool) $faker->boolean(10),
                 ]);
@@ -161,18 +169,17 @@ class MetricsDemoSeeder extends Seeder
         });
 
         /* =====================
-         * Movimientos (ingresos/egresos) últimos 30 días
+         * Movimientos
          * ===================== */
 
-        // Ingresos (vinculados a algunas OTs para que sea más real)
         foreach ($ordenes as $orden) {
-            // Solo algunas OTs generan ingresos (Completada/Pagado)
-            if (!in_array($orden->estado_id, [$estadoCompletadaId, $estadoPagadoId], true)) {
+
+            if (!in_array($orden->estado_id, [$estadoCompletadaId, $estadoFinalizadaId], true)) {
                 continue;
             }
 
             if ($faker->boolean(75)) {
-                Movimiento::query()->create([
+                Movimiento::create([
                     'fecha' => Carbon::parse($orden->fecha)->toDateString(),
                     'monto' => $faker->randomFloat(2, 25000, 220000),
                     'concepto_id' => $conceptoIngresoIds->random(),
@@ -182,20 +189,22 @@ class MetricsDemoSeeder extends Seeder
             }
         }
 
-        // Egresos (independientes, con composición marcada)
-        $totalEgresos = 70;
-        for ($i = 0; $i < $totalEgresos; $i++) {
-            $fecha = Carbon::instance($faker->dateTimeBetween($from->toDateString(), $to->toDateString()))->toDateString();
+        for ($i = 0; $i < 70; $i++) {
+
+            $fecha = Carbon::instance(
+                $faker->dateTimeBetween($from->toDateString(), $to->toDateString())
+            )->toDateString();
+
             $conceptoId = $conceptoEgresoIds->random();
 
-            $monto = match (Concepto::query()->find($conceptoId)?->nombre) {
+            $monto = match (Concepto::find($conceptoId)?->nombre) {
                 'Colocación / Mano de obra' => $faker->randomFloat(2, 12000, 60000),
                 'Reposición de vidrios' => $faker->randomFloat(2, 15000, 120000),
                 'Impuestos y tasas' => $faker->randomFloat(2, 8000, 50000),
                 default => $faker->randomFloat(2, 5000, 40000),
             };
 
-            Movimiento::query()->create([
+            Movimiento::create([
                 'fecha' => $fecha,
                 'monto' => $monto,
                 'concepto_id' => $conceptoId,
@@ -204,20 +213,6 @@ class MetricsDemoSeeder extends Seeder
             ]);
         }
 
-        // Ingresos extra para variedad de medios de pago
-        $totalIngresosExtra = 25;
-        for ($i = 0; $i < $totalIngresosExtra; $i++) {
-            $fecha = Carbon::instance($faker->dateTimeBetween($from->toDateString(), $to->toDateString()))->toDateString();
-
-            Movimiento::query()->create([
-                'fecha' => $fecha,
-                'monto' => $faker->randomFloat(2, 10000, 140000),
-                'concepto_id' => $conceptoIngresoIds->random(),
-                'medio_de_pago_id' => $medioPagoIds->random(),
-                'tipo' => Movimiento::TIPO_INGRESO,
-            ]);
-        }
-
-        $this->command?->info('✅ Datos demo de Métricas generados.');
+        $this->command?->info('✅ Datos demo de Métricas generados correctamente.');
     }
 }
