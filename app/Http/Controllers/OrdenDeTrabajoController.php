@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use App\Models\OrdenDeTrabajoHistorialEstado;
+
+
 
 class OrdenDeTrabajoController extends Controller
 {
@@ -243,6 +246,14 @@ class OrdenDeTrabajoController extends Controller
                 'compania_seguro_id' => $validated['compania_seguro_id'] ?? null,
             ]);
 
+            // 👇 Guardar estado inicial en historial
+            OrdenDeTrabajoHistorialEstado::create([
+                'orden_de_trabajo_id' => $orden->id,
+                'estado_id' => $orden->estado_id,
+                'user_id' => auth()->id()
+            ]);
+
+
             // 5) Pagos
             foreach (($validated['pagos'] ?? []) as $pago) {
                 Precio::create([
@@ -429,6 +440,17 @@ class OrdenDeTrabajoController extends Controller
                 'compania_seguro_id' => $validated['compania_seguro_id'] ?? null,
             ]);
 
+            // Si cambió el estado, guardamos en historial
+            if ($estadoAnterior !== (int) $orden->estado_id) {
+
+                OrdenDeTrabajoHistorialEstado::create([
+                    'orden_de_trabajo_id' => $orden->id,
+                    'estado_id' => $orden->estado_id,
+                    'user_id' => auth()->id()
+                ]);
+            }
+
+
             foreach ($orden->detalles as $det) {
                 if (method_exists($det, 'atributos')) {
                     $det->atributos()->delete();
@@ -501,6 +523,8 @@ class OrdenDeTrabajoController extends Controller
             'detalles.atributos.subcategoria',
             'pagos.medioDePago',
             'companiaSeguro',
+            'historialEstados.estado',
+            'historialEstados.user',
         ]);
 
         return Inertia::render('ordenes/show', [
