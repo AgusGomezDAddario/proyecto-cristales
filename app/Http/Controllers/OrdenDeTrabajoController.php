@@ -155,7 +155,10 @@ class OrdenDeTrabajoController extends Controller
             // Pagos
             'pagos' => 'required|array|min:1',
             'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
+            'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
             'pagos.*.monto' => 'required|numeric|min:0',
+            'pagos.*.fecha' => 'required|date|before_or_equal:today',
+            'pagos.*.observacion' => 'nullable|string|max:255',
             'pagos.*.observacion' => 'nullable|string|max:255',
 
             // Identidad cliente/vehiculo
@@ -203,6 +206,17 @@ class OrdenDeTrabajoController extends Controller
         $conFactura = array_key_exists('con_factura', $validated)
             ? (bool) $validated['con_factura']
             : (($validated['tipo_documento'] ?? 'OT') === 'FC');
+        
+        // Validar que si el estado es "Finalizada", el pago esté completo
+        if ((int) $validated['estado_id'] === $this->getEstadoFinalizadaId()) {
+            $pagoCompleto = $this->validarPagoCompleto(null, $validated['detalles'], $validated['pagos']);
+            
+            if (!$pagoCompleto) {
+                return back()
+                    ->withErrors(['estado_id' => 'No se puede finalizar la orden: el pago no está completo.'])
+                    ->withInput();
+            }
+        }
 
         $orden = DB::transaction(function () use ($data, $validated, $conFactura) {
             // 1) Crear titular si corresponde
@@ -260,6 +274,7 @@ class OrdenDeTrabajoController extends Controller
                     'orden_de_trabajo_id' => $orden->id,
                     'medio_de_pago_id' => $pago['medio_de_pago_id'],
                     'valor' => $pago['monto'],
+                    'fecha' => $pago['fecha'],
                     'observacion' => $pago['observacion'] ?? null,
                 ]);
             }
@@ -384,7 +399,10 @@ class OrdenDeTrabajoController extends Controller
             // Pagos
             'pagos' => 'required|array|min:1',
             'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
+            'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
             'pagos.*.monto' => 'required|numeric|min:0',
+            'pagos.*.fecha' => 'required|date|before_or_equal:today',
+            'pagos.*.observacion' => 'nullable|string|max:255',
             'pagos.*.observacion' => 'nullable|string|max:255',
         ]);
 
@@ -398,6 +416,17 @@ class OrdenDeTrabajoController extends Controller
             return back()
                 ->withErrors(['titular_vehiculo' => 'Debe seleccionar o crear un titular y un vehículo antes de guardar la orden.'])
                 ->withInput();
+        }
+
+        // Validar que si el estado es "Finalizada", el pago esté completo
+        if ((int) $validated['estado_id'] === $this->getEstadoFinalizadaId()) {
+            $pagoCompleto = $this->validarPagoCompleto(null, $validated['detalles'], $validated['pagos']);
+            
+            if (!$pagoCompleto) {
+                return back()
+                    ->withErrors(['estado_id' => 'No se puede finalizar la orden: el pago no está completo.'])
+                    ->withInput();
+            }
         }
 
         DB::transaction(function () use ($validated, $data, $orden) {
@@ -497,6 +526,7 @@ class OrdenDeTrabajoController extends Controller
                     'orden_de_trabajo_id' => $orden->id,
                     'medio_de_pago_id' => $p['medio_de_pago_id'],
                     'valor' => $p['monto'],
+                    'fecha' => $p['fecha'],
                     'observacion' => $p['observacion'] ?? null,
                 ]);
             }
@@ -573,5 +603,24 @@ class OrdenDeTrabajoController extends Controller
             'estados' => $estados,
             'mediosDePago' => $mediosDePago,
         ]);
+    }
+
+    private function getEstadoFinalizadaId(): int
+    {
+        // AJUSTAR según tu ID en la tabla estado
+        return Estado::where('nombre', 'Finalizada')->first()->id ?? 999; // o el ID que corresponda a "Finalizada"
+    }
+
+    private function validarPagoCompleto(OrdenDeTrabajo $orden, array $detalles, array $pagos): bool
+    {
+        $totalOrden = collect($detalles)->reduce(function ($acc, $detalle) {
+            return $acc + (floatval($detalle['valor']) * intval($detalle['cantidad']));
+        }, 0);
+
+        $totalPagado = collect($pagos)->reduce(function ($acc, $pago) {
+            return $acc + floatval($pago['monto']);
+        }, 0);
+
+        return $totalPagado >= $totalOrden;
     }
 }
