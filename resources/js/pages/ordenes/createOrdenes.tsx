@@ -8,6 +8,7 @@ import EstadoSection from '@/components/ui/EstadoSection';
 import MedioPagoSection from '@/components/ui/MedioPagoSection';
 import VehiculoSection, { VehiculoSectionRef } from '@/components/ui/VehiculoSection';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PagosSection from '@/components/ui/PagosSection';
 
 type TipoDocumento = 'OT' | 'FC';
 
@@ -29,7 +30,13 @@ type FormData = {
 
     // Orden
     estado_id: number | null;
-    pagos: any[];
+    pagos: Array<{
+        medio_de_pago_id: number | string;
+        monto: number | string;
+        fecha: string;
+        pagado: boolean; // ← NUEVO
+        observacion: string;
+    }>;
     observacion: string;
     fecha: string;
 
@@ -423,14 +430,14 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                         />
 
                         {/* Medio de Pago */}
-                        <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
-                            <MedioPagoSection
+                        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                            <PagosSection
+                                pagos={data.pagos}
+                                setPagos={(pagos) => setData((prev: FormData) => ({ ...prev, pagos }))}
                                 mediosDePago={mediosDePago}
-                                formData={data}
-                                setFormData={(nd: any) => mergeForm(nd)}
-                                errors={errors as Record<string, string>}
                                 totalOrden={totalOrden}
-                                companiaSeguroId={data.compania_seguro_id}
+                                errors={errors as Record<string, string>}
+                                fechaOrden={data.fecha}
                             />
                         </div>
 
