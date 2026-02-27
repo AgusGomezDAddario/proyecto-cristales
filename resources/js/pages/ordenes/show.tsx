@@ -206,23 +206,28 @@ export default function Show({
                   <DollarSign className="w-5 h-5 text-gray-500" />
                   <h2 className="font-bold text-gray-900">Estado de Pago</h2>
                 </div>
-                {/* Badge de estado */}
-                {saldoPendiente === 0 ? (
-                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-100 text-green-700 border border-green-200">
-                    <CheckCircle className="w-4 h-4" />
-                    <span className="text-sm font-semibold">Pagado totalmente</span>
-                  </span>
-                ) : saldoPendiente > 0 ? (
-                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-700 border border-yellow-200">
-                    <AlertCircle className="w-4 h-4" />
-                    <span className="text-sm font-semibold">Pago parcial</span>
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-100 text-red-700 border border-red-200">
-                    <AlertCircle className="w-4 h-4" />
-                    <span className="text-sm font-semibold">Sin pagos</span>
-                  </span>
-                )}
+              {/* Badge de estado */}
+              {saldoPendiente === 0 ? (
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-100 text-green-700 border border-green-200">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="text-sm font-semibold">Pagado totalmente</span>
+                </span>
+              ) : saldoPendiente > 0 ? (
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-700 border border-yellow-200">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm font-semibold">Pago parcial</span>
+                </span>
+              ) : saldoPendiente < 0 ? (
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm font-semibold">Sobrepago</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-100 text-red-700 border border-red-200">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm font-semibold">Sin pagos</span>
+                </span>
+              )}
               </div>
               
               <div className="p-6">

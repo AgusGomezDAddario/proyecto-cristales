@@ -557,6 +557,8 @@ class OrdenDeTrabajoController extends Controller
             'detalles.atributos.subcategoria',
             'pagos.medioDePago',
             'companiaSeguro',
+            'historialEstados.estado',
+            'historialEstados.user',
         ]);
 
         // Calcular totales
