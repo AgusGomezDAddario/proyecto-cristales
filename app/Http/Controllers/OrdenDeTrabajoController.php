@@ -158,6 +158,7 @@ class OrdenDeTrabajoController extends Controller
             'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
             'pagos.*.monto' => 'required|numeric|min:0',
             'pagos.*.fecha' => 'required|date|before_or_equal:today',
+            'pagos.*.pagado' => 'required|boolean',
             'pagos.*.observacion' => 'nullable|string|max:255',
             'pagos.*.observacion' => 'nullable|string|max:255',
 
@@ -275,6 +276,7 @@ class OrdenDeTrabajoController extends Controller
                     'medio_de_pago_id' => $pago['medio_de_pago_id'],
                     'valor' => $pago['monto'],
                     'fecha' => $pago['fecha'],
+                    'pagado' => $pago['pagado'] ?? false, // ← AGREGAR ESTA LÍNEA
                     'observacion' => $pago['observacion'] ?? null,
                 ]);
             }
@@ -402,6 +404,7 @@ class OrdenDeTrabajoController extends Controller
             'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
             'pagos.*.monto' => 'required|numeric|min:0',
             'pagos.*.fecha' => 'required|date|before_or_equal:today',
+            'pagos.*.pagado' => 'required|boolean',
             'pagos.*.observacion' => 'nullable|string|max:255',
             'pagos.*.observacion' => 'nullable|string|max:255',
         ]);
@@ -527,6 +530,7 @@ class OrdenDeTrabajoController extends Controller
                     'medio_de_pago_id' => $p['medio_de_pago_id'],
                     'valor' => $p['monto'],
                     'fecha' => $p['fecha'],
+                    'pagado' => $p['pagado'] ?? false,
                     'observacion' => $p['observacion'] ?? null,
                 ]);
             }
@@ -553,12 +557,29 @@ class OrdenDeTrabajoController extends Controller
             'detalles.atributos.subcategoria',
             'pagos.medioDePago',
             'companiaSeguro',
-            'historialEstados.estado',
-            'historialEstados.user',
         ]);
+
+        // Calcular totales
+        $totalOrden = $orden->detalles->reduce(function ($acc, $detalle) {
+            return $acc + ($detalle->valor * $detalle->cantidad);
+        }, 0);
+
+        // Total COBRADO (solo pagos con pagado = true)
+        $totalPagado = $orden->pagos->where('pagado', true)->reduce(function ($acc, $pago) {
+            return $acc + $pago->valor;
+        }, 0);
+
+        // Total REGISTRADO (todos los pagos)
+        $totalRegistrado = $orden->pagos->reduce(function ($acc, $pago) {
+            return $acc + $pago->valor;
+        }, 0);
 
         return Inertia::render('ordenes/show', [
             'orden' => $orden,
+            'totalOrden' => (float) $totalOrden,
+            'totalPagado' => (float) $totalPagado,
+            'totalRegistrado' => (float) $totalRegistrado,
+            'saldoPendiente' => (float) ($totalOrden - $totalPagado),
         ]);
     }
 
@@ -611,16 +632,20 @@ class OrdenDeTrabajoController extends Controller
         return Estado::where('nombre', 'Finalizada')->first()->id ?? 999; // o el ID que corresponda a "Finalizada"
     }
 
-    private function validarPagoCompleto(OrdenDeTrabajo $orden, array $detalles, array $pagos): bool
+    private function validarPagoCompleto($detalles, $pagos): bool
     {
         $totalOrden = collect($detalles)->reduce(function ($acc, $detalle) {
             return $acc + (floatval($detalle['valor']) * intval($detalle['cantidad']));
         }, 0);
 
-        $totalPagado = collect($pagos)->reduce(function ($acc, $pago) {
-            return $acc + floatval($pago['monto']);
+        // Solo contar pagos con pagado = true
+        $totalCobrado = collect($pagos)->reduce(function ($acc, $pago) {
+            if (isset($pago['pagado']) && $pago['pagado'] === true) {
+                return $acc + floatval($pago['monto']);
+            }
+            return $acc;
         }, 0);
 
-        return $totalPagado >= $totalOrden;
+        return $totalCobrado >= $totalOrden;
     }
 }

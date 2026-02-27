@@ -24,6 +24,7 @@ type Pago = {
   valor: number;
   observacion: string | null;
   fecha: string,
+  pagado: boolean,
   medio_de_pago: { nombre: string };
 };
 
@@ -57,14 +58,16 @@ type HistorialEstado = {
 
 export default function Show({ 
     orden, 
-    totalOrden, 
-    totalPagado, 
-    saldoPendiente 
+    totalOrden = 0,
+    totalPagado = 0,
+    totalRegistrado = 0,
+    saldoPendiente = 0
 }: { 
     orden: Orden;
-    totalOrden: number;
-    totalPagado: number;
-    saldoPendiente: number;
+    totalOrden?: number;
+    totalPagado?: number;
+    totalRegistrado?: number;
+    saldoPendiente?: number;
 }) {
 
   const companiaNombre =
@@ -196,7 +199,7 @@ export default function Show({
               </div>
             </div>
 
-            {/* Estado de Pago Visual - NUEVO */}
+            {/* Estado de Pago Visual */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -224,14 +227,18 @@ export default function Show({
               
               <div className="p-6">
                 {/* Resumen visual */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                   <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
                     <p className="text-sm text-slate-600 mb-1">Total de la orden</p>
                     <p className="text-2xl font-bold text-slate-900">${totalOrden.toLocaleString("es-AR")}</p>
                   </div>
                   <div className="bg-green-50 rounded-xl p-4 border border-green-200">
-                    <p className="text-sm text-green-700 mb-1">Total pagado</p>
+                    <p className="text-sm text-green-700 mb-1">Total cobrado</p>
                     <p className="text-2xl font-bold text-green-600">${totalPagado.toLocaleString("es-AR")}</p>
+                  </div>
+                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                    <p className="text-sm text-blue-700 mb-1">Registrado sin cobrar</p>
+                    <p className="text-2xl font-bold text-blue-600">${(totalRegistrado - totalPagado).toLocaleString("es-AR")}</p>
                   </div>
                   <div className={`rounded-xl p-4 border ${saldoPendiente > 0 ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
                     <p className={`text-sm mb-1 ${saldoPendiente > 0 ? 'text-red-700' : 'text-green-700'}`}>Saldo pendiente</p>
@@ -244,7 +251,7 @@ export default function Show({
                 {/* Barra de progreso */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-slate-600 font-medium">Progreso de pago</span>
+                    <span className="text-slate-600 font-medium">Progreso de cobro</span>
                     <span className="font-bold text-slate-900">
                       {totalOrden > 0 ? Math.min((totalPagado / totalOrden) * 100, 100).toFixed(0) : 0}%
                     </span>
@@ -265,14 +272,38 @@ export default function Show({
                   {orden.pagos.length > 0 ? (
                     <div className="space-y-3">
                       {orden.pagos.map((pago) => (
-                        <div key={pago.id} className="flex items-start justify-between p-4 rounded-xl bg-gray-50 border border-gray-100 hover:border-gray-200 transition">
+                        <div 
+                          key={pago.id} 
+                          className={`flex items-start justify-between p-4 rounded-xl border transition ${
+                            pago.pagado 
+                              ? 'bg-green-50/50 border-green-200' 
+                              : 'bg-gray-50 border-gray-100 hover:border-gray-200'
+                          }`}
+                        >
                           <div className="flex gap-4 flex-1">
+                            {/* Estado de cobro */}
+                            <div className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg border shadow-sm min-w-[90px] ${
+                              pago.pagado ? 'bg-green-100 border-green-300' : 'bg-slate-100 border-slate-300'
+                            }`}>
+                              {pago.pagado ? (
+                                <>
+                                  <CheckCircle className="w-5 h-5 text-green-600 mb-1" />
+                                  <span className="text-xs font-bold text-green-700">COBRADO</span>
+                                </>
+                              ) : (
+                                <>
+                                  <AlertCircle className="w-5 h-5 text-slate-500 mb-1" />
+                                  <span className="text-xs font-bold text-slate-600">SIN COBRAR</span>
+                                </>
+                              )}
+                            </div>
+
                             {/* Fecha */}
                             <div className="flex flex-col items-center justify-center px-3 py-2 bg-white rounded-lg border border-gray-200 shadow-sm min-w-[80px]">
                               <Calendar className="w-4 h-4 text-slate-400 mb-1" />
                               <span className="text-xs font-medium text-slate-600">
                                 {new Date(pago.fecha).toLocaleDateString("es-AR", { 
-                                  day: '2-digit',
+                                  day: '2-digit', 
                                   month: '2-digit',
                                   year: 'numeric'
                                 })}
@@ -282,7 +313,7 @@ export default function Show({
                             {/* Detalles del pago */}
                             <div className="flex gap-3 flex-1">
                               <div className="p-2 bg-white rounded-lg border border-gray-200 shadow-sm">
-                                <CreditCard className="w-5 h-5 text-green-600" />
+                                <CreditCard className="w-5 h-5 text-blue-600" />
                               </div>
                               <div className="flex-1">
                                 <p className="font-semibold text-gray-900">{pago.medio_de_pago.nombre}</p>
@@ -316,7 +347,20 @@ export default function Show({
                       <p className="text-sm font-medium text-amber-900">Pago incompleto</p>
                       <p className="text-sm text-amber-700 mt-1">
                         Esta orden tiene un saldo pendiente de ${saldoPendiente.toLocaleString("es-AR")}. 
-                        No podrá ser finalizada hasta completar el pago total.
+                        No podrá ser finalizada hasta completar el cobro total.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Info sobre pagos registrados sin cobrar */}
+                {(totalRegistrado - totalPagado) > 0 && (
+                  <div className="mt-4 flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                    <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-blue-900">Pagos registrados pendientes de cobro</p>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Hay ${(totalRegistrado - totalPagado).toLocaleString("es-AR")} en pagos registrados pero aún no cobrados.
                       </p>
                     </div>
                   </div>

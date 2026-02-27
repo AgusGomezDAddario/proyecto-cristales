@@ -16,12 +16,14 @@ class Precio extends Model
         'medio_de_pago_id',
         'valor',
         'fecha',
+        'pagado', // NUEVO
         'observacion'
     ];
 
     protected $casts = [
         'fecha' => 'date',
         'valor' => 'decimal:2',
+        'pagado' => 'boolean', // NUEVO
     ];
 
     public function medioDePago()

@@ -6,6 +6,7 @@ type Pago = {
     monto: number | string;
     fecha: string;
     observacion: string;
+    pagado: boolean; // NUEVO: indica si ya se cobró
 };
 
 type Props = {
@@ -14,13 +15,16 @@ type Props = {
     mediosDePago: Array<{ id: number; nombre: string }>;
     totalOrden: number;
     errors?: Record<string, string>;
-    fechaOrden: string; // Para validar que pagos no sean anteriores a la orden
+    fechaOrden: string;
 };
 
 export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden, errors = {}, fechaOrden }: Props) {
-    const [showAgregarPago, setShowAgregarPago] = useState(false);
-
-    const totalPagado = pagos.reduce((acc, p) => acc + Number(p.monto || 0), 0);
+    // Calcular totales SOLO de pagos marcados como "pagado"
+    const totalPagado = pagos
+        .filter(p => p.pagado === true) // Solo los que ya se cobraron
+        .reduce((acc, p) => acc + Number(p.monto || 0), 0);
+    
+    const totalRegistrado = pagos.reduce((acc, p) => acc + Number(p.monto || 0), 0);
     const saldoPendiente = totalOrden - totalPagado;
     const porcentajePagado = totalOrden > 0 ? (totalPagado / totalOrden) * 100 : 0;
 
@@ -29,11 +33,11 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
         monto: '',
         fecha: new Date().toISOString().split('T')[0],
         observacion: '',
+        pagado: false, // Por defecto NO está pagado
     };
 
     const agregarPago = () => {
         setPagos([...pagos, { ...nuevoPago }]);
-        setShowAgregarPago(false);
     };
 
     const eliminarPago = (index: number) => {
@@ -66,7 +70,7 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-gray-900">Pagos y Facturación</h3>
-                        <p className="text-sm text-gray-500">Registrá los pagos recibidos para esta orden</p>
+                        <p className="text-sm text-gray-500">Registrá los pagos y marcá cuando se cobren</p>
                     </div>
                 </div>
 
@@ -89,14 +93,18 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
 
             {/* Resumen visual del pago */}
             <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 border border-slate-200">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-4">
                     <div>
                         <p className="text-sm text-slate-600 mb-1">Total de la orden</p>
                         <p className="text-2xl font-bold text-slate-900">${totalOrden.toLocaleString('es-AR')}</p>
                     </div>
                     <div>
-                        <p className="text-sm text-slate-600 mb-1">Total pagado</p>
+                        <p className="text-sm text-slate-600 mb-1">Total cobrado</p>
                         <p className="text-2xl font-bold text-green-600">${totalPagado.toLocaleString('es-AR')}</p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-slate-600 mb-1">Registrado (sin cobrar)</p>
+                        <p className="text-2xl font-bold text-blue-600">${(totalRegistrado - totalPagado).toLocaleString('es-AR')}</p>
                     </div>
                     <div>
                         <p className="text-sm text-slate-600 mb-1">Saldo pendiente</p>
@@ -109,7 +117,7 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
                 {/* Barra de progreso */}
                 <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-600">Progreso de pago</span>
+                        <span className="text-slate-600">Progreso de cobro</span>
                         <span className="font-semibold text-slate-900">{Math.min(porcentajePagado, 100).toFixed(0)}%</span>
                     </div>
                     <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
@@ -135,18 +143,36 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
                     pagos.map((pago, index) => (
                         <div
                             key={index}
-                            className="bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow"
+                            className={`bg-white rounded-xl border-2 p-4 transition-all ${
+                                pago.pagado 
+                                    ? 'border-green-200 bg-green-50/30' 
+                                    : 'border-slate-200 hover:shadow-md'
+                            }`}
                         >
                             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+                                {/* Checkbox Pagado */}
+                                <div className="md:col-span-1 flex items-center justify-center pt-7">
+                                    <label className="flex flex-col items-center gap-1 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={pago.pagado}
+                                            onChange={(e) => actualizarPago(index, 'pagado', e.target.checked)}
+                                            className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                        />
+                                        <span className="text-xs text-slate-600 font-medium">
+                                            {pago.pagado ? '✓ Cobrado' : 'Sin cobrar'}
+                                        </span>
+                                    </label>
+                                </div>
+
                                 {/* Fecha */}
-                                <div className="md:col-span-3">
+                                <div className="md:col-span-2">
                                     <label className="block text-xs font-medium text-slate-600 mb-1.5">Fecha del pago *</label>
                                     <div className="relative">
-                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
                                         <input
                                             type="date"
                                             value={pago.fecha}
-                                            min={fechaOrden}
                                             max={new Date().toISOString().split('T')[0]}
                                             onChange={(e) => actualizarPago(index, 'fecha', e.target.value)}
                                             className={`w-full pl-10 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition ${
@@ -217,11 +243,11 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
                                 </div>
 
                                 {/* Botón eliminar */}
-                                <div className="md:col-span-1 flex items-end">
+                                <div className="md:col-span-1 flex items-end justify-center">
                                     <button
                                         type="button"
                                         onClick={() => eliminarPago(index)}
-                                        className="w-full md:w-auto p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                                         title="Eliminar pago"
                                     >
                                         <Trash2 className="h-5 w-5" />
@@ -250,8 +276,22 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
                     <div className="flex-1">
                         <p className="text-sm font-medium text-amber-900">Pago incompleto</p>
                         <p className="text-sm text-amber-700 mt-1">
-                            Falta registrar ${saldoPendiente.toLocaleString('es-AR')} para completar el pago total de la orden.
-                            <span className="font-semibold"> No podrás finalizar la orden</span> hasta que esté completamente pagada.
+                            Falta cobrar ${saldoPendiente.toLocaleString('es-AR')} del total de la orden.
+                            <span className="font-semibold"> No podrás finalizar la orden</span> hasta que esté completamente cobrada.
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {/* Info sobre pagos registrados sin cobrar */}
+            {totalRegistrado > totalPagado && (
+                <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                    <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                        <p className="text-sm font-medium text-blue-900">Pagos registrados pendientes</p>
+                        <p className="text-sm text-blue-700 mt-1">
+                            Hay ${(totalRegistrado - totalPagado).toLocaleString('es-AR')} en pagos registrados pero aún no cobrados.
+                            Marcá el checkbox cuando se efectivice el cobro.
                         </p>
                     </div>
                 </div>

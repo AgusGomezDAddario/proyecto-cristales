@@ -31,6 +31,7 @@ type OrdenPagoServer = {
   medio_de_pago_id: number;
   valor: number | string;
   fecha: string;
+  pagado: boolean;
   observacion: string | null;
 };
 
@@ -82,6 +83,7 @@ type FormData = {
       medio_de_pago_id: number | string;
       monto: number | string;
       fecha: string;
+      pagado: boolean; // ← NUEVO
       observacion: string;
   }>;
 };
@@ -155,6 +157,7 @@ export default function Edit({
         medio_de_pago_id: p.medio_de_pago_id,
         monto: p.valor ?? 0,
         fecha: p.fecha ? String(p.fecha).substring(0, 10) : new Date().toISOString().split('T')[0],
+        pagado: p.pagado ?? false, // ← AGREGAR ESTA LÍNEA
         observacion: p.observacion ?? "",
     })),
   };

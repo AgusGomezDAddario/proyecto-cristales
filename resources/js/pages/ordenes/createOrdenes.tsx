@@ -34,6 +34,7 @@ type FormData = {
         medio_de_pago_id: number | string;
         monto: number | string;
         fecha: string;
+        pagado: boolean; // ← NUEVO
         observacion: string;
     }>;
     observacion: string;
