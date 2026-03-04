@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Calendar, CreditCard, DollarSign, AlertCircle, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, Calendar, CreditCard, DollarSign, AlertCircle, CheckCircle, Zap } from 'lucide-react';
 
 type Pago = {
     medio_de_pago_id: number | string;
@@ -196,10 +196,11 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
                                         <div className="md:col-span-2">
                                             <label className="block text-xs font-medium text-slate-600 mb-1.5">Fecha del cobro *</label>
                                             <div className="relative">
-                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none z-10" />
                                                 <input
                                                     type="date"
                                                     value={pago.fecha}
+                                                    min={fechaOrden}
                                                     max={new Date().toISOString().split('T')[0]}
                                                     onChange={(e) => actualizarPago(index, 'fecha', e.target.value)}
                                                     className={`w-full pl-10 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition ${
@@ -235,33 +236,37 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
                                         )}
                                     </div>
 
-                                    {/* Monto con botón Total/Restante */}
+                                    {/* Monto con botón Total/Restante MEJORADO */}
                                     <div className="md:col-span-2">
-                                        <label className="block text-xs font-medium text-slate-600 mb-1.5">
-                                            Monto *
+                                        <label className="block text-xs font-medium text-slate-600 mb-1.5">Monto *</label>
+                                        <div className="space-y-2">
+                                            {/* Input de monto */}
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-medium">$</span>
+                                                <input
+                                                    type="number"
+                                                    value={pago.monto}
+                                                    onChange={(e) => actualizarPago(index, 'monto', e.target.value)}
+                                                    placeholder="0"
+                                                    min="0"
+                                                    step="0.01"
+                                                    className={`w-full pl-7 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition ${
+                                                        errors[`pagos.${index}.monto`] ? 'border-red-300' : 'border-slate-200'
+                                                    }`}
+                                                />
+                                            </div>
+                                            
+                                            {/* Botón Total/Restante NUEVO DISEÑO */}
                                             {mostrarBoton && (
                                                 <button
                                                     type="button"
                                                     onClick={() => completarMonto(index)}
-                                                    className="ml-2 text-blue-600 hover:text-blue-700 font-semibold text-xs underline"
+                                                    className="w-full flex items-center justify-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow transition-all"
                                                 >
-                                                    ({textoBoton}: ${restante.toLocaleString('es-AR')})
+                                                    <Zap className="h-3.5 w-3.5" />
+                                                    {textoBoton}: ${restante.toLocaleString('es-AR')}
                                                 </button>
                                             )}
-                                        </label>
-                                        <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-medium">$</span>
-                                            <input
-                                                type="number"
-                                                value={pago.monto}
-                                                onChange={(e) => actualizarPago(index, 'monto', e.target.value)}
-                                                placeholder="0"
-                                                min="0"
-                                                step="0.01"
-                                                className={`w-full pl-7 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition ${
-                                                    errors[`pagos.${index}.monto`] ? 'border-red-300' : 'border-slate-200'
-                                                }`}
-                                            />
                                         </div>
                                         {errors[`pagos.${index}.monto`] && (
                                             <p className="text-xs text-red-500 mt-1">{errors[`pagos.${index}.monto`]}</p>
