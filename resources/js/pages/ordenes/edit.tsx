@@ -9,6 +9,7 @@ import VehiculoSection, { VehiculoSectionRef } from "@/components/ui/VehiculoSec
 import DetallesSection, { Detalle as DetalleUI, ArticuloDTO } from "@/components/ui/DetallesSection";
 import MedioPagoSection from "@/components/ui/MedioPagoSection";
 import EstadoSection from "@/components/ui/EstadoSection";
+import PagosSection from '@/components/ui/PagosSection';
 
 type Estado = { id: number; nombre: string };
 type MedioDePago = { id: number; nombre: string };
@@ -29,6 +30,8 @@ type OrdenDetalleServer = {
 type OrdenPagoServer = {
   medio_de_pago_id: number;
   valor: number | string;
+  fecha: string;
+  pagado: boolean;
   observacion: string | null;
 };
 
@@ -77,9 +80,11 @@ type FormData = {
   // detalles / pagos
   detalles: DetalleUI[];
   pagos: Array<{
-    medio_de_pago_id: number | string;
-    monto: number | string;
-    observacion: string;
+      medio_de_pago_id: number | string;
+      monto: number | string;
+      fecha: string;
+      pagado: boolean; // ← NUEVO
+      observacion: string;
   }>;
 };
 
@@ -149,9 +154,11 @@ export default function Edit({
 
 
     pagos: (orden.pagos || []).map((p) => ({
-      medio_de_pago_id: p.medio_de_pago_id,
-      monto: p.valor ?? 0,
-      observacion: p.observacion ?? "",
+        medio_de_pago_id: p.medio_de_pago_id,
+        monto: p.valor ?? 0,
+        fecha: p.fecha ? String(p.fecha).substring(0, 10) : new Date().toISOString().split('T')[0],
+        pagado: p.pagado ?? false, // ← AGREGAR ESTA LÍNEA
+        observacion: p.observacion ?? "",
     })),
   };
 
@@ -393,14 +400,15 @@ export default function Edit({
 
           {/* Pagos (igual que create) */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
-              <MedioPagoSection
-                mediosDePago={mediosDePago}
-                formData={data as any}
-                setFormData={(nd: any) => mergeForm(nd)}
-                errors={errors as Record<string, string>}
-                totalOrden={totalOrden}
-              />
+            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <PagosSection
+                    pagos={data.pagos}
+                    setPagos={(pagos) => setData((prev: FormData) => ({ ...prev, pagos }))}
+                    mediosDePago={mediosDePago}
+                    totalOrden={totalOrden}
+                    errors={errors as Record<string, string>}
+                    fechaOrden={data.fecha}
+                />
             </div>
 
             <div className="mt-4 flex justify-end">
