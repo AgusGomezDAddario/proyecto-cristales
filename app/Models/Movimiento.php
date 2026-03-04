@@ -23,7 +23,6 @@ class Movimiento extends Model
         'monto',
         'concepto_id',
         'medio_de_pago_id',
-        'comprobante',
         'tipo',
     ];
 
