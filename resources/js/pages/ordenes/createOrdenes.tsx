@@ -9,6 +9,7 @@ import MedioPagoSection from '@/components/ui/MedioPagoSection';
 import VehiculoSection, { VehiculoSectionRef } from '@/components/ui/VehiculoSection';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import PagosSection from '@/components/ui/PagosSection';
+import DatePicker from '@/components/ui/DataPicker';
 
 type TipoDocumento = 'OT' | 'FC';
 
@@ -358,25 +359,23 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>
                                 <label className="mb-2 block text-sm font-semibold text-gray-800">Fecha *</label>
-                                <input
-                                    type="date"
+                                <DatePicker
                                     value={data.fecha}
-                                    onChange={(e) => setField('fecha', e.target.value)}
-                                    className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 ... ${allErrors.fecha ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                        }`}
+                                    onChange={(date: string) => setField('fecha', date)}
+                                    error={!!allErrors.fecha}
+                                    placeholder="Seleccionar fecha"
                                 />
                                 {allErrors.fecha && <p className="mt-2 text-sm text-red-600">{allErrors.fecha}</p>}
                             </div>
 
                             <div>
                                 <label className="mb-2 block text-sm font-semibold text-gray-800">Fecha de entrega estimada *</label>
-                                <input
-                                    type="date"
+                                <DatePicker
                                     value={data.fecha_entrega_estimada}
-                                    min={data.fecha || undefined}
-                                    onChange={(e) => setField('fecha_entrega_estimada', e.target.value)}
-                                    className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 ... ${allErrors.fecha_entrega_estimada ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                        }`}
+                                    onChange={(date: string) => setField('fecha_entrega_estimada', date)}
+                                    minDate={data.fecha || undefined}
+                                    error={!!allErrors.fecha_entrega_estimada}
+                                    placeholder="Seleccionar fecha de entrega"
                                 />
                                 {allErrors.fecha_entrega_estimada && (
                                     <p className="mt-2 text-sm text-red-600">{allErrors.fecha_entrega_estimada}</p>
