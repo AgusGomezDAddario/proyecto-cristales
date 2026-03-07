@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use App\Models\OrdenDeTrabajoHistorialEstado;
+
+
 
 class OrdenDeTrabajoController extends Controller
 {
@@ -49,18 +52,18 @@ class OrdenDeTrabajoController extends Controller
             })
             ->when(
                 $request->filled('estado_id'),
-                fn ($q) => $q->where('estado_id', $request->estado_id)
+                fn($q) => $q->where('estado_id', $request->estado_id)
             )
             ->when($request->filled('con_factura'), function ($q) use ($request) {
                 $q->where('con_factura', (int) $request->con_factura);
             })
             ->when(
                 $request->filled('date_from'),
-                fn ($q) => $q->whereDate('fecha', '>=', $request->date_from)
+                fn($q) => $q->whereDate('fecha', '>=', $request->date_from)
             )
             ->when(
                 $request->filled('date_to'),
-                fn ($q) => $q->whereDate('fecha', '<=', $request->date_to)
+                fn($q) => $q->whereDate('fecha', '<=', $request->date_to)
             )
             ->orderByDesc('fecha')
             ->paginate($perPage)
@@ -160,6 +163,29 @@ class OrdenDeTrabajoController extends Controller
             'vehiculo_id' => 'nullable|integer|exists:vehiculo,id',
             'nuevo_titular' => 'nullable|array',
             'nuevo_vehiculo' => 'nullable|array',
+        ], [
+            // Mensajes personalizados más claros
+            'estado_id.required' => 'Seleccioná un estado para la orden.',
+            'fecha.required' => 'La fecha de la orden es obligatoria.',
+            'fecha_entrega_estimada.required' => 'Ingresá una fecha de entrega estimada.',
+            'fecha_entrega_estimada.after_or_equal' => 'La fecha de entrega no puede ser anterior a la fecha de la orden.',
+            'es_garantia.required' => 'Indicá si es una garantía.',
+
+            'detalles.required' => 'Agregá al menos un artículo a la orden.',
+            'detalles.min' => 'Agregá al menos un artículo a la orden.',
+            'detalles.*.articulo_id.required' => 'Hay artículos sin seleccionar.',
+            'detalles.*.articulo_id.exists' => 'Uno de los artículos seleccionados no existe.',
+            'detalles.*.valor.required' => 'Hay artículos sin precio. Ingresá el valor de cada uno.',
+            'detalles.*.valor.min' => 'El precio de los artículos no puede ser negativo.',
+            'detalles.*.cantidad.required' => 'Hay artículos sin cantidad especificada.',
+            'detalles.*.cantidad.min' => 'La cantidad de cada artículo debe ser al menos 1.',
+
+            'pagos.required' => 'Agregá al menos un medio de pago.',
+            'pagos.min' => 'Agregá al menos un medio de pago.',
+            'pagos.*.medio_de_pago_id.required' => 'Seleccioná un medio de pago.',
+            'pagos.*.medio_de_pago_id.exists' => 'El medio de pago seleccionado no existe.',
+            'pagos.*.monto.required' => 'Ingresá el monto del pago.',
+            'pagos.*.monto.min' => 'El monto no puede ser negativo.',
         ]);
 
         $data = $request->all();
@@ -219,6 +245,14 @@ class OrdenDeTrabajoController extends Controller
                 'observacion' => $validated['observacion'] ?? null,
                 'compania_seguro_id' => $validated['compania_seguro_id'] ?? null,
             ]);
+
+            // 👇 Guardar estado inicial en historial
+            OrdenDeTrabajoHistorialEstado::create([
+                'orden_de_trabajo_id' => $orden->id,
+                'estado_id' => $orden->estado_id,
+                'user_id' => auth()->id()
+            ]);
+
 
             // 5) Pagos
             foreach (($validated['pagos'] ?? []) as $pago) {
@@ -406,6 +440,17 @@ class OrdenDeTrabajoController extends Controller
                 'compania_seguro_id' => $validated['compania_seguro_id'] ?? null,
             ]);
 
+            // Si cambió el estado, guardamos en historial
+            if ($estadoAnterior !== (int) $orden->estado_id) {
+
+                OrdenDeTrabajoHistorialEstado::create([
+                    'orden_de_trabajo_id' => $orden->id,
+                    'estado_id' => $orden->estado_id,
+                    'user_id' => auth()->id()
+                ]);
+            }
+
+
             foreach ($orden->detalles as $det) {
                 if (method_exists($det, 'atributos')) {
                     $det->atributos()->delete();
@@ -478,6 +523,8 @@ class OrdenDeTrabajoController extends Controller
             'detalles.atributos.subcategoria',
             'pagos.medioDePago',
             'companiaSeguro',
+            'historialEstados.estado',
+            'historialEstados.user',
         ]);
 
         return Inertia::render('ordenes/show', [

@@ -20,23 +20,23 @@ class DatosInicialesSeeder extends Seeder
         // ---- Tabla users ----
         DB::table('users')->insert([
             [
-                'name'       => 'Admin',
-                'password'   => Hash::make('admin123'), // contraseña encriptada
-                'role_id'    => 1, // Administrador
+                'name' => 'Admin',
+                'password' => Hash::make('admin123'), // contraseña encriptada
+                'role_id' => 1, // Administrador
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'name'       => 'Cajero',
-                'password'   => Hash::make('editor123'),
-                'role_id'    => 2, // Cajero
+                'name' => 'Cajero',
+                'password' => Hash::make('editor123'),
+                'role_id' => 2, // Cajero
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'name'       => 'Taller',
-                'password'   => Hash::make('user123'),
-                'role_id'    => 3, // Taller
+                'name' => 'Taller',
+                'password' => Hash::make('user123'),
+                'role_id' => 3, // Taller
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -49,6 +49,7 @@ class DatosInicialesSeeder extends Seeder
             ['nombre' => 'Débito'],
             ['nombre' => 'Transferencia'],
             ['nombre' => 'Cheque'],
+            ['nombre' => 'Voucher de Compañía de Seguros'],
         ]);
 
         // ---- Tabla estado ----

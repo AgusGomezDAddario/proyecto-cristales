@@ -54,4 +54,11 @@ class OrdenDeTrabajo extends Model
         return $this->hasMany(\App\Models\Precio::class, 'orden_de_trabajo_id');
     }
 
+    public function historialEstados()
+    {
+        return $this->hasMany(OrdenDeTrabajoHistorialEstado::class, 'orden_de_trabajo_id')
+                    ->orderBy('created_at', 'asc');
+    }
+
+
 }
