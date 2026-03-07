@@ -2,6 +2,7 @@ import React from "react";
 import { Link, Head } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { User, Phone, Mail, Car, Calendar, FileText, DollarSign, CreditCard, ArrowLeft, Printer } from "lucide-react";
+import PrintableODT from "@/components/print/PrintableODT";
 
 type Atributo = {
   id: number;
@@ -41,7 +42,16 @@ type Orden = {
   };
   pagos: Pago[];
   detalles: Detalle[];
+  historial_estados?: HistorialEstado[];
 };
+
+type HistorialEstado = {
+  id: number;
+  created_at: string;
+  estado: { id: number; nombre: string };
+  user?: { id: number; name: string } | null;
+};
+
 
 
 export default function Show({ orden }: { orden: Orden }) {
@@ -58,7 +68,7 @@ export default function Show({ orden }: { orden: Orden }) {
     <DashboardLayout>
       <Head title={`Orden #${orden.id}`} />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 print:hidden">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
@@ -240,6 +250,48 @@ export default function Show({ orden }: { orden: Orden }) {
               </div>
             )}
 
+            {/* Historial de Estados */}
+            {orden.historial_estados && orden.historial_estados.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-gray-500" />
+                  <h2 className="font-bold text-gray-900">Historial de Estados</h2>
+                </div>
+
+                <div className="p-6">
+                  <div className="space-y-6">
+                    {orden.historial_estados.map((h, index) => (
+                      <div key={h.id} className="relative pl-6">
+                        
+                        {/* Línea vertical */}
+                        {index !== orden.historial_estados!.length - 1 && (
+                          <div className="absolute left-2 top-4 bottom-0 w-px bg-gray-200"></div>
+                        )}
+
+                        {/* Punto */}
+                        <div className="absolute left-0 top-1.5 w-4 h-4 bg-green-500 rounded-full border-4 border-white shadow"></div>
+
+                        <div className="ml-4">
+                          <div className="font-semibold text-gray-900">
+                            {h.estado?.nombre}
+                          </div>
+
+                          <div className="text-sm text-gray-500">
+                            {new Date(h.created_at).toLocaleString("es-AR")}
+                          </div>
+
+                          <div className="text-xs text-gray-400 mt-1">
+                            {h.user?.name ?? "Sistema"}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+
           </div>
 
           {/* Columna Lateral (Derecha) */}
@@ -320,6 +372,10 @@ export default function Show({ orden }: { orden: Orden }) {
           </div>
         </div>
       </div>
+
+      {/* Componente de impresión profesional - Oculto en pantalla, visible al imprimir */}
+      <PrintableODT orden={orden as any} />
     </DashboardLayout>
   );
 }
+

@@ -1,5 +1,5 @@
 import { Head, Link, useForm, router } from '@inertiajs/react';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
 import ClienteSection, { ClienteSectionRef } from '@/components/ui/ClienteSection';
@@ -107,6 +107,12 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
     const clienteRef = useRef<ClienteSectionRef>(null);
     const vehiculoRef = useRef<VehiculoSectionRef>(null);
 
+    // Estado local para errores de formulario (resaltado visual inline)
+    const [localErrors, setLocalErrors] = useState<Record<string, string>>({});
+
+    // Combinar errores del backend con errores locales
+    const allErrors = { ...uiErrors, ...localErrors };
+
     // Merge setter (evita pisadas por closure con "data")
     const mergeForm = (patch: Partial<FormData>) => {
         setData((prev: FormData) => ({ ...prev, ...patch }));
@@ -172,24 +178,82 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
         const vehiculoOk = vehiculoRef.current?.validate();
         if (!vehiculoOk) return toast.error('Por favor completá los datos del vehículo.');
 
-        // Validación negocio mínima (front)
-        if (!data.fecha_entrega_estimada) {
-            return toast.error('Por favor completá la fecha de entrega estimada.');
-        }
-        if (data.fecha && data.fecha_entrega_estimada < data.fecha) {
-            return toast.error('La fecha de entrega estimada no puede ser anterior a la fecha.');
+        // Filtrar detalles vacíos (sin artículo seleccionado)
+        const detallesValidos = data.detalles.filter(d => d.articulo_id);
+
+        if (detallesValidos.length === 0) {
+            return toast.error('Agregá al menos un artículo a la orden.');
         }
 
-        // Agregar con_factura al enviar (el backend lo espera)
+        // Validar campos y resaltar con error
+        const errores: Record<string, string> = {};
+        let hayErrores = false;
+
+        // Validar fecha de entrega estimada
+        if (!data.fecha_entrega_estimada) {
+            errores['fecha_entrega_estimada'] = 'Ingresá una fecha de entrega estimada.';
+            hayErrores = true;
+        } else if (data.fecha && data.fecha_entrega_estimada < data.fecha) {
+            errores['fecha_entrega_estimada'] = 'La fecha de entrega no puede ser anterior a la fecha de la orden.';
+            hayErrores = true;
+        }
+
+        // Validar estado
+        if (!data.estado_id) {
+            errores['estado_id'] = 'Seleccioná un estado para la orden.';
+            hayErrores = true;
+        }
+
+        // Validar detalles usando índice original
+        data.detalles.forEach((d, idx) => {
+            // Solo validar detalles que tienen artículo seleccionado
+            if (d.articulo_id && (!d.valor || Number(d.valor) <= 0)) {
+                errores[`detalles.${idx}.valor`] = 'Sin precio';
+                hayErrores = true;
+            }
+        });
+
+        setLocalErrors(errores);
+
+        if (hayErrores) {
+            // Mensaje según el tipo de error
+            const mensajesError: string[] = [];
+            if (errores['fecha_entrega_estimada']) mensajesError.push('Ingresá una fecha de entrega estimada.');
+            if (errores['estado_id']) mensajesError.push('Seleccioná un estado para la orden.');
+            if (Object.keys(errores).some(k => k.startsWith('detalles.'))) mensajesError.push('Hay artículos sin precio.');
+
+            toast.error(mensajesError.join('\n'));
+            return;
+        }
+
         const dataToSend = {
             ...data,
+            detalles: detallesValidos,
             con_factura: data.tipo_documento === 'FC',
         };
 
         router.post('/ordenes', dataToSend as any, {
             onError: (errs) => {
+                // Limpiar toasts anteriores antes de mostrar nuevos
+                toast.dismiss();
+
                 const mensajes = Object.values(errs as Record<string, string>);
-                if (mensajes.length > 0) toast.error(mensajes.join('\n'));
+                if (mensajes.length === 1) {
+                    toast.error(mensajes[0]);
+                } else if (mensajes.length > 1) {
+                    // Mostrar un único toast con lista de errores
+                    toast.error(
+                        <div>
+                            <strong>Corregí los siguientes errores:</strong>
+                            <ul className="mt-2 ml-4 list-disc text-sm">
+                                {mensajes.map((msg, i) => (
+                                    <li key={i}>{msg}</li>
+                                ))}
+                            </ul>
+                        </div>,
+                        { duration: 6000 }
+                    );
+                }
             },
         });
     };
@@ -291,10 +355,10 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                                     type="date"
                                     value={data.fecha}
                                     onChange={(e) => setField('fecha', e.target.value)}
-                                    className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 ... ${uiErrors.fecha ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                                    className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 ... ${allErrors.fecha ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
                                         }`}
                                 />
-                                {(errors as any).fecha && <p className="mt-2 text-sm text-red-600">{(errors as any).fecha}</p>}
+                                {allErrors.fecha && <p className="mt-2 text-sm text-red-600">{allErrors.fecha}</p>}
                             </div>
 
                             <div>
@@ -304,11 +368,11 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                                     value={data.fecha_entrega_estimada}
                                     min={data.fecha || undefined}
                                     onChange={(e) => setField('fecha_entrega_estimada', e.target.value)}
-                                    className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 ... ${uiErrors.fecha_entrega_estimada ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                                    className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 ... ${allErrors.fecha_entrega_estimada ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
                                         }`}
                                 />
-                                {(errors as any).fecha_entrega_estimada && (
-                                    <p className="mt-2 text-sm text-red-600">{(errors as any).fecha_entrega_estimada}</p>
+                                {allErrors.fecha_entrega_estimada && (
+                                    <p className="mt-2 text-sm text-red-600">{allErrors.fecha_entrega_estimada}</p>
                                 )}
                             </div>
                         </div>
@@ -349,7 +413,7 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                         <DetallesSection
                             detalles={data.detalles}
                             articulos={articulos}
-                            errors={uiErrors}
+                            errors={allErrors}
                             setDetalles={(nuevos: Detalle[]) => {
                                 setData((prev: FormData) => ({
                                     ...prev,
@@ -366,6 +430,7 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                                 setFormData={(nd: any) => mergeForm(nd)}
                                 errors={errors as Record<string, string>}
                                 totalOrden={totalOrden}
+                                companiaSeguroId={data.compania_seguro_id}
                             />
                         </div>
 
@@ -375,7 +440,7 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                                 estados={estados}
                                 formData={data}
                                 setFormData={(nd: any) => mergeForm(nd)}
-                                errors={errors as Record<string, string>}
+                                errors={allErrors}
                             />
                         </div>
 
