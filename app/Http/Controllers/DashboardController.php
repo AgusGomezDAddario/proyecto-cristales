@@ -48,11 +48,15 @@ class DashboardController extends Controller
         $totalOrdenes = count($ordenesHoy);
 
         // Últimas 5 ordenes (de cualquier fecha, ordenados por creación)
-        $ultimasOrdenes = OrdenDeTrabajo::orderBy('updated_at', 'desc')
+        $ultimasOrdenes = OrdenDeTrabajo::with([
+                'titularVehiculo.vehiculo.marca',
+                'titularVehiculo.vehiculo.modelo'
+            ])
+            ->orderBy('updated_at', 'desc')
             ->withSum('detalles', 'valor')
             ->limit(5)
             ->get();
-        
+        //dd($ultimasOrdenes);
         // Balance del día (ingresos - egresos)
         $balanceDelDia = $totalIngresos - $totalEgresos;
 

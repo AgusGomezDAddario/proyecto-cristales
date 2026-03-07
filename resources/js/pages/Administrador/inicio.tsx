@@ -17,6 +17,18 @@ interface OrdenDeTrabajo {
     concepto?: { nombre: string };
     medioDePago?: { nombre: string };
     detalles_sum_valor: number; // Suma de los montos de los detalles de la orden
+
+    titular_vehiculo?: {
+        vehiculo?: {
+            patente: string;
+            marca?: {
+                nombre: string;
+            };
+            modelo?: {
+                nombre: string;
+            };
+        };
+    };
 }
 
 interface DashboardStats {
@@ -72,11 +84,10 @@ export default function AdminDashboard({ stats, ultimosEgresos, ultimosIngresos,
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                     {/* Balance del día */}
                     <div
-                        className={`rounded-2xl p-6 text-white shadow-lg ${
-                            stats.balanceDelDia >= 0
+                        className={`rounded-2xl p-6 text-white shadow-lg ${stats.balanceDelDia >= 0
                                 ? 'bg-gradient-to-br from-blue-500 to-blue-600'
                                 : 'bg-gradient-to-br from-orange-500 to-orange-600'
-                        }`}
+                            }`}
                     >
                         <div className="mb-4 flex items-center justify-between">
                             <h3 className="text-sm font-semibold opacity-90">Balance del Día</h3>
@@ -299,18 +310,22 @@ export default function AdminDashboard({ stats, ultimosEgresos, ultimosIngresos,
                                             className="flex items-center justify-between border-b border-gray-100 py-3 last:border-0"
                                         >
                                             <div className="flex-1">
-                                                <p className="font-semibold text-gray-900">{orden.numero_orden || 'Sin número de orden'}</p>
+                                                <a href={`/ordenes/${orden.id}`}>
+                                                    <p className="font-semibold text-gray-900">{ orden.titular_vehiculo?.vehiculo?.marca?.nombre}{" "}
+                                                        {orden.titular_vehiculo?.vehiculo?.modelo?.nombre}{" - "}
+                                                        {orden.titular_vehiculo?.vehiculo?.patente}</p>
                                                 <p className="text-sm text-gray-500">
                                                     {formatTimeAgo(orden.created_at)}
                                                     {orden.medioDePago && <span className="ml-2">• {orden.numero_orden}</span>}
                                                 </p>
+                                            </a>
                                             </div>
-                                            <span className="ml-4 font-bold text-red-600">{formatMoney(orden.detalles_sum_valor)}</span>
+                                            <span className="ml-4 font-bold text-purple-600">{formatMoney(orden.detalles_sum_valor)}</span>
                                         </div>
                                     ))}
                                     <Link
                                         href="/ordenes/create"
-                                        className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-red-50 py-3 font-semibold text-red-600 transition hover:bg-red-100"
+                                        className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-purple-50 py-3 font-semibold text-purple-600 transition hover:bg-purple-100"
                                     >
                                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -333,7 +348,7 @@ export default function AdminDashboard({ stats, ultimosEgresos, ultimosIngresos,
                                     <p className="mb-3 font-medium text-gray-500">No hay órdenes registradas</p>
                                     <Link
                                         href="/ordenes/create"
-                                        className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-5 py-2.5 font-semibold text-white transition hover:bg-red-700"
+                                        className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-5 py-2.5 font-semibold text-white transition hover:bg-purple-700"
                                     >
                                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -343,7 +358,7 @@ export default function AdminDashboard({ stats, ultimosEgresos, ultimosIngresos,
                                 </div>
                             )}
                         </div>
-                    
+
                     </div>
                 </div>
             </div>
