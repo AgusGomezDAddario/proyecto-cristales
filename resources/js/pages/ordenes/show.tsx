@@ -277,7 +277,14 @@ export default function Show({ orden }: { orden: Orden }) {
                           </div>
 
                           <div className="text-sm text-gray-500">
-                            {new Date(h.created_at).toLocaleString("es-AR")}
+                            {new Date(h.created_at).toLocaleString("es-AR", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            })}
                           </div>
 
                           <div className="text-xs text-gray-400 mt-1">
