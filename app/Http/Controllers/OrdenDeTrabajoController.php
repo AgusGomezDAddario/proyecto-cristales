@@ -21,7 +21,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use App\Models\OrdenDeTrabajoHistorialEstado;
-
+use App\Models\Categoria;
+use Illuminate\Validation\ValidationException;
 
 
 class OrdenDeTrabajoController extends Controller
@@ -187,7 +188,7 @@ class OrdenDeTrabajoController extends Controller
             'pagos.*.monto.required' => 'Ingresá el monto del pago.',
             'pagos.*.monto.min' => 'El monto no puede ser negativo.',
         ]);
-
+        $this->validarCategoriasObligatorias($validated['detalles']);
         $data = $request->all();
 
         $faltanDatos =
@@ -336,6 +337,65 @@ class OrdenDeTrabajoController extends Controller
         }
     }
 
+    // Método que valida que las categorías obligatorias de cada artículo tengan una subcategoría seleccionada en el detalle
+    private function validarCategoriasObligatorias(array $detalles)
+    {
+        // Array donde acumularemos todos los errores encontrados
+        $errores = [];
+
+        // Obtenemos los IDs únicos de artículos presentes en los detalles
+        // Esto sirve para hacer una sola consulta a la base de datos
+        $articuloIds = collect($detalles)->pluck('articulo_id')->unique();
+
+        // Traemos todos los artículos involucrados junto con sus categorías obligatorias
+        $articulos = Articulo::with(['categorias' => function ($q) {
+            // Solo nos interesan las categorías que están marcadas como obligatorias
+            $q->where('obligatoria', true);
+        }])
+        ->whereIn('id', $articuloIds) // Filtramos solo los artículos que aparecen en la orden
+        ->get()
+        ->keyBy('id'); // Convertimos la colección en un mapa indexado por ID para acceso rápido
+
+        // Recorremos cada detalle de la orden
+        foreach ($detalles as $index => $detalle) {
+
+            // Obtenemos el artículo correspondiente a ese detalle
+            $articulo = $articulos[$detalle['articulo_id']] ?? null;
+
+            // Si por algún motivo no encontramos el artículo, seguimos con el siguiente
+            if (!$articulo) continue;
+
+            // Obtenemos los atributos enviados desde el frontend
+            // (subcategorías seleccionadas)
+            $atributos = $detalle['atributos'] ?? [];
+
+            // Buscamos todas las subcategorías seleccionadas en la base de datos
+            $subcategorias = Subcategoria::whereIn('id', $atributos)->get();
+
+            // Recorremos las categorías obligatorias del artículo
+            foreach ($articulo->categorias as $categoria) {
+
+                // Verificamos si alguna subcategoría seleccionada pertenece a esta categoría
+                $tieneCategoria = $subcategorias
+                    ->where('categoria_id', $categoria->id)
+                    ->isNotEmpty();
+
+                // Si no hay ninguna subcategoría de esa categoría obligatoria
+                if (!$tieneCategoria) {
+
+                    // Agregamos el error al array de errores
+                    $errores[] = "El artículo '{$articulo->nombre}' requiere seleccionar '{$categoria->nombre}'.";
+                }
+            }
+        }
+
+        // Si encontramos errores, lanzamos una excepción de validación con todos los mensajes
+        if (!empty($errores)) {
+            throw ValidationException::withMessages([
+                'detalles' => $errores
+            ]);
+        }
+}
     public function update(Request $request, OrdenDeTrabajo $orden)
     {
         $validated = $request->validate([
@@ -387,6 +447,7 @@ class OrdenDeTrabajoController extends Controller
             'pagos.*.monto' => 'required|numeric|min:0',
             'pagos.*.observacion' => 'nullable|string|max:255',
         ]);
+        $this->validarCategoriasObligatorias($validated['detalles']);
 
         $data = $request->all();
 
