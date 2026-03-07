@@ -167,7 +167,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                         <div className="absolute top-full right-0 z-50 mt-1 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
                                             <Link
                                                 href="/clientes"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
                                                     isActive('/clientes') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                 }`}
                                             >
@@ -175,7 +175,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                             </Link>
                                             <Link
                                                 href="/catalogo-vehiculos"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
                                                     isActive('/catalogo-vehiculos') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                 }`}
                                             >
@@ -183,7 +183,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                             </Link>
                                             <Link
                                                 href="/companias-seguros"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
                                                     isActive('/companias-seguros') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                 }`}
                                             >
@@ -191,7 +191,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                             </Link>
                                             <Link
                                                 href="/articulos"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
                                                     isActive('/articulos') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                 }`}
                                             >
@@ -202,7 +202,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                             </Link>
                                             <Link
                                                 href="/medio-de-pago"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
                                                     isActive('/medio-de-pago') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                 }`}
                                             >
@@ -211,7 +211,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                             {/* 🏷️ CONCEPTOS */}
                                             <Link
                                                 href="/conceptos"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
                                                     isActive('/conceptos') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                 }`}
                                             >
@@ -219,7 +219,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                             </Link>
                                             <Link
                                                 href="/admin/metrics"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
                                                     isActive('/admin/metrics') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                 }`}
                                             >
@@ -228,7 +228,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                             <div className="my-1 border-t border-gray-100"></div>
                                             <Link
                                                 href="/admin/users"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
                                                     isActive('/admin/users') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                 }`}
                                             >
@@ -313,7 +313,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                         <Link
                                             href="/resumen-del-dia"
                                             onClick={() => setMoreMenuOpen(false)}
-                                            className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                            className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
                                                 isActive('/resumen-del-dia') ? 'font-medium text-blue-700' : 'text-gray-700'
                                             }`}
                                         >
@@ -326,7 +326,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                                 <Link
                                                     href="/clientes"
                                                     onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                    className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
                                                         isActive('/clientes') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                     }`}
                                                 >
@@ -335,7 +335,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                                 <Link
                                                     href="/catalogo-vehiculos"
                                                     onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                    className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
                                                         isActive('/catalogo-vehiculos') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                     }`}
                                                 >
@@ -344,7 +344,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                                 <Link
                                                     href="/companias-seguros"
                                                     onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                    className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
                                                         isActive('/companias-seguros') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                     }`}
                                                 >
@@ -359,7 +359,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                                 <Link
                                                     href="/medio-de-pago"
                                                     onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                    className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
                                                         isActive('/medio-de-pago') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                     }`}
                                                 >
@@ -369,7 +369,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                                 <Link
                                                     href="/conceptos"
                                                     onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                    className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
                                                         isActive('/conceptos') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                     }`}
                                                 >
@@ -378,7 +378,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                                 <Link
                                                     href="/admin/metrics"
                                                     onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                    className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
                                                         isActive('/admin/metrics') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                     }`}
                                                 >
@@ -387,7 +387,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                                 <Link
                                                     href="/admin/users"
                                                     onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                                                    className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
                                                         isActive('/admin/users') ? 'font-medium text-orange-600' : 'text-gray-700'
                                                     }`}
                                                 >

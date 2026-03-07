@@ -199,7 +199,7 @@ export default function Index({ ordenes }: { ordenes: any }) {
                                     if (e.key === 'Enter') applyFilters();
                                 }}
                                 placeholder="Ej: EYZ529 o Gomez"
-                                className="w-full rounded-lg border-gray-300 text-sm focus:border-gray-400 focus:ring-gray-200"
+                                className="w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-500 focus:border-gray-500 focus:ring-gray-200"
                             />
                         </div>
 
@@ -209,7 +209,7 @@ export default function Index({ ordenes }: { ordenes: any }) {
                             <select
                                 value={filters.estado_id as any}
                                 onChange={(e) => setFilters((p) => ({ ...p, estado_id: e.target.value }))}
-                                className="w-full rounded-lg border-gray-300 text-sm focus:border-gray-400 focus:ring-gray-200"
+                                className="w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm text-gray-700 focus:border-gray-500 focus:ring-gray-200"
                             >
                                 <option value="">Todos</option>
                                 {estados.map((e) => (
@@ -243,7 +243,7 @@ export default function Index({ ordenes }: { ordenes: any }) {
                             <select
                                 value={filters.con_factura as any}
                                 onChange={(e) => setFilters((p) => ({ ...p, con_factura: e.target.value }))}
-                                className="w-full rounded-lg border-gray-300 text-sm focus:border-gray-400 focus:ring-gray-200"
+                                className="w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm text-gray-700 focus:border-gray-500 focus:ring-gray-200"
                             >
                                 <option value="">Todas</option>
                                 <option value="1">Con factura</option>
@@ -258,7 +258,7 @@ export default function Index({ ordenes }: { ordenes: any }) {
                                 type="date"
                                 value={filters.date_from}
                                 onChange={(e) => setFilters((p) => ({ ...p, date_from: e.target.value }))}
-                                className="w-full rounded-lg border-gray-300 text-sm focus:border-gray-400 focus:ring-gray-200"
+                                className="w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm text-gray-700 focus:border-gray-500 focus:ring-gray-200"
                             />
                         </div>
 
@@ -269,7 +269,7 @@ export default function Index({ ordenes }: { ordenes: any }) {
                                 type="date"
                                 value={filters.date_to}
                                 onChange={(e) => setFilters((p) => ({ ...p, date_to: e.target.value }))}
-                                className="w-full rounded-lg border-gray-300 text-sm focus:border-gray-400 focus:ring-gray-200"
+                                className="w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm text-gray-700 focus:border-gray-500 focus:ring-gray-200"
                             />
                         </div>
 
@@ -280,21 +280,21 @@ export default function Index({ ordenes }: { ordenes: any }) {
                                 <button
                                     type="button"
                                     onClick={() => applyFilters({ date_from: todayISO, date_to: todayISO })}
-                                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50"
+                                    className="rounded-lg border border-gray-300 bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
                                 >
                                     Hoy
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => applyFilters({ date_from: yesterdayISO, date_to: yesterdayISO })}
-                                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50"
+                                    className="rounded-lg border border-gray-300 bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
                                 >
                                     Ayer
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => applyFilters({ date_from: last7FromISO, date_to: todayISO })}
-                                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50"
+                                    className="rounded-lg border border-gray-300 bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
                                 >
                                     Últimos 7 días
                                 </button>
@@ -308,7 +308,7 @@ export default function Index({ ordenes }: { ordenes: any }) {
                                 <select
                                     value={filters.per_page as any}
                                     onChange={(e) => setFilters((p) => ({ ...p, per_page: Number(e.target.value) }))}
-                                    className="rounded-lg border-gray-300 text-sm focus:border-gray-400 focus:ring-gray-200"
+                                    className="rounded-lg border border-gray-400 bg-white px-2 py-2 text-sm text-gray-700 focus:border-gray-500 focus:ring-gray-200"
                                 >
                                     <option value={10}>10</option>
                                     <option value={25}>25</option>
@@ -326,7 +326,7 @@ export default function Index({ ordenes }: { ordenes: any }) {
                             <button
                                 type="button"
                                 onClick={resetFilters}
-                                className="rounded-lg border border-gray-200 bg-white px-4 py-2 font-medium text-gray-900 transition hover:bg-gray-50"
+                                className="rounded-lg border border-gray-400 bg-white px-4 py-2 font-medium text-gray-700 transition hover:bg-gray-200"
                             >
                                 Limpiar
                             </button>
@@ -406,14 +406,14 @@ export default function Index({ ordenes }: { ordenes: any }) {
                                                                 router.visit(`/ordenes/${orden.id}?return=${encodeURIComponent(returnUrl)}`)
                                                             }
                                                         />
-                                                        {orden.estado?.nombre !== 'Finalizada' && (
+                                                        {orden.estado?.nombre !== 'Finalizada' && orden.estado?.nombre !== 'Cancelada' && (
                                                             <EditButton
                                                                 onClick={() =>
                                                                     router.visit(`/ordenes/${orden.id}/edit?return=${encodeURIComponent(returnUrl)}`)
                                                                 }
                                                             />
                                                         )}
-                                                        {orden.estado?.nombre !== 'Finalizada' && (
+                                                        {orden.estado?.nombre !== 'Finalizada' && orden.estado?.nombre !== 'Cancelada' && (
                                                             <DeleteButton onClick={() => handleDelete(orden.id)} />
                                                         )}
                                                     </div>
