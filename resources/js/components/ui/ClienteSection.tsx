@@ -184,12 +184,18 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
     };
 
     const hasSummary = Boolean(formData.titular_id || formData.nuevo_titular);
+
+    // Buscar el titular seleccionado directamente del array
+    const titularSeleccionado = titulares.find(t => t.id === formData.titular_id);
+
     const resumenNombre =
       formData.nuevo_titular?.nombre
         ? `${formData.nuevo_titular.nombre} ${formData.nuevo_titular.apellido ?? ""}`.trim()
-        : formData.nombreCliente || "";
-    const resumenTel = formData.nuevo_titular?.telefono ?? formData.telefono ?? "";
-    const resumenEmail = formData.nuevo_titular?.email ?? formData.email ?? "";
+        : titularSeleccionado
+          ? `${titularSeleccionado.nombre} ${titularSeleccionado.apellido}`.trim()
+          : "";
+    const resumenTel = formData.nuevo_titular?.telefono ?? titularSeleccionado?.telefono ?? "";
+    const resumenEmail = formData.nuevo_titular?.email ?? titularSeleccionado?.email ?? "";
 
     return (
       <div className="space-y-3">
