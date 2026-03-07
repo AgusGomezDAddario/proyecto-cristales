@@ -413,7 +413,9 @@ export default function Index({ ordenes }: { ordenes: any }) {
                                                                 }
                                                             />
                                                         )}
-                                                        <DeleteButton onClick={() => handleDelete(orden.id)} />
+                                                        {orden.estado?.nombre !== 'Finalizada' && (
+                                                            <DeleteButton onClick={() => handleDelete(orden.id)} />
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
