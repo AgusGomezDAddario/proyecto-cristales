@@ -121,6 +121,8 @@ class OrdenDeTrabajoController extends Controller
         ]);
     }
 
+   // Reemplaza los métodos store() y update() con estos:
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -152,10 +154,12 @@ class OrdenDeTrabajoController extends Controller
             'detalles.*.atributos' => 'nullable|array',
             'detalles.*.atributos.*' => 'nullable|integer|exists:subcategorias,id',
 
-            // Pagos
+            // Pagos - CORREGIDO
             'pagos' => 'required|array|min:1',
             'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
             'pagos.*.monto' => 'required|numeric|min:0',
+            'pagos.*.fecha' => 'required|date', // ← QUITAMOS before_or_equal:today
+            'pagos.*.pagado' => 'required|boolean',
             'pagos.*.observacion' => 'nullable|string|max:255',
 
             // Identidad cliente/vehiculo
@@ -164,7 +168,7 @@ class OrdenDeTrabajoController extends Controller
             'nuevo_titular' => 'nullable|array',
             'nuevo_vehiculo' => 'nullable|array',
         ], [
-            // Mensajes personalizados más claros
+            // Mensajes personalizados
             'estado_id.required' => 'Seleccioná un estado para la orden.',
             'fecha.required' => 'La fecha de la orden es obligatoria.',
             'fecha_entrega_estimada.required' => 'Ingresá una fecha de entrega estimada.',
@@ -186,6 +190,8 @@ class OrdenDeTrabajoController extends Controller
             'pagos.*.medio_de_pago_id.exists' => 'El medio de pago seleccionado no existe.',
             'pagos.*.monto.required' => 'Ingresá el monto del pago.',
             'pagos.*.monto.min' => 'El monto no puede ser negativo.',
+            'pagos.*.fecha.required' => 'Ingresá la fecha del pago.',
+            'pagos.*.fecha.date' => 'La fecha del pago debe ser válida.',
         ]);
 
         $data = $request->all();
@@ -203,6 +209,17 @@ class OrdenDeTrabajoController extends Controller
         $conFactura = array_key_exists('con_factura', $validated)
             ? (bool) $validated['con_factura']
             : (($validated['tipo_documento'] ?? 'OT') === 'FC');
+        
+        // Validar que si el estado es "Finalizada", el pago esté completo
+        if ((int) $validated['estado_id'] === $this->getEstadoFinalizadaId()) {
+            $pagoCompleto = $this->validarPagoCompleto($validated['detalles'], $validated['pagos']);
+            
+            if (!$pagoCompleto) {
+                return back()
+                    ->withErrors(['estado_id' => 'No se puede finalizar la orden: el pago no está completo.'])
+                    ->withInput();
+            }
+        }
 
         $orden = DB::transaction(function () use ($data, $validated, $conFactura) {
             // 1) Crear titular si corresponde
@@ -246,13 +263,12 @@ class OrdenDeTrabajoController extends Controller
                 'compania_seguro_id' => $validated['compania_seguro_id'] ?? null,
             ]);
 
-            // 👇 Guardar estado inicial en historial
+            // Guardar estado inicial en historial
             OrdenDeTrabajoHistorialEstado::create([
                 'orden_de_trabajo_id' => $orden->id,
                 'estado_id' => $orden->estado_id,
                 'user_id' => auth()->id()
             ]);
-
 
             // 5) Pagos
             foreach (($validated['pagos'] ?? []) as $pago) {
@@ -260,6 +276,8 @@ class OrdenDeTrabajoController extends Controller
                     'orden_de_trabajo_id' => $orden->id,
                     'medio_de_pago_id' => $pago['medio_de_pago_id'],
                     'valor' => $pago['monto'],
+                    'fecha' => $pago['fecha'],
+                    'pagado' => $pago['pagado'] ?? false,
                     'observacion' => $pago['observacion'] ?? null,
                 ]);
             }
@@ -308,34 +326,6 @@ class OrdenDeTrabajoController extends Controller
             ->with('success', 'Orden creada correctamente ✅ (ID: ' . $orden->id . ')');
     }
 
-    private function registrarIngresosDesdeOT(OrdenDeTrabajo $orden): void
-    {
-        try {
-            $orden = $orden->fresh(['pagos']);
-            $pagos = $orden->pagos ?? collect();
-
-            if ($pagos->isEmpty()) {
-                Log::warning("La OT #{$orden->id} no tiene pagos registrados.");
-                return;
-            }
-
-            foreach ($pagos as $pago) {
-                Movimiento::create([
-                    'fecha' => $orden->fecha,
-                    'monto' => $pago->valor,
-                    'concepto_id' => 3,
-                    'medio_de_pago_id' => $pago->medio_de_pago_id,
-                    'comprobante' => "OT-{$orden->id}",
-                    'tipo' => 'ingreso',
-                ]);
-            }
-
-            Log::info("Ingresos registrados para la OT #{$orden->id}");
-        } catch (\Exception $e) {
-            Log::error("Error al registrar ingresos para OT #{$orden->id}: " . $e->getMessage());
-        }
-    }
-
     public function update(Request $request, OrdenDeTrabajo $orden)
     {
         $validated = $request->validate([
@@ -381,10 +371,12 @@ class OrdenDeTrabajoController extends Controller
             'detalles.*.atributos' => 'nullable|array',
             'detalles.*.atributos.*' => 'nullable|integer|exists:subcategorias,id',
 
-            // Pagos
+            // Pagos - CORREGIDO
             'pagos' => 'required|array|min:1',
             'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
             'pagos.*.monto' => 'required|numeric|min:0',
+            'pagos.*.fecha' => 'required|date', // ← QUITAMOS before_or_equal:today
+            'pagos.*.pagado' => 'required|boolean',
             'pagos.*.observacion' => 'nullable|string|max:255',
         ]);
 
@@ -398,6 +390,17 @@ class OrdenDeTrabajoController extends Controller
             return back()
                 ->withErrors(['titular_vehiculo' => 'Debe seleccionar o crear un titular y un vehículo antes de guardar la orden.'])
                 ->withInput();
+        }
+
+        // Validar que si el estado es "Finalizada", el pago esté completo
+        if ((int) $validated['estado_id'] === $this->getEstadoFinalizadaId()) {
+            $pagoCompleto = $this->validarPagoCompleto($validated['detalles'], $validated['pagos']);
+            
+            if (!$pagoCompleto) {
+                return back()
+                    ->withErrors(['estado_id' => 'No se puede finalizar la orden: el pago no está completo.'])
+                    ->withInput();
+            }
         }
 
         DB::transaction(function () use ($validated, $data, $orden) {
@@ -442,14 +445,12 @@ class OrdenDeTrabajoController extends Controller
 
             // Si cambió el estado, guardamos en historial
             if ($estadoAnterior !== (int) $orden->estado_id) {
-
                 OrdenDeTrabajoHistorialEstado::create([
                     'orden_de_trabajo_id' => $orden->id,
                     'estado_id' => $orden->estado_id,
                     'user_id' => auth()->id()
                 ]);
             }
-
 
             foreach ($orden->detalles as $det) {
                 if (method_exists($det, 'atributos')) {
@@ -497,6 +498,8 @@ class OrdenDeTrabajoController extends Controller
                     'orden_de_trabajo_id' => $orden->id,
                     'medio_de_pago_id' => $p['medio_de_pago_id'],
                     'valor' => $p['monto'],
+                    'fecha' => $p['fecha'],
+                    'pagado' => $p['pagado'] ?? false,
                     'observacion' => $p['observacion'] ?? null,
                 ]);
             }
@@ -509,6 +512,34 @@ class OrdenDeTrabajoController extends Controller
         return redirect()
             ->route('ordenes.show', $orden->id)
             ->with('success', 'Orden actualizada correctamente ✅');
+    }
+
+    private function registrarIngresosDesdeOT(OrdenDeTrabajo $orden): void
+    {
+        try {
+            $orden = $orden->fresh(['pagos']);
+            $pagos = $orden->pagos ?? collect();
+
+            if ($pagos->isEmpty()) {
+                Log::warning("La OT #{$orden->id} no tiene pagos registrados.");
+                return;
+            }
+
+            foreach ($pagos as $pago) {
+                Movimiento::create([
+                    'fecha' => $orden->fecha,
+                    'monto' => $pago->valor,
+                    'concepto_id' => 3,
+                    'medio_de_pago_id' => $pago->medio_de_pago_id,
+                    'comprobante' => "OT-{$orden->id}",
+                    'tipo' => 'ingreso',
+                ]);
+            }
+
+            Log::info("Ingresos registrados para la OT #{$orden->id}");
+        } catch (\Exception $e) {
+            Log::error("Error al registrar ingresos para OT #{$orden->id}: " . $e->getMessage());
+        }
     }
 
     public function show(OrdenDeTrabajo $orden)
@@ -527,8 +558,27 @@ class OrdenDeTrabajoController extends Controller
             'historialEstados.user',
         ]);
 
+        // Calcular totales
+        $totalOrden = $orden->detalles->reduce(function ($acc, $detalle) {
+            return $acc + ($detalle->valor * $detalle->cantidad);
+        }, 0);
+
+        // Total COBRADO (solo pagos con pagado = true)
+        $totalPagado = $orden->pagos->where('pagado', true)->reduce(function ($acc, $pago) {
+            return $acc + $pago->valor;
+        }, 0);
+
+        // Total REGISTRADO (todos los pagos)
+        $totalRegistrado = $orden->pagos->reduce(function ($acc, $pago) {
+            return $acc + $pago->valor;
+        }, 0);
+
         return Inertia::render('ordenes/show', [
             'orden' => $orden,
+            'totalOrden' => (float) $totalOrden,
+            'totalPagado' => (float) $totalPagado,
+            'totalRegistrado' => (float) $totalRegistrado,
+            'saldoPendiente' => (float) ($totalOrden - $totalPagado),
         ]);
     }
 
@@ -573,5 +623,28 @@ class OrdenDeTrabajoController extends Controller
             'estados' => $estados,
             'mediosDePago' => $mediosDePago,
         ]);
+    }
+
+    private function getEstadoFinalizadaId(): int
+    {
+        // AJUSTAR según tu ID en la tabla estado
+        return Estado::where('nombre', 'Finalizada')->first()->id ?? 999; // o el ID que corresponda a "Finalizada"
+    }
+
+    private function validarPagoCompleto($detalles, $pagos): bool
+    {
+        $totalOrden = collect($detalles)->reduce(function ($acc, $detalle) {
+            return $acc + (floatval($detalle['valor']) * intval($detalle['cantidad']));
+        }, 0);
+
+        // Solo contar pagos con pagado = true
+        $totalCobrado = collect($pagos)->reduce(function ($acc, $pago) {
+            if (isset($pago['pagado']) && $pago['pagado'] === true) {
+                return $acc + floatval($pago['monto']);
+            }
+            return $acc;
+        }, 0);
+
+        return $totalCobrado >= $totalOrden;
     }
 }
