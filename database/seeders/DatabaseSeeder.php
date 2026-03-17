@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
             DatosInicialesSeeder::class,
             CatalogoArticulosSeeder::class,
             CompaniasSegurosSeeder::class,
-            ConceptoSeeder::class,
+            ConceptosSeeder::class,
             MarcasModelosSeeder::class,
             MetricsDemoSeeder::class,
         ]);

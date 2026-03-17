@@ -7,9 +7,9 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 import ClienteSection, { ClienteSectionRef } from "@/components/ui/ClienteSection";
 import VehiculoSection, { VehiculoSectionRef } from "@/components/ui/VehiculoSection";
 import DetallesSection, { Detalle as DetalleUI, ArticuloDTO } from "@/components/ui/DetallesSection";
-import MedioPagoSection from "@/components/ui/MedioPagoSection";
 import EstadoSection from "@/components/ui/EstadoSection";
 import PagosSection from '@/components/ui/PagosSection';
+import { getArgentinaToday } from '@/utils/dateFormat';
 
 type Estado = { id: number; nombre: string };
 type MedioDePago = { id: number; nombre: string };
@@ -21,69 +21,57 @@ type OrdenDetalleServer = {
   valor: number | string;
   cantidad: number | string;
   colocacion_incluida: boolean;
-  // viene desde el controller (virtual)
   atributos_map?: Record<number, number | null>;
-  // algunos endpoints devuelven un array de atributos; soportamos ambas formas
   atributos?: { categoria_id: number; subcategoria_id: number | null }[];
 };
 
 type OrdenPagoServer = {
+  id: number;
   medio_de_pago_id: number;
   valor: number | string;
   fecha: string;
   pagado: boolean;
+  bloqueado: boolean;
   observacion: string | null;
 };
 
 type Orden = {
   id: number;
-
-  // cabecera
   estado_id: number;
   fecha: string;
   fecha_entrega_estimada?: string | null;
   observacion: string | null;
   con_factura: boolean;
-
-  // opcionales si ya los migraste
   numero_orden?: string | null;
   es_garantia?: boolean;
   compania_seguro_id?: number | null;
   companiaSeguro?: { id: number; nombre: string } | null;
-
   detalles: OrdenDetalleServer[];
   pagos: OrdenPagoServer[];
-
-  // para VehiculoSection / ClienteSection
   titular_vehiculo?: any;
 };
 
 type FormData = {
-  // cabecera
   estado_id: number | null;
   fecha: string;
   fecha_entrega_estimada: string;
   observacion: string;
-  con_factura: number; // 1/0
-
-  // opcionales
+  con_factura: number;
   numero_orden: string;
   es_garantia: boolean;
   compania_seguro_id: number | null;
-
-  // cliente / vehiculo (no se editan en este flujo, pero los componentes los usan)
   titular_id: number | null;
   nuevo_titular: any | null;
   vehiculo_id: number | null;
   nuevo_vehiculo: any | null;
-
-  // detalles / pagos
   detalles: DetalleUI[];
   pagos: Array<{
+      id?: number;
       medio_de_pago_id: number | string;
       monto: number | string;
       fecha: string;
-      pagado: boolean; // ← NUEVO
+      pagado: boolean;
+      bloqueado?: boolean;
       observacion: string;
   }>;
 };
@@ -101,7 +89,7 @@ export default function Edit({
   mediosDePago: MedioDePago[];
   articulos: ArticuloDTO[];
   companiasSeguros: CatalogItem[];
-  titulares?: any[]; // si querés mostrar selector/visual en ClienteSection
+  titulares?: any[];
 }) {
   const params = new URLSearchParams(window.location.search);
   const returnUrl = params.get("return") || `/ordenes/${orden.id}`;
@@ -122,7 +110,6 @@ export default function Edit({
     es_garantia: !!orden.es_garantia,
     compania_seguro_id: orden.compania_seguro_id ?? null,
 
-    // estos campos los usan los componentes de alta; los dejamos seteados si hay data
     titular_id: orden.titular_vehiculo?.titular?.id ?? null,
     nuevo_titular: null,
     vehiculo_id: orden.titular_vehiculo?.vehiculo?.id ?? null,
@@ -131,7 +118,6 @@ export default function Edit({
     detalles: (orden.detalles || []).map((d) => {
       const atributos: Record<number, number | null> = {};
 
-      // soportar tanto arreglo de atributos como el mapa (atributos_map)
       if ((d as any).atributos && Array.isArray((d as any).atributos)) {
         (d as any).atributos.forEach((a: any) => {
           atributos[a.categoria_id] = a.subcategoria_id;
@@ -152,12 +138,13 @@ export default function Edit({
       };
     }) as DetalleUI[],
 
-
     pagos: (orden.pagos || []).map((p) => ({
+        id: p.id,
         medio_de_pago_id: p.medio_de_pago_id,
         monto: p.valor ?? 0,
-        fecha: p.fecha ? String(p.fecha).substring(0, 10) : new Date().toISOString().split('T')[0],
-        pagado: p.pagado ?? false, // ← AGREGAR ESTA LÍNEA
+        fecha: p.fecha ? String(p.fecha).substring(0, 10) : getArgentinaToday(),
+        pagado: p.pagado ?? false,
+        bloqueado: p.bloqueado ?? false,
         observacion: p.observacion ?? "",
     })),
   };
@@ -184,8 +171,6 @@ export default function Edit({
     ...companiasSeguros,
   ];
 
-
-  // Vehículos del titular (si ClienteSection/VehiculoSection permiten edición)
   const vehiculosDelTitular = (titulares || []).find((t: any) => t.id === data.titular_id)?.vehiculos || [];
 
   const totalOrden = useMemo(() => {
@@ -204,31 +189,6 @@ export default function Edit({
     setData((prev: FormData) => ({ ...prev, ...patch }));
   };
 
-  // Validación negocio mínima
-  const validateBusiness = () => {
-    if (!data.fecha) {
-      toast.error("Completá la fecha.");
-      return false;
-    }
-    if (!data.fecha_entrega_estimada) {
-      toast.error("Completá la fecha de entrega estimada.");
-      return false;
-    }
-    if (data.fecha_entrega_estimada < data.fecha) {
-      toast.error("La fecha de entrega estimada no puede ser anterior a la fecha.");
-      return false;
-    }
-    if (!data.detalles || data.detalles.length < 1) {
-      toast.error("Agregá al menos un ítem en detalles.");
-      return false;
-    }
-    if (!data.pagos || data.pagos.length < 1) {
-      toast.error("Registrá al menos un pago.");
-      return false;
-    }
-    return true;
-  };
-
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -242,7 +202,6 @@ export default function Edit({
     });
   }
 
-
   return (
     <DashboardLayout>
       <Head title={`Editar OT #${orden.id}`} />
@@ -252,7 +211,7 @@ export default function Edit({
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Editar Orden #{orden.id}</h1>
-            <p className="mt-1 text-gray-600">Ajustá cabecera, ítems y pagos. Se guardará reemplazando detalles/pagos.</p>
+            <p className="mt-1 text-gray-600">Ajustá cabecera, ítems y pagos. Los pagos bloqueados no pueden modificarse.</p>
           </div>
           <Link href={returnUrl} className="text-sm text-gray-600 hover:text-gray-900">
             Volver
@@ -260,7 +219,7 @@ export default function Edit({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Cabecera (misma estética que create) */}
+          {/* Cabecera */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
@@ -380,12 +339,11 @@ export default function Edit({
             </div>
           </div>
 
-          {/* Cliente / Vehículo (opcional, si lo querés igual que alta) */}
-          {/* Si NO querés permitir cambios de cliente/vehículo en edición, igual podés renderizarlo en modo “solo lectura” si tu componente lo soporta */}
+          {/* Cliente / Vehículo */}
           <ClienteSection ref={clienteRef} titulares={titulares} formData={data as any} setFormData={(nd: any) => mergeForm(nd)} />
           <VehiculoSection ref={vehiculoRef} vehiculos={vehiculosDelTitular} formData={data as any} setFormData={(nd: any) => mergeForm(nd)} />
 
-          {/* Detalles (igual que create) */}
+          {/* Detalles */}
           <DetallesSection
             detalles={data.detalles}
             articulos={articulos}
@@ -398,7 +356,7 @@ export default function Edit({
             }}
           />
 
-          {/* Pagos (igual que create) */}
+          {/* Pagos */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                 <PagosSection
@@ -408,6 +366,7 @@ export default function Edit({
                     totalOrden={totalOrden}
                     errors={errors as Record<string, string>}
                     fechaOrden={data.fecha}
+                    modoEdicion={true}
                 />
             </div>
 
@@ -424,8 +383,7 @@ export default function Edit({
             </div>
           </div>
 
-          {/* Estado (si querés separar como en create, podés usar EstadoSection en vez del select de cabecera) */}
-          {/* Si preferís mantener solo el select en cabecera, podés eliminar este bloque */}
+          {/* Estado (hidden) */}
           <div className="hidden">
             <EstadoSection estados={estados} formData={data as any} setFormData={(nd: any) => mergeForm(nd)} errors={errors} />
           </div>

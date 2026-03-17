@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Calendar, CreditCard, DollarSign, AlertCircle, CheckCircle, Zap } from 'lucide-react';
+import { Plus, Trash2, Calendar, CreditCard, DollarSign, AlertCircle, CheckCircle, Zap, Lock } from 'lucide-react';
+import { getArgentinaToday } from '@/utils/dateFormat';
 
 type Pago = {
+    id?: number; // NUEVO: Para identificar pagos existentes
     medio_de_pago_id: number | string;
     monto: number | string;
     fecha: string;
     observacion: string;
     pagado: boolean;
+    bloqueado?: boolean; // NUEVO: Indica si el pago está bloqueado
 };
 
 type Props = {
@@ -16,10 +19,19 @@ type Props = {
     totalOrden: number;
     errors?: Record<string, string>;
     fechaOrden: string;
+    modoEdicion?: boolean; // NUEVO: Para saber si estamos editando una OT existente
 };
 
-export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden, errors = {}, fechaOrden }: Props) {
-    // Calcular totales SOLO de pagos marcados como "pagado"
+export default function PagosSection({ 
+    pagos, 
+    setPagos, 
+    mediosDePago, 
+    totalOrden, 
+    errors = {}, 
+    fechaOrden,
+    modoEdicion = false 
+}: Props) {
+    // Calcular totales (considerando negativos)
     const totalPagado = pagos
         .filter(p => p.pagado === true)
         .reduce((acc, p) => acc + Number(p.monto || 0), 0);
@@ -31,9 +43,10 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
     const nuevoPago: Pago = {
         medio_de_pago_id: '',
         monto: '',
-        fecha: new Date().toISOString().split('T')[0],
+        fecha: getArgentinaToday(), 
         observacion: '',
         pagado: false,
+        bloqueado: false,
     };
 
     const agregarPago = () => {
@@ -41,10 +54,26 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
     };
 
     const eliminarPago = (index: number) => {
+        const pago = pagos[index];
+        
+        // No permitir eliminar pagos bloqueados
+        if (pago.bloqueado) {
+            alert('No se puede eliminar un pago ya cobrado y bloqueado.');
+            return;
+        }
+        
         setPagos(pagos.filter((_, i) => i !== index));
     };
 
     const actualizarPago = (index: number, campo: keyof Pago, valor: any) => {
+        const pago = pagos[index];
+        
+        // No permitir modificar pagos bloqueados
+        if (pago.bloqueado) {
+            alert('No se puede modificar un pago ya cobrado y bloqueado.');
+            return;
+        }
+        
         const nuevosPagos = [...pagos];
         nuevosPagos[index] = { ...nuevosPagos[index], [campo]: valor };
         setPagos(nuevosPagos);
@@ -81,7 +110,11 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-gray-900">Pagos y Facturación</h3>
-                        <p className="text-sm text-gray-500">Registrá los pagos y marcá cuando se cobren</p>
+                        <p className="text-sm text-gray-500">
+                            {modoEdicion 
+                                ? 'Los pagos bloqueados (🔒) no pueden modificarse. Podés agregar nuevos pagos.'
+                                : 'Registrá los pagos y marcá cuando se cobren'}
+                        </p>
                     </div>
                 </div>
 
@@ -157,33 +190,46 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
                             .slice(0, index)
                             .reduce((acc, p) => acc + Number(p.monto || 0), 0);
                         const restante = totalOrden - montosAnteriores;
-                        const mostrarBoton = restante > 0 && !pago.monto;
+                        const mostrarBoton = restante > 0 && !pago.monto && !pago.bloqueado;
                         const textoBoton = index === 0 ? 'Total' : 'Restante';
+
+                        const esBloqueado = pago.bloqueado === true;
 
                         return (
                             <div
-                                key={index}
-                                className={`bg-white rounded-xl border-2 p-4 transition-all ${
-                                    pago.pagado 
-                                        ? 'border-green-200 bg-green-50/30' 
-                                        : 'border-slate-200 hover:shadow-md'
+                                key={pago.id || index}
+                                className={`rounded-xl border-2 p-4 transition-all ${
+                                    esBloqueado
+                                        ? 'border-slate-300 bg-slate-50/50 opacity-75' // Estilo bloqueado
+                                        : pago.pagado 
+                                            ? 'border-green-200 bg-green-50/30' 
+                                            : 'border-slate-200 bg-white hover:shadow-md'
                                 }`}
                             >
+                                {/* Badge de bloqueado */}
+                                {esBloqueado && (
+                                    <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-slate-600">
+                                        <Lock className="h-3.5 w-3.5" />
+                                        <span>Pago bloqueado - No se puede modificar</span>
+                                    </div>
+                                )}
+
                                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
                                     {/* Checkbox Pagado */}
                                     <div className="md:col-span-1 flex items-center justify-center pt-7">
-                                        <label className="flex flex-col items-center gap-1 cursor-pointer">
+                                        <label className={`flex flex-col items-center gap-1 ${esBloqueado ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
                                             <input
                                                 type="checkbox"
                                                 checked={pago.pagado}
                                                 onChange={(e) => {
+                                                    if (esBloqueado) return;
                                                     actualizarPago(index, 'pagado', e.target.checked);
-                                                    // Si se marca como pagado y no tiene fecha, poner la de hoy
                                                     if (e.target.checked && !pago.fecha) {
-                                                        actualizarPago(index, 'fecha', new Date().toISOString().split('T')[0]);
+                                                        actualizarPago(index, 'fecha', getArgentinaToday()); // ← USA FECHA ARGENTINA
                                                     }
                                                 }}
-                                                className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                                disabled={esBloqueado}
+                                                className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                             />
                                             <span className="text-xs text-slate-600 font-medium">
                                                 {pago.pagado ? '✓ Cobrado' : 'Sin cobrar'}
@@ -203,7 +249,8 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
                                                     min={fechaOrden}
                                                     max={new Date().toISOString().split('T')[0]}
                                                     onChange={(e) => actualizarPago(index, 'fecha', e.target.value)}
-                                                    className={`w-full pl-10 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition ${
+                                                    disabled={esBloqueado}
+                                                    className={`w-full pl-10 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition disabled:bg-slate-100 disabled:cursor-not-allowed ${
                                                         errors[`pagos.${index}.fecha`] ? 'border-red-300' : 'border-slate-200'
                                                     }`}
                                                 />
@@ -220,7 +267,8 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
                                         <select
                                             value={pago.medio_de_pago_id}
                                             onChange={(e) => actualizarPago(index, 'medio_de_pago_id', e.target.value)}
-                                            className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition ${
+                                            disabled={esBloqueado}
+                                            className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition disabled:bg-slate-100 disabled:cursor-not-allowed ${
                                                 errors[`pagos.${index}.medio_de_pago_id`] ? 'border-red-300' : 'border-slate-200'
                                             }`}
                                         >
@@ -236,9 +284,11 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
                                         )}
                                     </div>
 
-                                    {/* Monto con botón Total/Restante MEJORADO */}
+                                    {/* Monto con botón Total/Restante */}
                                     <div className="md:col-span-2">
-                                        <label className="block text-xs font-medium text-slate-600 mb-1.5">Monto *</label>
+                                        <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                                            Monto * {Number(pago.monto) < 0 && <span className="text-red-600">(Negativo)</span>}
+                                        </label>
                                         <div className="space-y-2">
                                             {/* Input de monto */}
                                             <div className="relative">
@@ -248,15 +298,15 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
                                                     value={pago.monto}
                                                     onChange={(e) => actualizarPago(index, 'monto', e.target.value)}
                                                     placeholder="0"
-                                                    min="0"
                                                     step="0.01"
-                                                    className={`w-full pl-7 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition ${
-                                                        errors[`pagos.${index}.monto`] ? 'border-red-300' : 'border-slate-200'
-                                                    }`}
+                                                    disabled={esBloqueado}
+                                                    className={`w-full pl-7 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition disabled:bg-slate-100 disabled:cursor-not-allowed ${
+                                                        Number(pago.monto) < 0 ? 'text-red-600 font-semibold' : ''
+                                                    } ${errors[`pagos.${index}.monto`] ? 'border-red-300' : 'border-slate-200'}`}
                                                 />
                                             </div>
                                             
-                                            {/* Botón Total/Restante NUEVO DISEÑO */}
+                                            {/* Botón Total/Restante */}
                                             {mostrarBoton && (
                                                 <button
                                                     type="button"
@@ -282,7 +332,8 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
                                             onChange={(e) => actualizarPago(index, 'observacion', e.target.value)}
                                             placeholder="Ej: Seña inicial"
                                             maxLength={255}
-                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition"
+                                            disabled={esBloqueado}
+                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition disabled:bg-slate-100 disabled:cursor-not-allowed"
                                         />
                                     </div>
 
@@ -291,8 +342,9 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
                                         <button
                                             type="button"
                                             onClick={() => eliminarPago(index)}
-                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                                            title="Eliminar pago"
+                                            disabled={esBloqueado}
+                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
+                                            title={esBloqueado ? "No se puede eliminar un pago bloqueado" : "Eliminar pago"}
                                         >
                                             <Trash2 className="h-5 w-5" />
                                         </button>
@@ -313,6 +365,19 @@ export default function PagosSection({ pagos, setPagos, mediosDePago, totalOrden
                 <Plus className="h-5 w-5" />
                 Agregar pago
             </button>
+
+            {/* Info sobre pagos negativos */}
+            {pagos.some(p => Number(p.monto) < 0) && (
+                <div className="flex items-start gap-3 p-4 bg-purple-50 border border-purple-200 rounded-xl">
+                    <AlertCircle className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                        <p className="text-sm font-medium text-purple-900">Pagos negativos detectados</p>
+                        <p className="text-sm text-purple-700 mt-1">
+                            Los montos negativos se usan para corregir errores de cobro. Se restan del total cobrado.
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {/* Advertencia si no está completamente pagado */}
             {saldoPendiente > 0 && (

@@ -25,14 +25,9 @@ class Movimiento extends Model
         'medio_de_pago_id',
         'comprobante',
         'tipo',
+        'orden_de_trabajo_id', // AGREGADO
     ];
 
-    /**
-     * Importante:
-     * - 'decimal:2' devuelve string (poco práctico para KPIs/porcentajes).
-     * - en DB mantenés DECIMAL(12,2) (correcto).
-     * - en PHP lo casteamos a float para sumar y serializar sin fricción.
-     */
     protected $casts = [
         'fecha' => 'date:Y-m-d',
         'monto' => 'float',
@@ -55,6 +50,12 @@ class Movimiento extends Model
     public function comprobantes(): HasMany
     {
         return $this->hasMany(Comprobante::class, 'movimiento_id');
+    }
+
+    // NUEVA RELACIÓN
+    public function ordenDeTrabajo(): BelongsTo
+    {
+        return $this->belongsTo(OrdenDeTrabajo::class, 'orden_de_trabajo_id');
     }
 
     /* ======================
