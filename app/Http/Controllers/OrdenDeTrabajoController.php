@@ -208,6 +208,24 @@ class OrdenDeTrabajoController extends Controller
             return $acc + (floatval($detalle['valor']) * intval($detalle['cantidad']));
         }, 0);
 
+    // --- NUEVA VALIDACIÓN PARA CREACIÓN ---
+        $estadoFinalizada = Estado::where('nombre', 'Finalizada')->first();
+
+        if ($estadoFinalizada && (int)$validated['estado_id'] === $estadoFinalizada->id) {
+            // Sumamos los montos de los pagos que se están enviando como "pagado"
+            $totalPagado = collect($validated['pagos'])
+                ->where('pagado', true)
+                ->sum('monto');
+
+            if ($totalPagado < $totalOrden) {
+                $falta = $totalOrden - $totalPagado;
+                return back()
+                    ->withErrors(['estado_id' => "No puedes crear una orden 'Finalizada' si no está totalmente pagada. Saldo pendiente: $".number_format($falta, 2)])
+                    ->withInput();
+            }
+        }
+        // --- FIN DE VALIDACIÓN ---
+
         if ($totalOrden <= 0) {
             return back()
                 ->withErrors(['detalles' => 'El total de la orden debe ser mayor a $0.'])
@@ -380,7 +398,26 @@ class OrdenDeTrabajoController extends Controller
             return $acc + (floatval($detalle['valor']) * intval($detalle['cantidad']));
         }, 0);
 
-        if ($totalOrden <= 0) {
+// --- NUEVA VALIDACIÓN DE ESTADO FINALIZADA ---
+            $estadoFinalizada = Estado::where('nombre', 'Finalizada')->first();
+            
+            if ($estadoFinalizada && (int)$validated['estado_id'] === $estadoFinalizada->id) {
+                // Calculamos lo que ya está pagado (incluyendo los que se están enviando ahora como pagados)
+                $totalPagado = collect($validated['pagos'])
+                    ->where('pagado', true)
+                    ->sum('monto');
+
+                if ($totalPagado < $totalOrden) {
+                    $falta = $totalOrden - $totalPagado;
+                    return back()
+                        ->withErrors(['estado_id' => "No se puede finalizar la OT: El saldo pendiente es de $".number_format($falta, 2)])
+                        ->withInput();
+                }
+            }
+            // --- FIN DE VALIDACIÓN ---
+
+            if ($totalOrden <= 0) {
+        // ... (resto del código)
             return back()
                 ->withErrors(['detalles' => 'El total de la orden debe ser mayor a $0.'])
                 ->withInput();
