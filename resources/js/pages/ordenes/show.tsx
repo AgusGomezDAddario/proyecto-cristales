@@ -1,8 +1,9 @@
 import React from "react";
 import { Link, Head } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import { User, Phone, Mail, Car, Calendar, FileText, DollarSign, CreditCard, ArrowLeft, Printer } from "lucide-react";
+import { User, Phone, Mail, Car, Calendar, FileText, DollarSign, CreditCard, AlertCircle, CheckCircle, ArrowLeft, Printer, Lock } from "lucide-react";
 import PrintableODT from "@/components/print/PrintableODT";
+import { formatDateToArgentina, formatDateTimeToArgentina } from '@/utils/dateFormat';
 
 type Atributo = {
   id: number;
@@ -23,6 +24,9 @@ type Pago = {
   id: number;
   valor: number;
   observacion: string | null;
+  fecha: string;
+  pagado: boolean;
+  bloqueado: boolean;
   medio_de_pago: { nombre: string };
 };
 
@@ -52,15 +56,20 @@ type HistorialEstado = {
   user?: { id: number; name: string } | null;
 };
 
+export default function Show({ 
+    orden, 
+    totalOrden = 0,
+    totalPagado = 0,
+    totalRegistrado = 0,
+    saldoPendiente = 0
+}: { 
+    orden: Orden;
+    totalOrden?: number;
+    totalPagado?: number;
+    totalRegistrado?: number;
+    saldoPendiente?: number;
+}) {
 
-
-export default function Show({ orden }: { orden: Orden }) {
-  const totalOrden = orden.detalles.reduce((acc, curr) => {
-    return acc + Number(curr.valor) * Number(curr.cantidad);
-  }, 0);
-
-  const totalPagado = orden.pagos.reduce((acc, curr) => acc + Number(curr.valor), 0);
-  const saldoPendiente = totalOrden - totalPagado;
   const companiaNombre =
     (orden as any).compania_seguro?.nombre ?? "Sin seguro / Particular";
 
@@ -82,7 +91,7 @@ export default function Show({ orden }: { orden: Orden }) {
               <h1 className="text-3xl font-bold text-gray-900">Orden de Trabajo #{orden.id}</h1>
               <div className="flex items-center gap-2 mt-1 text-gray-600">
                 <Calendar className="w-4 h-4" />
-                <span>{new Date(orden.fecha).toLocaleDateString("es-AR", { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                <span>{formatDateToArgentina(orden.fecha)}</span>
                 <span className="mx-1">•</span>
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${orden.estado.nombre === 'Entregado' ? 'bg-green-100 text-green-700 border-green-200' :
                   orden.estado.nombre === 'Cancelado' ? 'bg-red-100 text-red-700 border-red-200' :
@@ -143,7 +152,6 @@ export default function Show({ orden }: { orden: Orden }) {
                             <div className="font-medium text-gray-900">
                               {detalle.articulo?.nombre || 'Artículo no especificado'}
                             </div>
-                            {/* Atributos (Color, Posición, etc.) */}
                             {detalle.atributos && detalle.atributos.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-1">
                                 {detalle.atributos.map((attr) => (
@@ -190,65 +198,202 @@ export default function Show({ orden }: { orden: Orden }) {
               </div>
             </div>
 
-            {/* Pagos */}
+            {/* Estado de Pago Visual */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-gray-500" />
-                <h2 className="font-bold text-gray-900">Pagos Registrados</h2>
+              <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-gray-500" />
+                  <h2 className="font-bold text-gray-900">Estado de Pago</h2>
+                </div>
+                {/* Badge de estado */}
+                {saldoPendiente === 0 && totalPagado > 0 ? (
+                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-100 text-green-700 border border-green-200">
+                    <CheckCircle className="w-4 h-4" />
+                    <span className="text-sm font-semibold">Pagado totalmente</span>
+                  </span>
+                ) : saldoPendiente > 0 ? (
+                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-700 border border-yellow-200">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="text-sm font-semibold">Pago parcial</span>
+                  </span>
+                ) : saldoPendiente < 0 ? (
+                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="text-sm font-semibold">Sobrepago</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-100 text-red-700 border border-red-200">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="text-sm font-semibold">Sin pagos</span>
+                  </span>
+                )}
               </div>
+              
               <div className="p-6">
-                {orden.pagos.length > 0 ? (
-                  <div className="space-y-4">
-                    {orden.pagos.map((pago) => (
-                      <div key={pago.id} className="flex items-start justify-between p-4 rounded-xl bg-gray-50 border border-gray-100">
-                        <div className="flex gap-3">
-                          <div className="p-2 bg-white rounded-lg border border-gray-200 shadow-sm">
-                            <CreditCard className="w-5 h-5 text-green-600" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-900">{pago.medio_de_pago.nombre}</p>
-                            {pago.observacion && (
-                              <p className="text-sm text-gray-500 mt-0.5">{pago.observacion}</p>
-                            )}
-                          </div>
-                        </div>
-                        <span className="font-bold text-gray-900">
-                          ${Number(pago.valor).toLocaleString("es-AR")}
-                        </span>
-                      </div>
-                    ))}
+                {/* Resumen visual */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <p className="text-sm text-slate-600 mb-1">Total de la orden</p>
+                    <p className="text-2xl font-bold text-slate-900">${totalOrden.toLocaleString("es-AR")}</p>
+                  </div>
+                  <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                    <p className="text-sm text-green-700 mb-1">Total cobrado</p>
+                    <p className="text-2xl font-bold text-green-600">${totalPagado.toLocaleString("es-AR")}</p>
+                  </div>
+                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                    <p className="text-sm text-blue-700 mb-1">Registrado sin cobrar</p>
+                    <p className="text-2xl font-bold text-blue-600">${(totalRegistrado - totalPagado).toLocaleString("es-AR")}</p>
+                  </div>
+                  <div className={`rounded-xl p-4 border ${saldoPendiente > 0 ? 'bg-red-50 border-red-200' : saldoPendiente < 0 ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200'}`}>
+                    <p className={`text-sm mb-1 ${saldoPendiente > 0 ? 'text-red-700' : saldoPendiente < 0 ? 'text-blue-700' : 'text-green-700'}`}>Saldo pendiente</p>
+                    <p className={`text-2xl font-bold ${saldoPendiente > 0 ? 'text-red-600' : saldoPendiente < 0 ? 'text-blue-600' : 'text-green-600'}`}>
+                      ${Math.abs(saldoPendiente).toLocaleString("es-AR")}
+                    </p>
+                  </div>
+                </div>
 
-                    <div className="flex justify-end pt-2 border-t border-gray-100">
-                      <div className="text-right space-y-1">
-                        <div className="text-sm text-gray-600">
-                          Total Pagado: <span className="font-semibold text-gray-900">${totalPagado.toLocaleString("es-AR")}</span>
-                        </div>
-                        {saldoPendiente > 0 && (
-                          <div className="text-sm text-red-600 font-medium">
-                            Saldo Pendiente: ${saldoPendiente.toLocaleString("es-AR")}
+                {/* Barra de progreso */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="text-slate-600 font-medium">Progreso de cobro</span>
+                    <span className="font-bold text-slate-900">
+                      {totalOrden > 0 ? Math.min((totalPagado / totalOrden) * 100, 100).toFixed(0) : 0}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        totalPagado >= totalOrden ? 'bg-green-500' : totalPagado > 0 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${totalOrden > 0 ? Math.min((totalPagado / totalOrden) * 100, 100) : 0}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Historial de pagos */}
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-700 mb-4">Historial de Pagos</h3>
+                  {orden.pagos.length > 0 ? (
+                    <div className="space-y-3">
+                      {orden.pagos.map((pago) => (
+                        <div 
+                          key={pago.id} 
+                          className={`flex items-start justify-between p-4 rounded-xl border transition ${
+                            pago.bloqueado 
+                              ? 'bg-slate-50/50 border-slate-300'
+                              : pago.pagado 
+                                ? 'bg-green-50/50 border-green-200' 
+                                : 'bg-gray-50 border-gray-100 hover:border-gray-200'
+                          }`}
+                        >
+                          <div className="flex gap-4 flex-1">
+                            {/* Badge de bloqueado */}
+                            {pago.bloqueado && (
+                              <div className="flex flex-col items-center justify-center px-3 py-2 bg-slate-200 rounded-lg border border-slate-400 shadow-sm min-w-[90px]">
+                                <Lock className="w-4 h-4 text-slate-600 mb-1" />
+                                <span className="text-xs font-bold text-slate-700">BLOQUEADO</span>
+                              </div>
+                            )}
+
+                            {/* Estado de cobro */}
+                            {!pago.bloqueado && (
+                              <div className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg border shadow-sm min-w-[90px] ${
+                                pago.pagado ? 'bg-green-100 border-green-300' : 'bg-slate-100 border-slate-300'
+                              }`}>
+                                {pago.pagado ? (
+                                  <>
+                                    <CheckCircle className="w-5 h-5 text-green-600 mb-1" />
+                                    <span className="text-xs font-bold text-green-700">COBRADO</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <AlertCircle className="w-5 h-5 text-slate-500 mb-1" />
+                                    <span className="text-xs font-bold text-slate-600">SIN COBRAR</span>
+                                  </>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Fecha */}
+                            <div className="flex flex-col items-center justify-center px-3 py-2 bg-white rounded-lg border border-gray-200 shadow-sm min-w-[80px]">
+                              <Calendar className="w-4 h-4 text-slate-400 mb-1" />
+                              <span className="text-xs font-medium text-slate-600">
+                                {formatDateToArgentina(pago.fecha)}
+                              </span>
+                            </div>
+
+                            {/* Detalles del pago */}
+                            <div className="flex gap-3 flex-1">
+                              <div className="p-2 bg-white rounded-lg border border-gray-200 shadow-sm">
+                                <CreditCard className="w-5 h-5 text-blue-600" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-semibold text-gray-900">{pago.medio_de_pago.nombre}</p>
+                                {pago.observacion && (
+                                  <p className="text-sm text-gray-500 mt-0.5">{pago.observacion}</p>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        )}
-                      </div>
+
+                          {/* Monto */}
+                          <span className={`font-bold text-lg ml-4 ${
+                            Number(pago.valor) < 0 ? 'text-red-600' : 'text-gray-900'
+                          }`}>
+                            {Number(pago.valor) < 0 ? '-' : ''}${Math.abs(Number(pago.valor)).toLocaleString("es-AR")}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+                      <CreditCard className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                      <p className="text-slate-500 text-sm">No hay pagos registrados</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Advertencia si hay pagos negativos */}
+                {orden.pagos.some(p => Number(p.valor) < 0) && (
+                  <div className="mt-4 flex items-start gap-3 p-4 bg-purple-50 border border-purple-200 rounded-xl">
+                    <AlertCircle className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-purple-900">Ajustes de pago detectados</p>
+                      <p className="text-sm text-purple-700 mt-1">
+                        Los montos negativos representan correcciones de errores de cobro anteriores.
+                      </p>
                     </div>
                   </div>
-                ) : (
-                  <p className="text-gray-500 text-center py-4">No hay pagos registrados.</p>
+                )}
+
+                {/* Advertencia si hay saldo pendiente */}
+                {saldoPendiente > 0 && (
+                  <div className="mt-6 flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                    <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-amber-900">Pago incompleto</p>
+                      <p className="text-sm text-amber-700 mt-1">
+                        Esta orden tiene un saldo pendiente de ${saldoPendiente.toLocaleString("es-AR")}. 
+                        No podrá ser finalizada hasta completar el cobro total.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Info sobre pagos registrados sin cobrar */}
+                {(totalRegistrado - totalPagado) > 0 && (
+                  <div className="mt-4 flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                    <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-blue-900">Pagos registrados pendientes de cobro</p>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Hay ${(totalRegistrado - totalPagado).toLocaleString("es-AR")} en pagos registrados pero aún no cobrados.
+                      </p>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
-
-            {/* Observaciones */}
-            {orden.observacion && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-gray-500" />
-                  <h2 className="font-bold text-gray-900">Observaciones Generales</h2>
-                </div>
-                <div className="p-6">
-                  <p className="text-gray-700 whitespace-pre-wrap">{orden.observacion}</p>
-                </div>
-              </div>
-            )}
 
             {/* Historial de Estados */}
             {orden.historial_estados && orden.historial_estados.length > 0 && (
@@ -277,7 +422,7 @@ export default function Show({ orden }: { orden: Orden }) {
                           </div>
 
                           <div className="text-sm text-gray-500">
-                            {new Date(h.created_at).toLocaleString("es-AR")}
+                            {formatDateTimeToArgentina(h.created_at)}
                           </div>
 
                           <div className="text-xs text-gray-400 mt-1">
@@ -291,6 +436,18 @@ export default function Show({ orden }: { orden: Orden }) {
               </div>
             )}
 
+            {/* Observaciones */}
+            {orden.observacion && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-gray-500" />
+                  <h2 className="font-bold text-gray-900">Observaciones Generales</h2>
+                </div>
+                <div className="p-6">
+                  <p className="text-gray-700 whitespace-pre-wrap">{orden.observacion}</p>
+                </div>
+              </div>
+            )}
 
           </div>
 
@@ -373,9 +530,8 @@ export default function Show({ orden }: { orden: Orden }) {
         </div>
       </div>
 
-      {/* Componente de impresión profesional - Oculto en pantalla, visible al imprimir */}
+      {/* Componente de impresión profesional */}
       <PrintableODT orden={orden as any} />
     </DashboardLayout>
   );
 }
-

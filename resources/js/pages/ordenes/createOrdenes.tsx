@@ -5,35 +5,36 @@ import { toast } from 'react-hot-toast';
 import ClienteSection, { ClienteSectionRef } from '@/components/ui/ClienteSection';
 import DetallesSection, { Detalle } from '@/components/ui/DetallesSection';
 import EstadoSection from '@/components/ui/EstadoSection';
-import MedioPagoSection from '@/components/ui/MedioPagoSection';
 import VehiculoSection, { VehiculoSectionRef } from '@/components/ui/VehiculoSection';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PagosSection from '@/components/ui/PagosSection';
+import DatePicker from '@/components/ui/DataPicker';
+import { getArgentinaToday } from '@/utils/dateFormat';
 
 type TipoDocumento = 'OT' | 'FC';
 
 type CatalogItem = { id: number; nombre: string };
 
 type FormData = {
-    // Header negocio
     tipo_documento: TipoDocumento;
     numero_orden: string;
     compania_seguro_id: number | null;
     es_garantia: boolean;
     fecha_entrega_estimada: string;
-
-    // Cliente / Vehículo
     titular_id: number | null;
     nuevo_titular: any | null;
     vehiculo_id: number | null;
     nuevo_vehiculo: any | null;
-
-    // Orden
     estado_id: number | null;
-    pagos: any[];
+    pagos: Array<{
+        medio_de_pago_id: number | string;
+        monto: number | string;
+        fecha: string;
+        pagado: boolean;
+        observacion: string;
+    }>;
     observacion: string;
     fecha: string;
-
-    // Detalles
     detalles: Detalle[];
     numero_orden_manual: boolean;
 };
@@ -42,7 +43,7 @@ type Props = {
     titulares: any[];
     estados: any[];
     mediosDePago: any[];
-    articulos?: any[]; // tipalo si ya tenés DTO definido en DetallesSection
+    articulos?: any[];
     companiasSeguros?: CatalogItem[];
 };
 
@@ -53,45 +54,36 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
         return `${prefix}-${suffix}`;
     };
 
-    // Detalle inicial alineado a tu Detalle (incluye articulo_id y atributos)
     const detalleInicial: Detalle = {
         articulo_id: null,
         descripcion: '',
-        valor: '', // string vacío para que funcione el placeholder
+        valor: '',
         cantidad: 1,
-        colocacion_incluida: true, // Por defecto: Colocación
+        colocacion_incluida: true,
         atributos: {} as any,
     } as Detalle;
 
-    // 1) Initial values tipados
     const initialValues: FormData = {
         tipo_documento: 'OT',
         numero_orden: '',
         compania_seguro_id: null,
         es_garantia: false,
         fecha_entrega_estimada: '',
-
         titular_id: null,
         nuevo_titular: null,
         vehiculo_id: null,
         nuevo_vehiculo: null,
-
         estado_id: null,
         pagos: [],
         observacion: '',
         fecha: '',
         numero_orden_manual: false,
-
-        detalles: [detalleInicial], // o tu objeto literal
+        detalles: [detalleInicial],
     };
 
-    // 2) useForm SIN genérico (evita TS2589)
     const form = useForm(initialValues as any);
-
-    // 3) Tipos controlados (sin inferencia “infinita”)
     const data = form.data as FormData;
     const setData = form.setData;
-    const post = form.post;
     const processing = form.processing;
     const errors = form.errors as Record<string, string>;
 
@@ -100,27 +92,21 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
     };
 
     type UiErrors = Record<string, string>;
-
-    // “Aplanamos” errores de Inertia a un diccionario simple para la UI
     const uiErrors: UiErrors = errors as unknown as UiErrors;
 
     const clienteRef = useRef<ClienteSectionRef>(null);
     const vehiculoRef = useRef<VehiculoSectionRef>(null);
 
-    // Estado local para errores de formulario (resaltado visual inline)
     const [localErrors, setLocalErrors] = useState<Record<string, string>>({});
-
-    // Combinar errores del backend con errores locales
     const allErrors = { ...uiErrors, ...localErrors };
 
-    // Merge setter (evita pisadas por closure con "data")
     const mergeForm = (patch: Partial<FormData>) => {
         setData((prev: FormData) => ({ ...prev, ...patch }));
     };
 
-    // Defaults iniciales: fecha + numero_orden
+    // Defaults iniciales con fecha Argentina
     useEffect(() => {
-        const hoy = new Date().toISOString().split('T')[0];
+        const hoy = getArgentinaToday(); // Usa UTC-3
 
         setData((prev: FormData) => ({
             ...prev,
@@ -129,28 +115,6 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
         }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    // Recalcular número al cambiar OT/FC (si querés NO pisarlo cuando el usuario lo edita, te lo ajusto)
-    useEffect(() => {
-        setData((prev: FormData) => ({
-            ...prev,
-            numero_orden: generarNumeroOrden(prev.tipo_documento),
-        }));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data.tipo_documento]);
-
-    // Vehículos del titular seleccionado
-    const vehiculosDelTitular = titulares.find((t: any) => t.id === data.titular_id)?.vehiculos || [];
-
-    // Limpiar vehículo si cambia titular
-    useEffect(() => {
-        setData((prev: FormData) => ({
-            ...prev,
-            vehiculo_id: null,
-            nuevo_vehiculo: null,
-        }));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data.titular_id]);
 
     useEffect(() => {
         setData((prev: FormData) => {
@@ -162,6 +126,17 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data.tipo_documento]);
+
+    const vehiculosDelTitular = titulares.find((t: any) => t.id === data.titular_id)?.vehiculos || [];
+
+    useEffect(() => {
+        setData((prev: FormData) => ({
+            ...prev,
+            vehiculo_id: null,
+            nuevo_vehiculo: null,
+        }));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [data.titular_id]);
 
     const totalOrden = useMemo(() => {
         return (data.detalles || []).reduce((acc: number, curr: any) => {
@@ -178,18 +153,15 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
         const vehiculoOk = vehiculoRef.current?.validate();
         if (!vehiculoOk) return toast.error('Por favor completá los datos del vehículo.');
 
-        // Filtrar detalles vacíos (sin artículo seleccionado)
         const detallesValidos = data.detalles.filter(d => d.articulo_id);
 
         if (detallesValidos.length === 0) {
             return toast.error('Agregá al menos un artículo a la orden.');
         }
 
-        // Validar campos y resaltar con error
         const errores: Record<string, string> = {};
         let hayErrores = false;
 
-        // Validar fecha de entrega estimada
         if (!data.fecha_entrega_estimada) {
             errores['fecha_entrega_estimada'] = 'Ingresá una fecha de entrega estimada.';
             hayErrores = true;
@@ -198,15 +170,12 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
             hayErrores = true;
         }
 
-        // Validar estado
         if (!data.estado_id) {
             errores['estado_id'] = 'Seleccioná un estado para la orden.';
             hayErrores = true;
         }
 
-        // Validar detalles usando índice original
         data.detalles.forEach((d, idx) => {
-            // Solo validar detalles que tienen artículo seleccionado
             if (d.articulo_id && (!d.valor || Number(d.valor) <= 0)) {
                 errores[`detalles.${idx}.valor`] = 'Sin precio';
                 hayErrores = true;
@@ -216,7 +185,6 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
         setLocalErrors(errores);
 
         if (hayErrores) {
-            // Mensaje según el tipo de error
             const mensajesError: string[] = [];
             if (errores['fecha_entrega_estimada']) mensajesError.push('Ingresá una fecha de entrega estimada.');
             if (errores['estado_id']) mensajesError.push('Seleccioná un estado para la orden.');
@@ -234,14 +202,12 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
 
         router.post('/ordenes', dataToSend as any, {
             onError: (errs) => {
-                // Limpiar toasts anteriores antes de mostrar nuevos
                 toast.dismiss();
 
                 const mensajes = Object.values(errs as Record<string, string>);
                 if (mensajes.length === 1) {
                     toast.error(mensajes[0]);
                 } else if (mensajes.length > 1) {
-                    // Mostrar un único toast con lista de errores
                     toast.error(
                         <div>
                             <strong>Corregí los siguientes errores:</strong>
@@ -265,7 +231,6 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
             <Head title={tituloPantalla} />
 
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                {/* Header */}
                 <div className="mb-8">
                     <div className="mb-3 flex items-center gap-3">
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500 shadow-lg">
@@ -280,10 +245,9 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                     </div>
                 </div>
 
-                {/* Card principal */}
                 <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-8 shadow-xl">
                     <form onSubmit={handleSubmit} className="space-y-8">
-                        {/* Tipo documento OT/FC + número + garantía */}
+                        {/* Tipo documento */}
                         <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                                 <div>
@@ -347,29 +311,27 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                             </div>
                         </div>
 
-                        {/* Fecha + entrega estimada */}
+                        {/* Fechas */}
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>
                                 <label className="mb-2 block text-sm font-semibold text-gray-800">Fecha *</label>
-                                <input
-                                    type="date"
+                                <DatePicker
                                     value={data.fecha}
-                                    onChange={(e) => setField('fecha', e.target.value)}
-                                    className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 ... ${allErrors.fecha ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                        }`}
+                                    onChange={(date: string) => setField('fecha', date)}
+                                    error={!!allErrors.fecha}
+                                    placeholder="Seleccionar fecha"
                                 />
                                 {allErrors.fecha && <p className="mt-2 text-sm text-red-600">{allErrors.fecha}</p>}
                             </div>
 
                             <div>
                                 <label className="mb-2 block text-sm font-semibold text-gray-800">Fecha de entrega estimada *</label>
-                                <input
-                                    type="date"
+                                <DatePicker
                                     value={data.fecha_entrega_estimada}
-                                    min={data.fecha || undefined}
-                                    onChange={(e) => setField('fecha_entrega_estimada', e.target.value)}
-                                    className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 ... ${allErrors.fecha_entrega_estimada ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                        }`}
+                                    onChange={(date: string) => setField('fecha_entrega_estimada', date)}
+                                    minDate={data.fecha || undefined}
+                                    error={!!allErrors.fecha_entrega_estimada}
+                                    placeholder="Seleccionar fecha de entrega"
                                 />
                                 {allErrors.fecha_entrega_estimada && (
                                     <p className="mt-2 text-sm text-red-600">{allErrors.fecha_entrega_estimada}</p>
@@ -377,14 +339,13 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                             </div>
                         </div>
 
-                        {/* Compañía de seguros */}
+                        {/* Compañía seguros */}
                         <div>
                             <label className="mb-2 block text-sm font-semibold text-gray-800">Compañía de seguros</label>
                             <select
                                 value={data.compania_seguro_id ?? ''}
                                 onChange={(e) => {
                                     const value = e.target.value ? Number(e.target.value) : null;
-
                                     setData((prev: FormData) => ({
                                         ...prev,
                                         compania_seguro_id: value,
@@ -400,16 +361,12 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                                     </option>
                                 ))}
                             </select>
-
                             {(errors as any).compania_seguro_id && <p className="mt-2 text-sm text-red-600">{(errors as any).compania_seguro_id}</p>}
                         </div>
 
-                        {/* Cliente y Vehículo */}
                         <ClienteSection ref={clienteRef} titulares={titulares} formData={data} setFormData={(nd: any) => mergeForm(nd)} />
-
                         <VehiculoSection ref={vehiculoRef} vehiculos={vehiculosDelTitular} formData={data} setFormData={(nd: any) => mergeForm(nd)} />
 
-                        {/* Detalles (fix TS2589: setDetalles con updater y casteo controlado) */}
                         <DetallesSection
                             detalles={data.detalles}
                             articulos={articulos}
@@ -422,19 +379,16 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                             }}
                         />
 
-                        {/* Medio de Pago */}
-                        <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
-                            <MedioPagoSection
+                        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                            <PagosSection
+                                pagos={data.pagos}
+                                setPagos={(pagos) => setData((prev: FormData) => ({ ...prev, pagos }))}
                                 mediosDePago={mediosDePago}
-                                formData={data}
-                                setFormData={(nd: any) => mergeForm(nd)}
-                                errors={errors as Record<string, string>}
                                 totalOrden={totalOrden}
-                                companiaSeguroId={data.compania_seguro_id}
+                                errors={errors as Record<string, string>}
                             />
                         </div>
 
-                        {/* Estado */}
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <EstadoSection
                                 estados={estados}
@@ -444,7 +398,6 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                             />
                         </div>
 
-                        {/* Observación */}
                         <div>
                             <label className="mb-2 block text-sm font-semibold text-gray-800">Observación</label>
                             <textarea
@@ -461,7 +414,6 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                             />
                         </div>
 
-                        {/* Botones */}
                         <div className="flex gap-4 border-t border-gray-200 pt-6">
                             <button
                                 type="submit"

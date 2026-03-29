@@ -98,15 +98,25 @@ abstract class MovimientoController extends Controller
 
     /**
      * Mostrar un movimiento específico
+     * FIX: Usar $id en vez de route model binding
      */
     public function show($id)
     {
-        $movimiento = Movimiento::with(['concepto', 'medioDePago', 'comprobantes'])->findOrFail($id);
+        // Cargar el movimiento con TODAS sus relaciones
+        $movimiento = Movimiento::with([
+            'concepto',
+            'medioDePago',
+            'comprobantes',
+            'ordenDeTrabajo'
+        ])->findOrFail($id);
+
+        // Determinar el label según el tipo del movimiento
+        $label = $movimiento->tipo === 'ingreso' ? 'Ingreso' : 'Egreso';
 
         return Inertia::render('movimientos/show', [
             'movimiento' => $movimiento,
-            'label' => ucfirst($this->label),
-            'tipo' => $this->tipo,
+            'label' => $label,
+            'tipo' => $movimiento->tipo, // Usar tipo del movimiento
         ]);
     }
 
@@ -133,14 +143,7 @@ abstract class MovimientoController extends Controller
      */
     public function update(Request $request, $id)
     {
-    //     dd(
-    //     $request->headers->get('content-type'),
-    //     $request->all(),
-    //     $request->allFiles()
-    // );
-
         $movimiento = Movimiento::findOrFail($id);
-        //dd($request->all());
 
         $data = $request->validate([
             'fecha'                  => 'required|date',
@@ -182,7 +185,6 @@ abstract class MovimientoController extends Controller
         return redirect()->route($this->ruta . '.index')
             ->with('success', $this->label . ' actualizado correctamente');
     }
-
 
     /**
      * Eliminar un movimiento

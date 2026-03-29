@@ -4,12 +4,14 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 import DeleteButton from "@/components/botones/boton-eliminar";
 import EditButton from "@/components/botones/boton-editar";
 import ViewButton from "@/components/botones/boton-ver";
+import { formatDateToArgentina } from "@/utils/dateFormat";
+import { CheckCircle, AlertCircle } from "lucide-react";
 
 type Vehiculo = {
   id: number;
   patente: string;
-  marca?: { nombre: string }; // Ahora es objeto opcional
-  modelo?: { nombre: string }; // Ahora es objeto opcional
+  marca?: { nombre: string };
+  modelo?: { nombre: string };
   anio: number;
 };
 
@@ -30,24 +32,19 @@ type Estado = {
   nombre: string;
 };
 
-type MedioDePago = {
-  id: number;
-  nombre: string;
-};
-
 type Orden = {
   id: number;
   fecha: string;
   observacion: string | null;
   titular_vehiculo: TitularVehiculo | null;
   estado: Estado;
-  medio_de_pago: MedioDePago;
+  estado_pago?: string; // Agregado desde el controller
 };
 
 type Filters = {
   q?: string;
   estado_id?: string | number;
-  con_factura?: string | number; // "1" | "0"
+  con_factura?: string | number;
   date_from?: string;
   date_to?: string;
   per_page?: number | string;
@@ -56,19 +53,11 @@ type Filters = {
 export default function Index({ ordenes }: { ordenes: any }) {
   const { delete: destroy } = useForm();
 
-  /**
-   * Requisitos para que esto funcione:
-   * - El backend debe devolver:
-   *   - filters: { q, estado_id, medio_pago_id, date_from, date_to, per_page }
-   *   - estados: [{id, nombre}] (opcional pero recomendado)
-   *   - mediosPago: [{id, nombre}] (opcional pero recomendado)
-   */
   const page = usePage();
   const props = page.props as any;
 
   const backendFilters: Filters = props.filters || {};
   const estados: Estado[] = props.estados || [];
-  // const mediosPago: MedioDePago[] = props.mediosPago || [];
 
   const [filters, setFilters] = useState<Required<Filters>>({
     q: backendFilters.q ?? "",
@@ -81,14 +70,6 @@ export default function Index({ ordenes }: { ordenes: any }) {
 
   const listaOrdenes: Orden[] = ordenes?.data || [];
   const links = ordenes?.links || [];
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-AR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-  };
 
   function handleDelete(id: number) {
     if (confirm("¿Seguro que querés eliminar esta orden?")) {
@@ -115,7 +96,7 @@ export default function Index({ ordenes }: { ordenes: any }) {
 
   const last7FromISO = useMemo(() => {
     const d = new Date();
-    d.setDate(d.getDate() - 6); // incluye hoy => 7 días
+    d.setDate(d.getDate() - 6);
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
@@ -128,7 +109,6 @@ export default function Index({ ordenes }: { ordenes: any }) {
       ...next,
     };
 
-    // Limpieza: no mandar vacíos
     const cleaned: any = {};
     Object.entries(payload).forEach(([k, v]) => {
       if (v === null || v === undefined) return;
@@ -147,7 +127,6 @@ export default function Index({ ordenes }: { ordenes: any }) {
     setFilters({
       q: "",
       estado_id: "",
-      // medio_pago_id: "",
       con_factura: "",
       date_from: "",
       date_to: "",
@@ -165,7 +144,46 @@ export default function Index({ ordenes }: { ordenes: any }) {
     );
   }
 
-const returnUrl = `${window.location.pathname}${window.location.search}`;
+  const returnUrl = `${window.location.pathname}${window.location.search}`;
+
+  // Función para renderizar el badge de estado de pago
+  const renderEstadoPago = (estado: string | undefined) => {
+    if (!estado) {
+      return <span className="text-sm text-gray-400">-</span>;
+    }
+
+    switch (estado) {
+      case 'Pagado':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">
+            <CheckCircle className="w-3.5 h-3.5" />
+            Pagado
+          </span>
+        );
+      case 'Pago parcial':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 border border-yellow-200">
+            <AlertCircle className="w-3.5 h-3.5" />
+            Parcial
+          </span>
+        );
+      case 'Sobrepago':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
+            <AlertCircle className="w-3.5 h-3.5" />
+            Sobrepago
+          </span>
+        );
+      case 'Sin pagar':
+      default:
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
+            <AlertCircle className="w-3.5 h-3.5" />
+            Sin pagar
+          </span>
+        );
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -221,23 +239,6 @@ const returnUrl = `${window.location.pathname}${window.location.search}`;
                 ))}
               </select>
             </div>
-
-            {/* Medio de pago */}
-            {/* <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-gray-600 mb-1">Medio de pago</label>
-              <select
-                value={filters.medio_pago_id as any}
-                onChange={(e) => setFilters((p) => ({ ...p, medio_pago_id: e.target.value }))}
-                className="w-full rounded-lg border-gray-300 focus:border-gray-400 focus:ring-gray-200 text-sm"
-              >
-                <option value="">Todos</option>
-                {mediosPago.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.nombre}
-                  </option>
-                ))}
-              </select>
-            </div> */}
 
             {/* Factura */}
             <div className="md:col-span-2">
@@ -385,7 +386,7 @@ const returnUrl = `${window.location.pathname}${window.location.search}`;
                         Estado
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Medio de Pago
+                        Estado de Pago
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Acciones
@@ -399,7 +400,7 @@ const returnUrl = `${window.location.pathname}${window.location.search}`;
                         className="hover:bg-gray-50 transition"
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {formatDate(orden.fecha)}
+                          {formatDateToArgentina(orden.fecha)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {orden.titular_vehiculo?.titular
@@ -417,7 +418,7 @@ const returnUrl = `${window.location.pathname}${window.location.search}`;
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {"Ver detalle"}
+                          {renderEstadoPago(orden.estado_pago)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex justify-end gap-2">

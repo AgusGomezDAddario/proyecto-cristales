@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Articulo;
 use App\Models\CompaniaSeguro;
+use App\Models\Concepto;
 use App\Models\DetalleOrdenAtributo;
 use App\Models\DetalleOrdenDeTrabajo;
 use App\Models\Estado;
@@ -22,8 +23,6 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use App\Models\OrdenDeTrabajoHistorialEstado;
 
-
-
 class OrdenDeTrabajoController extends Controller
 {
     public function index(Request $request)
@@ -36,6 +35,7 @@ class OrdenDeTrabajoController extends Controller
                 'titularVehiculo.vehiculo.marca',
                 'titularVehiculo.vehiculo.modelo',
                 'estado',
+                'pagos',
             ])
             ->when($request->filled('q'), function ($query) use ($request) {
                 $q = $request->q;
@@ -68,6 +68,30 @@ class OrdenDeTrabajoController extends Controller
             ->orderByDesc('fecha')
             ->paginate($perPage)
             ->withQueryString();
+
+        // Calcular estado de pago para cada orden
+        $ordenes->getCollection()->transform(function ($orden) {
+            $totalOrden = $orden->detalles->sum(function ($detalle) {
+                return $detalle->valor * $detalle->cantidad;
+            });
+
+            $totalPagado = $orden->pagos->where('pagado', true)->sum('valor');
+            $saldoPendiente = $totalOrden - $totalPagado;
+
+            if ($totalOrden == 0) {
+                $orden->estado_pago = 'Sin pagar';
+            } elseif ($saldoPendiente < 0) {
+                $orden->estado_pago = 'Sobrepago';
+            } elseif ($saldoPendiente == 0) {
+                $orden->estado_pago = 'Pagado';
+            } elseif ($totalPagado > 0 && $saldoPendiente > 0) {
+                $orden->estado_pago = 'Pago parcial';
+            } else {
+                $orden->estado_pago = 'Sin pagar';
+            }
+
+            return $orden;
+        });
 
         $estados = Estado::select('id', 'nombre')
             ->orderBy('nombre')
@@ -124,16 +148,12 @@ class OrdenDeTrabajoController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            // Cabecera
             'estado_id' => 'required|exists:estado,id',
             'fecha' => 'required|date',
             'fecha_entrega_estimada' => 'required|date|after_or_equal:fecha',
             'observacion' => 'nullable|string|max:500',
-
-            // Compatibilidad: algunos front envian con_factura, otros tipo_documento
             'con_factura' => 'nullable|boolean',
             'tipo_documento' => 'nullable|in:FC,OT',
-
             'compania_seguro_id' => [
                 'nullable',
                 'integer',
@@ -141,8 +161,6 @@ class OrdenDeTrabajoController extends Controller
             ],
             'es_garantia' => 'required|boolean',
             'numero_orden' => 'nullable|string|max:32',
-
-            // Detalles
             'detalles' => 'required|array|min:1',
             'detalles.*.articulo_id' => 'required|integer|exists:articulos,id',
             'detalles.*.descripcion' => 'nullable|string|max:255',
@@ -151,26 +169,22 @@ class OrdenDeTrabajoController extends Controller
             'detalles.*.colocacion_incluida' => 'boolean',
             'detalles.*.atributos' => 'nullable|array',
             'detalles.*.atributos.*' => 'nullable|integer|exists:subcategorias,id',
-
-            // Pagos
             'pagos' => 'required|array|min:1',
             'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
-            'pagos.*.monto' => 'required|numeric|min:0',
+            'pagos.*.monto' => 'required|numeric',
+            'pagos.*.fecha' => 'required|date',
+            'pagos.*.pagado' => 'required|boolean',
             'pagos.*.observacion' => 'nullable|string|max:255',
-
-            // Identidad cliente/vehiculo
             'titular_id' => 'nullable|integer|exists:titular,id',
             'vehiculo_id' => 'nullable|integer|exists:vehiculo,id',
             'nuevo_titular' => 'nullable|array',
             'nuevo_vehiculo' => 'nullable|array',
         ], [
-            // Mensajes personalizados más claros
             'estado_id.required' => 'Seleccioná un estado para la orden.',
             'fecha.required' => 'La fecha de la orden es obligatoria.',
             'fecha_entrega_estimada.required' => 'Ingresá una fecha de entrega estimada.',
             'fecha_entrega_estimada.after_or_equal' => 'La fecha de entrega no puede ser anterior a la fecha de la orden.',
             'es_garantia.required' => 'Indicá si es una garantía.',
-
             'detalles.required' => 'Agregá al menos un artículo a la orden.',
             'detalles.min' => 'Agregá al menos un artículo a la orden.',
             'detalles.*.articulo_id.required' => 'Hay artículos sin seleccionar.',
@@ -179,14 +193,42 @@ class OrdenDeTrabajoController extends Controller
             'detalles.*.valor.min' => 'El precio de los artículos no puede ser negativo.',
             'detalles.*.cantidad.required' => 'Hay artículos sin cantidad especificada.',
             'detalles.*.cantidad.min' => 'La cantidad de cada artículo debe ser al menos 1.',
-
             'pagos.required' => 'Agregá al menos un medio de pago.',
             'pagos.min' => 'Agregá al menos un medio de pago.',
             'pagos.*.medio_de_pago_id.required' => 'Seleccioná un medio de pago.',
             'pagos.*.medio_de_pago_id.exists' => 'El medio de pago seleccionado no existe.',
             'pagos.*.monto.required' => 'Ingresá el monto del pago.',
-            'pagos.*.monto.min' => 'El monto no puede ser negativo.',
+            'pagos.*.fecha.required' => 'Ingresá la fecha del pago.',
+            'pagos.*.fecha.date' => 'La fecha del pago debe ser válida.',
         ]);
+
+        $totalOrden = collect($validated['detalles'])->reduce(function ($acc, $detalle) {
+            return $acc + (floatval($detalle['valor']) * intval($detalle['cantidad']));
+        }, 0);
+
+    // --- NUEVA VALIDACIÓN PARA CREACIÓN ---
+        $estadoFinalizada = Estado::where('nombre', 'Finalizada')->first();
+
+        if ($estadoFinalizada && (int)$validated['estado_id'] === $estadoFinalizada->id) {
+            // Sumamos los montos de los pagos que se están enviando como "pagado"
+            $totalPagado = collect($validated['pagos'])
+                ->where('pagado', true)
+                ->sum('monto');
+
+            if ($totalPagado < $totalOrden) {
+                $falta = $totalOrden - $totalPagado;
+                return back()
+                    ->withErrors(['estado_id' => "No puedes crear una orden 'Finalizada' si no está totalmente pagada. Saldo pendiente: $".number_format($falta, 2)])
+                    ->withInput();
+            }
+        }
+        // --- FIN DE VALIDACIÓN ---
+
+        if ($totalOrden <= 0) {
+            return back()
+                ->withErrors(['detalles' => 'El total de la orden debe ser mayor a $0.'])
+                ->withInput();
+        }
 
         $data = $request->all();
 
@@ -205,7 +247,6 @@ class OrdenDeTrabajoController extends Controller
             : (($validated['tipo_documento'] ?? 'OT') === 'FC');
 
         $orden = DB::transaction(function () use ($data, $validated, $conFactura) {
-            // 1) Crear titular si corresponde
             if (empty($data['titular_id']) && !empty($data['nuevo_titular'])) {
                 $nuevoTitular = Titular::create([
                     'nombre' => $data['nuevo_titular']['nombre'] ?? '',
@@ -216,7 +257,6 @@ class OrdenDeTrabajoController extends Controller
                 $data['titular_id'] = $nuevoTitular->id;
             }
 
-            // 2) Crear vehículo si corresponde
             if (empty($data['vehiculo_id']) && !empty($data['nuevo_vehiculo'])) {
                 $nuevoVehiculo = Vehiculo::create([
                     'patente' => strtoupper($data['nuevo_vehiculo']['patente']),
@@ -227,13 +267,11 @@ class OrdenDeTrabajoController extends Controller
                 $data['vehiculo_id'] = $nuevoVehiculo->id;
             }
 
-            // 3) Pivot titular-vehiculo
             $pivot = TitularVehiculo::firstOrCreate([
                 'titular_id' => $data['titular_id'],
                 'vehiculo_id' => $data['vehiculo_id'],
             ]);
 
-            // 4) Crear OT
             $orden = OrdenDeTrabajo::create([
                 'titular_vehiculo_id' => $pivot->id,
                 'estado_id' => $validated['estado_id'],
@@ -246,25 +284,28 @@ class OrdenDeTrabajoController extends Controller
                 'compania_seguro_id' => $validated['compania_seguro_id'] ?? null,
             ]);
 
-            // 👇 Guardar estado inicial en historial
             OrdenDeTrabajoHistorialEstado::create([
                 'orden_de_trabajo_id' => $orden->id,
                 'estado_id' => $orden->estado_id,
                 'user_id' => auth()->id()
             ]);
 
-
-            // 5) Pagos
             foreach (($validated['pagos'] ?? []) as $pago) {
+                $pagado = $pago['pagado'] ?? false;
+                $bloqueado = $pagado;
+
                 Precio::create([
                     'orden_de_trabajo_id' => $orden->id,
                     'medio_de_pago_id' => $pago['medio_de_pago_id'],
                     'valor' => $pago['monto'],
+                    'fecha' => $pago['fecha'],
+                    'pagado' => $pagado,
+                    'bloqueado' => $bloqueado,
+                    'movimiento_registrado' => false,
                     'observacion' => $pago['observacion'] ?? null,
                 ]);
             }
 
-            // 6) Detalles + atributos
             foreach (($validated['detalles'] ?? []) as $detalle) {
                 $detalleCreado = DetalleOrdenDeTrabajo::create([
                     'orden_de_trabajo_id' => $orden->id,
@@ -298,64 +339,29 @@ class OrdenDeTrabajoController extends Controller
             return $orden;
         });
 
-        // Si se creó con estado "Pagado", registrar ingresos
-        if ((int) $orden->estado_id === 1) {
-            $this->registrarIngresosDesdeOT($orden);
-        }
+        // NUEVO: Procesar movimientos para pagos bloqueados
+        $this->procesarPagosYMovimientos($orden);
 
         return redirect()
             ->route('ordenes.index')
             ->with('success', 'Orden creada correctamente ✅ (ID: ' . $orden->id . ')');
     }
 
-    private function registrarIngresosDesdeOT(OrdenDeTrabajo $orden): void
-    {
-        try {
-            $orden = $orden->fresh(['pagos']);
-            $pagos = $orden->pagos ?? collect();
-
-            if ($pagos->isEmpty()) {
-                Log::warning("La OT #{$orden->id} no tiene pagos registrados.");
-                return;
-            }
-
-            foreach ($pagos as $pago) {
-                Movimiento::create([
-                    'fecha' => $orden->fecha,
-                    'monto' => $pago->valor,
-                    'concepto_id' => 3,
-                    'medio_de_pago_id' => $pago->medio_de_pago_id,
-                    'comprobante' => "OT-{$orden->id}",
-                    'tipo' => 'ingreso',
-                ]);
-            }
-
-            Log::info("Ingresos registrados para la OT #{$orden->id}");
-        } catch (\Exception $e) {
-            Log::error("Error al registrar ingresos para OT #{$orden->id}: " . $e->getMessage());
-        }
-    }
-
     public function update(Request $request, OrdenDeTrabajo $orden)
     {
         $validated = $request->validate([
-            // Cliente / Vehículo (editable)
             'titular_id' => 'nullable|integer|exists:titular,id',
             'vehiculo_id' => 'nullable|integer|exists:vehiculo,id',
-
             'nuevo_titular' => 'nullable|array',
             'nuevo_titular.nombre' => 'required_without:titular_id|string|max:48',
             'nuevo_titular.apellido' => 'required_without:titular_id|string|max:48',
             'nuevo_titular.telefono' => 'nullable|string|max:20',
             'nuevo_titular.email' => 'nullable|email|max:48',
-
             'nuevo_vehiculo' => 'nullable|array',
             'nuevo_vehiculo.patente' => 'required_without:vehiculo_id|string|max:10',
             'nuevo_vehiculo.marca_id' => 'nullable|integer|exists:marcas,id',
             'nuevo_vehiculo.modelo_id' => 'nullable|integer|exists:modelos,id',
             'nuevo_vehiculo.anio' => 'nullable|integer|min:1900|max:' . date('Y'),
-
-            // Cabecera
             'estado_id' => 'required|exists:estado,id',
             'fecha' => 'required|date',
             'observacion' => 'nullable|string|max:500',
@@ -368,25 +374,52 @@ class OrdenDeTrabajoController extends Controller
                 'integer',
                 Rule::exists('companias_seguros', 'id')->whereNull('deleted_at')->where('activo', 1),
             ],
-
-            // Detalles
             'detalles' => 'required|array|min:1',
             'detalles.*.articulo_id' => 'required|integer|exists:articulos,id',
             'detalles.*.descripcion' => 'nullable|string|max:255',
             'detalles.*.valor' => 'required|numeric|min:0',
             'detalles.*.cantidad' => 'required|integer|min:1',
             'detalles.*.colocacion_incluida' => 'boolean',
-
-            // Atributos
             'detalles.*.atributos' => 'nullable|array',
             'detalles.*.atributos.*' => 'nullable|integer|exists:subcategorias,id',
-
-            // Pagos
             'pagos' => 'required|array|min:1',
+            'pagos.*.id' => 'nullable|integer',
             'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
-            'pagos.*.monto' => 'required|numeric|min:0',
+            'pagos.*.monto' => 'required|numeric',
+            'pagos.*.fecha' => 'required|date',
+            'pagos.*.pagado' => 'required|boolean',
+            'pagos.*.bloqueado' => 'nullable|boolean',
             'pagos.*.observacion' => 'nullable|string|max:255',
         ]);
+
+        $totalOrden = collect($validated['detalles'])->reduce(function ($acc, $detalle) {
+            return $acc + (floatval($detalle['valor']) * intval($detalle['cantidad']));
+        }, 0);
+
+// --- NUEVA VALIDACIÓN DE ESTADO FINALIZADA ---
+            $estadoFinalizada = Estado::where('nombre', 'Finalizada')->first();
+            
+            if ($estadoFinalizada && (int)$validated['estado_id'] === $estadoFinalizada->id) {
+                // Calculamos lo que ya está pagado (incluyendo los que se están enviando ahora como pagados)
+                $totalPagado = collect($validated['pagos'])
+                    ->where('pagado', true)
+                    ->sum('monto');
+
+                if ($totalPagado < $totalOrden) {
+                    $falta = $totalOrden - $totalPagado;
+                    return back()
+                        ->withErrors(['estado_id' => "No se puede finalizar la OT: El saldo pendiente es de $".number_format($falta, 2)])
+                        ->withInput();
+                }
+            }
+            // --- FIN DE VALIDACIÓN ---
+
+            if ($totalOrden <= 0) {
+        // ... (resto del código)
+            return back()
+                ->withErrors(['detalles' => 'El total de la orden debe ser mayor a $0.'])
+                ->withInput();
+        }
 
         $data = $request->all();
 
@@ -440,16 +473,13 @@ class OrdenDeTrabajoController extends Controller
                 'compania_seguro_id' => $validated['compania_seguro_id'] ?? null,
             ]);
 
-            // Si cambió el estado, guardamos en historial
             if ($estadoAnterior !== (int) $orden->estado_id) {
-
                 OrdenDeTrabajoHistorialEstado::create([
                     'orden_de_trabajo_id' => $orden->id,
                     'estado_id' => $orden->estado_id,
                     'user_id' => auth()->id()
                 ]);
             }
-
 
             foreach ($orden->detalles as $det) {
                 if (method_exists($det, 'atributos')) {
@@ -490,25 +520,100 @@ class OrdenDeTrabajoController extends Controller
                 }
             }
 
-            $orden->pagos()->delete();
+            // ACTUALIZAR PAGOS - NO TOCAR LOS BLOQUEADOS
+            $pagosBloqueados = $orden->pagos()
+                ->where('bloqueado', true)
+                ->pluck('id')
+                ->toArray();
 
-            foreach ($validated['pagos'] as $p) {
+            $orden->pagos()
+                ->whereNotIn('id', $pagosBloqueados)
+                ->delete();
+
+            foreach ($validated['pagos'] as $pago) {
+                $pagoId = $pago['id'] ?? null;
+
+                if ($pagoId && in_array($pagoId, $pagosBloqueados)) {
+                    continue;
+                }
+
+                $pagado = $pago['pagado'] ?? false;
+                $bloqueado = $pagado;
+
                 Precio::create([
                     'orden_de_trabajo_id' => $orden->id,
-                    'medio_de_pago_id' => $p['medio_de_pago_id'],
-                    'valor' => $p['monto'],
-                    'observacion' => $p['observacion'] ?? null,
+                    'medio_de_pago_id' => $pago['medio_de_pago_id'],
+                    'valor' => $pago['monto'],
+                    'fecha' => $pago['fecha'],
+                    'pagado' => $pagado,
+                    'bloqueado' => $bloqueado,
+                    'movimiento_registrado' => false,
+                    'observacion' => $pago['observacion'] ?? null,
                 ]);
             }
-
-            if ($estadoAnterior !== 1 && (int) $orden->estado_id === 1) {
-                $this->registrarIngresosDesdeOT($orden);
-            }
         });
+
+        // NUEVO: Procesar movimientos para pagos bloqueados
+        $this->procesarPagosYMovimientos($orden);
 
         return redirect()
             ->route('ordenes.show', $orden->id)
             ->with('success', 'Orden actualizada correctamente ✅');
+    }
+
+    /**
+     * Procesa los pagos bloqueados y crea los movimientos correspondientes
+     */
+    private function procesarPagosYMovimientos(OrdenDeTrabajo $orden): void
+    {
+        try {
+            $orden = $orden->fresh(['pagos']);
+            $pagos = $orden->pagos ?? collect();
+
+            if ($pagos->isEmpty()) {
+                Log::info("La OT #{$orden->id} no tiene pagos registrados.");
+                return;
+            }
+
+            foreach ($pagos as $pago) {
+                // Solo procesar pagos bloqueados que NO tengan movimiento registrado
+                if ($pago->bloqueado && !$pago->movimiento_registrado) {
+                    
+                    $monto = (float) $pago->valor;
+                    
+                    // Determinar tipo y concepto según el signo del monto
+                    if ($monto >= 0) {
+                        $tipo = Movimiento::TIPO_INGRESO;
+                        $montoParaGuardar = $monto;
+                        $conceptoId = 3; // Cobro a clientes
+                    } else {
+                        $tipo = Movimiento::TIPO_EGRESO;
+                        $montoParaGuardar = abs($monto);
+                        $conceptoId = 7; // Ajuste de cobro
+                    }
+                    
+                    // Crear el movimiento
+                    Movimiento::create([
+                        'fecha' => $pago->fecha ?? $orden->fecha,
+                        'monto' => $montoParaGuardar,
+                        'concepto_id' => $conceptoId,
+                        'medio_de_pago_id' => $pago->medio_de_pago_id,
+                        'comprobante' => "OT-{$orden->id}",
+                        'tipo' => $tipo,
+                        'orden_de_trabajo_id' => $orden->id,
+                    ]);
+                    
+                    // Marcar como registrado
+                    $pago->update(['movimiento_registrado' => true]);
+                    
+                    Log::info("Movimiento de {$tipo} creado para pago ID {$pago->id} de OT #{$orden->id} - Monto: {$monto}");
+                }
+            }
+
+        } catch (\Exception $e) {
+            Log::error("Error al procesar pagos de OT #{$orden->id}: " . $e->getMessage());
+            throw $e;
+        }
     }
 
     public function show(OrdenDeTrabajo $orden)
@@ -527,8 +632,24 @@ class OrdenDeTrabajoController extends Controller
             'historialEstados.user',
         ]);
 
+        $totalOrden = $orden->detalles->reduce(function ($acc, $detalle) {
+            return $acc + ($detalle->valor * $detalle->cantidad);
+        }, 0);
+
+        $totalPagado = $orden->pagos->where('pagado', true)->reduce(function ($acc, $pago) {
+            return $acc + $pago->valor;
+        }, 0);
+
+        $totalRegistrado = $orden->pagos->reduce(function ($acc, $pago) {
+            return $acc + $pago->valor;
+        }, 0);
+
         return Inertia::render('ordenes/show', [
             'orden' => $orden,
+            'totalOrden' => (float) $totalOrden,
+            'totalPagado' => (float) $totalPagado,
+            'totalRegistrado' => (float) $totalRegistrado,
+            'saldoPendiente' => (float) ($totalOrden - $totalPagado),
         ]);
     }
 
