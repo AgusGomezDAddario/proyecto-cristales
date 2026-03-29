@@ -386,7 +386,6 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                                 mediosDePago={mediosDePago}
                                 totalOrden={totalOrden}
                                 errors={errors as Record<string, string>}
-                                fechaOrden={data.fecha}
                             />
                         </div>
 

@@ -18,7 +18,6 @@ type Props = {
     mediosDePago: Array<{ id: number; nombre: string }>;
     totalOrden: number;
     errors?: Record<string, string>;
-    fechaOrden: string;
     modoEdicion?: boolean; // NUEVO: Para saber si estamos editando una OT existente
 };
 
@@ -28,7 +27,6 @@ export default function PagosSection({
     mediosDePago, 
     totalOrden, 
     errors = {}, 
-    fechaOrden,
     modoEdicion = false 
 }: Props) {
     // Calcular totales (considerando negativos)
@@ -246,7 +244,6 @@ export default function PagosSection({
                                                 <input
                                                     type="date"
                                                     value={pago.fecha}
-                                                    min={fechaOrden}
                                                     max={new Date().toISOString().split('T')[0]}
                                                     onChange={(e) => actualizarPago(index, 'fecha', e.target.value)}
                                                     disabled={esBloqueado}

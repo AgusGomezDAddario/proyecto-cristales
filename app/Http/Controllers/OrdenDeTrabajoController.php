@@ -172,7 +172,7 @@ class OrdenDeTrabajoController extends Controller
             'pagos' => 'required|array|min:1',
             'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
             'pagos.*.monto' => 'required|numeric',
-            'pagos.*.fecha' => 'required|date|before_or_equal:today|after_or_equal:fecha',
+            'pagos.*.fecha' => 'required|date',
             'pagos.*.pagado' => 'required|boolean',
             'pagos.*.observacion' => 'nullable|string|max:255',
             'titular_id' => 'nullable|integer|exists:titular,id',
@@ -200,8 +200,6 @@ class OrdenDeTrabajoController extends Controller
             'pagos.*.monto.required' => 'Ingresá el monto del pago.',
             'pagos.*.fecha.required' => 'Ingresá la fecha del pago.',
             'pagos.*.fecha.date' => 'La fecha del pago debe ser válida.',
-            'pagos.*.fecha.before_or_equal' => 'La fecha del pago no puede ser futura.',
-            'pagos.*.fecha.after_or_equal' => 'La fecha del pago no puede ser anterior a la fecha de la orden.',
         ]);
 
         $totalOrden = collect($validated['detalles'])->reduce(function ($acc, $detalle) {
@@ -388,7 +386,7 @@ class OrdenDeTrabajoController extends Controller
             'pagos.*.id' => 'nullable|integer',
             'pagos.*.medio_de_pago_id' => 'required|exists:medio_de_pago,id',
             'pagos.*.monto' => 'required|numeric',
-            'pagos.*.fecha' => 'required|date|before_or_equal:today|after_or_equal:fecha',
+            'pagos.*.fecha' => 'required|date',
             'pagos.*.pagado' => 'required|boolean',
             'pagos.*.bloqueado' => 'nullable|boolean',
             'pagos.*.observacion' => 'nullable|string|max:255',

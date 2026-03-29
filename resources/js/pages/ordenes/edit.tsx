@@ -365,7 +365,6 @@ export default function Edit({
                     mediosDePago={mediosDePago}
                     totalOrden={totalOrden}
                     errors={errors as Record<string, string>}
-                    fechaOrden={data.fecha}
                     modoEdicion={true}
                 />
             </div>
