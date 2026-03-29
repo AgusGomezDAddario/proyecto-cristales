@@ -66,6 +66,7 @@ class OrdenDeTrabajoController extends Controller
                 fn($q) => $q->whereDate('fecha', '<=', $request->date_to)
             )
             ->orderByDesc('fecha')
+            ->orderByDesc('orden_de_trabajo.id')
             ->paginate($perPage)
             ->withQueryString();
 
