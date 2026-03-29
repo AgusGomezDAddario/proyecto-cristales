@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, Head, router } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { User, Phone, Mail, Car, Calendar, FileText, DollarSign, CreditCard, AlertCircle, CheckCircle, ArrowLeft, Printer, Lock, Ban } from "lucide-react";
 import PrintableODT from "@/components/print/PrintableODT";
 import { formatDateToArgentina, formatDateTimeToArgentina } from '@/utils/dateFormat';
+import ConfirmAnularModal from "@/components/ConfirmAnularModal";
 
 type Atributo = {
   id: number;
@@ -77,10 +78,11 @@ export default function Show({
   const isFinalizada = orden.estado.nombre === 'Finalizada';
   const canModify = !isAnulada && !isFinalizada;
 
+  const [showAnularModal, setShowAnularModal] = useState(false);
+
   function handleAnular() {
-    if (confirm('¿Estás seguro de que querés anular esta orden?\n\nSi la OT ya generó ingresos en caja, se crearán movimientos de reversa (egresos) para compensar.')) {
-      router.delete(`/ordenes/${orden.id}`);
-    }
+    router.delete(`/ordenes/${orden.id}`);
+    setShowAnularModal(false);
   }
 
   return (
@@ -146,7 +148,7 @@ export default function Show({
             )}
             {canModify && (
               <button
-                onClick={handleAnular}
+                onClick={() => setShowAnularModal(true)}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition shadow-md hover:shadow-lg"
               >
                 <Ban className="w-4 h-4" />
@@ -310,10 +312,10 @@ export default function Show({
                         <div
                           key={pago.id}
                           className={`flex items-start justify-between p-4 rounded-xl border transition ${pago.bloqueado
-                              ? 'bg-slate-50/50 border-slate-300'
-                              : pago.pagado
-                                ? 'bg-green-50/50 border-green-200'
-                                : 'bg-gray-50 border-gray-100 hover:border-gray-200'
+                            ? 'bg-slate-50/50 border-slate-300'
+                            : pago.pagado
+                              ? 'bg-green-50/50 border-green-200'
+                              : 'bg-gray-50 border-gray-100 hover:border-gray-200'
                             }`}
                         >
                           <div className="flex gap-4 flex-1">
@@ -560,6 +562,14 @@ export default function Show({
 
       {/* Componente de impresión profesional */}
       <PrintableODT orden={orden as any} />
+
+      {/* Modal de confirmación de anulación */}
+      <ConfirmAnularModal
+        open={showAnularModal}
+        onClose={() => setShowAnularModal(false)}
+        onConfirm={handleAnular}
+        ordenId={orden.id}
+      />
     </DashboardLayout>
   );
 }

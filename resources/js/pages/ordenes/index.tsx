@@ -5,6 +5,7 @@ import EditButton from "@/components/botones/boton-editar";
 import ViewButton from "@/components/botones/boton-ver";
 import { formatDateToArgentina } from "@/utils/dateFormat";
 import { CheckCircle, AlertCircle } from "lucide-react";
+import ConfirmAnularModal from "@/components/ConfirmAnularModal";
 
 type Vehiculo = {
   id: number;
@@ -70,9 +71,12 @@ export default function Index({ ordenes }: { ordenes: any }) {
   const listaOrdenes: Orden[] = ordenes?.data || [];
   const links = ordenes?.links || [];
 
-  function handleAnular(id: number) {
-    if (confirm('¿Seguro que querés anular esta orden?\n\nSi ya generó ingresos, se crearán movimientos de reversa.')) {
-      destroy(`/ordenes/${id}`);
+  const [anularOrdenId, setAnularOrdenId] = useState<number | null>(null);
+
+  function handleAnularConfirm() {
+    if (anularOrdenId !== null) {
+      destroy(`/ordenes/${anularOrdenId}`);
+      setAnularOrdenId(null);
     }
   }
 
@@ -434,7 +438,7 @@ export default function Index({ ordenes }: { ordenes: any }) {
                             )}
                             {orden.estado?.nombre !== 'Finalizada' && orden.estado?.nombre !== 'Anulada' && (
                               <button
-                                onClick={() => handleAnular(orden.id)}
+                                onClick={() => setAnularOrdenId(orden.id)}
                                 className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100"
                               >
                                 Anular
@@ -504,6 +508,16 @@ export default function Index({ ordenes }: { ordenes: any }) {
           )}
         </div>
       </div>
+
+      {/* Modal de confirmación de anulación */}
+      {anularOrdenId !== null && (
+        <ConfirmAnularModal
+          open={true}
+          onClose={() => setAnularOrdenId(null)}
+          onConfirm={handleAnularConfirm}
+          ordenId={anularOrdenId}
+        />
+      )}
     </DashboardLayout>
   );
 }
