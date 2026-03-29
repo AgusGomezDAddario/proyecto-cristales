@@ -37,6 +37,6 @@ export interface MovimientoFormData {
     monto: string | number;
     concepto_id: string | number;
     medio_de_pago_id: string | number;
-    comprobante: string;
     comprobantes: File[];
+    orden_de_trabajo_id?: number | null; // Agregado para que sea compatible con tu lógica
 }
