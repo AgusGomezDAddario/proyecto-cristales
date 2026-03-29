@@ -7,9 +7,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('precio', function (Blueprint $table) {
@@ -22,9 +19,6 @@ return new class extends Migration
             ->update(['movimiento_registrado' => true]);
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('precio', function (Blueprint $table) {
