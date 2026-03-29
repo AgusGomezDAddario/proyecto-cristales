@@ -33,7 +33,7 @@ class ConceptoController extends Controller
         $totalIngresos = Concepto::where('tipo', 'ingreso')->count();
         $totalEgresos = Concepto::where('tipo', 'egreso')->count();
 
-        return Inertia::render('Conceptos/Index', [
+        return Inertia::render('conceptos/index', [
             'conceptos' => $conceptos,
             'filters' => $request->only(['search', 'tipo']),
             'stats' => [
