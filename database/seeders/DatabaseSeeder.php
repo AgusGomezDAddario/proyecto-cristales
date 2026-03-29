@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Database\Seeders\MetricsDemoSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,6 +16,9 @@ class DatabaseSeeder extends Seeder
             DatosInicialesSeeder::class,
             CatalogoArticulosSeeder::class,
             CompaniasSegurosSeeder::class,
+            ConceptosSeeder::class,
+            MarcasModelosSeeder::class,
+            MetricsDemoSeeder::class,
         ]);
     }
 }

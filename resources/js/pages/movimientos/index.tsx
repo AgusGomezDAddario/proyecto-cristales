@@ -1,8 +1,12 @@
 // resources/js/pages/movimientos/index.tsx
 
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Movimiento } from '@/types/movimiento';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import EditButton from '@/components/botones/boton-editar';
+import ViewButton from '@/components/botones/boton-ver';
+import { formatDateToArgentina } from '@/utils/dateFormat';
+import { Lock } from 'lucide-react';
 
 interface Props {
     movimientos: Movimiento[];
@@ -14,18 +18,12 @@ export default function Index({ movimientos, tipo, label }: Props) {
     const labelPlural = label.endsWith('s') ? label : `${label}s`;
     const tipoPlural = tipo.endsWith('s') ? tipo : `${tipo}s`;
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('es-AR', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-        });
-    };
-
     const formatMoney = (amount: number) => {
         return new Intl.NumberFormat('es-AR', {
             style: 'currency',
-            currency: 'ARS'
+            currency: 'ARS',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
         }).format(amount);
     };
 
@@ -86,8 +84,8 @@ export default function Index({ movimientos, tipo, label }: Props) {
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Medio de Pago
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Comprobante
+                                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Origen
                                         </th>
                                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Monto
@@ -98,44 +96,61 @@ export default function Index({ movimientos, tipo, label }: Props) {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
-                                    {movimientos.map((movimiento) => (
-                                        <tr key={movimiento.id} className="hover:bg-gray-50 transition">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {formatDate(movimiento.fecha)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {movimiento.concepto?.nombre || '-'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                {movimiento.medio_de_pago?.nombre || '-'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                {movimiento.comprobante || '-'}
-                                            </td>
-                                            <td
-                                                className={`px-6 py-4 whitespace-nowrap text-sm font-semibold text-right ${tipo === 'egreso' ? 'text-red-600' : 'text-green-600'
-                                                    }`}
-                                            >
-                                                {formatMoney(movimiento.monto)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                                <div className="flex justify-end gap-2">
-                                                    <Link
-                                                        href={`/${tipoPlural}/${movimiento.id}`}
-                                                        className="text-blue-600 hover:text-blue-800 font-medium"
-                                                    >
-                                                        Ver
-                                                    </Link>
-                                                    <Link
-                                                        href={`/${tipoPlural}/${movimiento.id}/edit`}
-                                                        className="text-green-600 hover:text-green-800 font-medium"
-                                                    >
-                                                        Editar
-                                                    </Link>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {movimientos.map((movimiento) => {
+                                        const tieneOT = movimiento.orden_de_trabajo_id != null;
+                                        
+                                        return (
+                                            <tr key={movimiento.id} className="hover:bg-gray-50 transition">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {formatDateToArgentina(movimiento.fecha)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {movimiento.concepto?.nombre || '-'}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    {movimiento.medio_de_pago?.nombre || '-'}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                    {tieneOT ? (
+                                                        <button
+                                                            onClick={() => router.visit(`/ordenes/${movimiento.orden_de_trabajo_id}`)}
+                                                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200 hover:border-blue-300 transition cursor-pointer"
+                                                        >
+                                                            <Lock className="w-3 h-3" />
+                                                            OT #{movimiento.orden_de_trabajo_id}
+                                                        </button>
+                                                    ) : (
+                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                                                            Manual
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td
+                                                    className={`px-6 py-4 whitespace-nowrap text-sm font-semibold text-right ${tipo === 'egreso' ? 'text-red-600' : 'text-green-600'
+                                                        }`}
+                                                >
+                                                    {formatMoney(movimiento.monto)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                                    <div className="flex justify-end gap-2">
+                                                        <ViewButton
+                                                            onClick={() => {
+                                                                window.location.href = `/${tipoPlural}/${movimiento.id}`;
+                                                            }}
+                                                        />
+                                                        {/* Solo mostrar editar si NO tiene OT */}
+                                                        {!tieneOT && (
+                                                            <EditButton 
+                                                                onClick={() => {
+                                                                    window.location.href = `/${tipoPlural}/${movimiento.id}/edit`;
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
@@ -145,14 +160,28 @@ export default function Index({ movimientos, tipo, label }: Props) {
                 {/* Resumen */}
                 {movimientos.length > 0 && (
                     <div className="mt-6 bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-                        <div className="flex justify-between items-center">
-                            <span className="text-gray-600 font-medium">Total de {tipoPlural.toLowerCase()}:</span>
-                            <span
-                                className={`text-2xl font-bold ${tipo === 'egreso' ? 'text-red-600' : 'text-green-600'
-                                    }`}
-                            >
-                                {formatMoney(movimientos.reduce((sum, m) => sum + Number(m.monto), 0))}
-                            </span>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-600 font-medium">Total de {tipoPlural.toLowerCase()}:</span>
+                                <span
+                                    className={`text-2xl font-bold ${tipo === 'egreso' ? 'text-red-600' : 'text-green-600'
+                                        }`}
+                                >
+                                    {formatMoney(movimientos.reduce((sum, m) => sum + Number(m.monto), 0))}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-600 font-medium">Desde OTs:</span>
+                                <span className="text-lg font-bold text-blue-600">
+                                    {movimientos.filter(m => m.orden_de_trabajo_id != null).length}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-600 font-medium">Manuales:</span>
+                                <span className="text-lg font-bold text-gray-700">
+                                    {movimientos.filter(m => m.orden_de_trabajo_id == null).length}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 )}

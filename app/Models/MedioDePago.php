@@ -12,8 +12,7 @@ class MedioDePago extends Model
     protected $table = 'medio_de_pago';
     
     protected $fillable = [
-        'nombre',
-        'tipo',
+        'nombre'
     ];
     
     public function movimientos()

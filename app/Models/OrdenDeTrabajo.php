@@ -13,31 +13,29 @@ class OrdenDeTrabajo extends Model
 
     protected $fillable = [
         'titular_vehiculo_id',
+        'compania_seguro_id',
         'estado_id',
         'fecha',
+        'con_factura',
         'observacion',
+        'fecha_entrega_estimada',
+        'numero_orden',
+        'es_garantia',
     ];
 
     protected $casts = [
-        'fecha' => 'date'
+        'fecha' => 'datetime',     // en DB es datetime
+        'con_factura' => 'boolean',
     ];
 
-    // 🔹 Relación con la asociativa titular-vehículo
     public function titularVehiculo()
     {
         return $this->belongsTo(TitularVehiculo::class, 'titular_vehiculo_id');
     }
 
-    // 🔹 Relación con estado
     public function estado()
     {
         return $this->belongsTo(Estado::class, 'estado_id');
-    }
-
-    // 🔹 Relación con medio de pago
-    public function medioDePago()
-    {
-        return $this->belongsTo(MedioDePago::class, 'medio_de_pago_id');
     }
 
     public function detalles()
@@ -45,9 +43,21 @@ class OrdenDeTrabajo extends Model
         return $this->hasMany(DetalleOrdenDeTrabajo::class, 'orden_de_trabajo_id');
     }
 
+    public function companiaSeguro()
+    {
+        return $this->belongsTo(\App\Models\CompaniaSeguro::class, 'compania_seguro_id')
+            ->withTrashed();
+    }
+
     public function pagos()
     {
-        return $this->hasMany(Precio::class, 'orden_de_trabajo_id');
+        return $this->hasMany(\App\Models\Precio::class, 'orden_de_trabajo_id');
+    }
+
+    public function historialEstados()
+    {
+        return $this->hasMany(OrdenDeTrabajoHistorialEstado::class, 'orden_de_trabajo_id')
+                    ->orderBy('created_at', 'asc');
     }
 
 

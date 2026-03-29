@@ -9,10 +9,12 @@ import {
   Calendar,
   FileText,
   DollarSign,
-  CreditCard,
+  CreditCard, AlertCircle, CheckCircle,
   ArrowLeft,
-  Printer,
+  Printer, Lock,
 } from "lucide-react";
+import PrintableODT from "@/components/print/PrintableODT";
+import { formatDateToArgentina, formatDateTimeToArgentina } from '@/utils/dateFormat';
 
 /* =======================
    TIPOS
@@ -37,6 +39,9 @@ type Pago = {
   id: number;
   valor: number;
   observacion: string | null;
+  fecha: string;
+  pagado: boolean;
+  bloqueado: boolean;
   medio_de_pago: { nombre: string };
 };
 
@@ -392,6 +397,9 @@ export default function Show({ orden }: { orden: Orden }) {
           </div>
         </div>
       </div>
+
+      {/* Componente de impresión profesional */}
+      <PrintableODT orden={orden as any} />
     </DashboardLayout>
   );
 }

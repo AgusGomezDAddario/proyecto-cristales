@@ -1,6 +1,7 @@
-import { User, Phone, Mail, Plus, Trash2 } from "lucide-react";
+import { User, Phone, Mail, Plus } from "lucide-react";
 import { useState, forwardRef, useImperativeHandle } from "react";
 import Select from "react-select";
+import DeleteButton from '@/components/botones/boton-eliminar';
 
 interface Titular {
   id: number;
@@ -147,6 +148,9 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
       setFormData({
         titular_id: option.value,
         nuevo_titular: null,
+        nombreCliente: option.label,
+        telefono: option.telefono || "",
+        email: option.email || "",
       });
 
       setLocalErrors((p) => {
@@ -180,12 +184,18 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
     };
 
     const hasSummary = Boolean(formData.titular_id || formData.nuevo_titular);
+
+    // Buscar el titular seleccionado directamente del array
+    const titularSeleccionado = titulares.find(t => t.id === formData.titular_id);
+
     const resumenNombre =
       formData.nuevo_titular?.nombre
         ? `${formData.nuevo_titular.nombre} ${formData.nuevo_titular.apellido ?? ""}`.trim()
-        : formData.nombreCliente || "";
-    const resumenTel = formData.nuevo_titular?.telefono ?? formData.telefono ?? "";
-    const resumenEmail = formData.nuevo_titular?.email ?? formData.email ?? "";
+        : titularSeleccionado
+          ? `${titularSeleccionado.nombre} ${titularSeleccionado.apellido}`.trim()
+          : "";
+    const resumenTel = formData.nuevo_titular?.telefono ?? titularSeleccionado?.telefono ?? "";
+    const resumenEmail = formData.nuevo_titular?.email ?? titularSeleccionado?.email ?? "";
 
     return (
       <div className="space-y-3">
@@ -220,14 +230,10 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
           </button>
 
           {hasSummary && (
-            <button
-              type="button"
+            <DeleteButton
               onClick={handleRemove}
-              className="h-11 w-11 flex items-center justify-center rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition"
-              title="Eliminar selección"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
+              size='xl'
+            />
           )}
         </div>
 

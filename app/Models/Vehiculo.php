@@ -13,16 +13,28 @@ class Vehiculo extends Model
 
     protected $fillable = [
         'patente',
-        'marca',
-        'modelo',
+        'marca_id',
+        'modelo_id',
         'anio',
     ];
+
+    // 🔹 Relación: Un vehículo pertenece a una marca
+    public function marca()
+    {
+        return $this->belongsTo(Marca::class, 'marca_id');
+    }
+
+    // 🔹 Relación: Un vehículo pertenece a un modelo
+    public function modelo()
+    {
+        return $this->belongsTo(Modelo::class, 'modelo_id');
+    }
 
     // 🔹 Relación muchos a muchos con titulares
     public function titulares()
     {
         return $this->belongsToMany(Titular::class, 'titular_vehiculo')
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 
     // 🔹 Relación con pivot
