@@ -206,10 +206,10 @@ class OrdenDeTrabajoController extends Controller
             return $acc + (floatval($detalle['valor']) * intval($detalle['cantidad']));
         }, 0);
 
-    // --- NUEVA VALIDACIÓN PARA CREACIÓN ---
+        // --- NUEVA VALIDACIÓN PARA CREACIÓN ---
         $estadoFinalizada = Estado::where('nombre', 'Finalizada')->first();
 
-        if ($estadoFinalizada && (int)$validated['estado_id'] === $estadoFinalizada->id) {
+        if ($estadoFinalizada && (int) $validated['estado_id'] === $estadoFinalizada->id) {
             // Sumamos los montos de los pagos que se están enviando como "pagado"
             $totalPagado = collect($validated['pagos'])
                 ->where('pagado', true)
@@ -218,7 +218,7 @@ class OrdenDeTrabajoController extends Controller
             if ($totalPagado < $totalOrden) {
                 $falta = $totalOrden - $totalPagado;
                 return back()
-                    ->withErrors(['estado_id' => "No puedes crear una orden 'Finalizada' si no está totalmente pagada. Saldo pendiente: $".number_format($falta, 2)])
+                    ->withErrors(['estado_id' => "No puedes crear una orden 'Finalizada' si no está totalmente pagada. Saldo pendiente: $" . number_format($falta, 2)])
                     ->withInput();
             }
         }
@@ -396,26 +396,26 @@ class OrdenDeTrabajoController extends Controller
             return $acc + (floatval($detalle['valor']) * intval($detalle['cantidad']));
         }, 0);
 
-// --- NUEVA VALIDACIÓN DE ESTADO FINALIZADA ---
-            $estadoFinalizada = Estado::where('nombre', 'Finalizada')->first();
-            
-            if ($estadoFinalizada && (int)$validated['estado_id'] === $estadoFinalizada->id) {
-                // Calculamos lo que ya está pagado (incluyendo los que se están enviando ahora como pagados)
-                $totalPagado = collect($validated['pagos'])
-                    ->where('pagado', true)
-                    ->sum('monto');
+        // --- NUEVA VALIDACIÓN DE ESTADO FINALIZADA ---
+        $estadoFinalizada = Estado::where('nombre', 'Finalizada')->first();
 
-                if ($totalPagado < $totalOrden) {
-                    $falta = $totalOrden - $totalPagado;
-                    return back()
-                        ->withErrors(['estado_id' => "No se puede finalizar la OT: El saldo pendiente es de $".number_format($falta, 2)])
-                        ->withInput();
-                }
+        if ($estadoFinalizada && (int) $validated['estado_id'] === $estadoFinalizada->id) {
+            // Calculamos lo que ya está pagado (incluyendo los que se están enviando ahora como pagados)
+            $totalPagado = collect($validated['pagos'])
+                ->where('pagado', true)
+                ->sum('monto');
+
+            if ($totalPagado < $totalOrden) {
+                $falta = $totalOrden - $totalPagado;
+                return back()
+                    ->withErrors(['estado_id' => "No se puede finalizar la OT: El saldo pendiente es de $" . number_format($falta, 2)])
+                    ->withInput();
             }
-            // --- FIN DE VALIDACIÓN ---
+        }
+        // --- FIN DE VALIDACIÓN ---
 
-            if ($totalOrden <= 0) {
-        // ... (resto del código)
+        if ($totalOrden <= 0) {
+            // ... (resto del código)
             return back()
                 ->withErrors(['detalles' => 'El total de la orden debe ser mayor a $0.'])
                 ->withInput();
@@ -578,9 +578,9 @@ class OrdenDeTrabajoController extends Controller
             foreach ($pagos as $pago) {
                 // Solo procesar pagos bloqueados que NO tengan movimiento registrado
                 if ($pago->bloqueado && !$pago->movimiento_registrado) {
-                    
+
                     $monto = (float) $pago->valor;
-                    
+
                     // Determinar tipo y concepto según el signo del monto
                     if ($monto >= 0) {
                         $tipo = Movimiento::TIPO_INGRESO;
@@ -591,7 +591,7 @@ class OrdenDeTrabajoController extends Controller
                         $montoParaGuardar = abs($monto);
                         $conceptoId = 7; // Ajuste de cobro
                     }
-                    
+
                     // Crear el movimiento
                     Movimiento::create([
                         'fecha' => $pago->fecha ?? $orden->fecha,
@@ -602,10 +602,10 @@ class OrdenDeTrabajoController extends Controller
                         'tipo' => $tipo,
                         'orden_de_trabajo_id' => $orden->id,
                     ]);
-                    
+
                     // Marcar como registrado
                     $pago->update(['movimiento_registrado' => true]);
-                    
+
                     Log::info("Movimiento de {$tipo} creado para pago ID {$pago->id} de OT #{$orden->id} - Monto: {$monto}");
                 }
             }
@@ -694,5 +694,57 @@ class OrdenDeTrabajoController extends Controller
             'estados' => $estados,
             'mediosDePago' => $mediosDePago,
         ]);
+    }
+
+    public function destroy(OrdenDeTrabajo $orden)
+    {
+        $estadoAnulada = Estado::where('nombre', 'Anulada')->first();
+
+        if (!$estadoAnulada) {
+            return back()->withErrors(['error' => 'No se encontró el estado "Anulada" en el sistema.']);
+        }
+
+        if ((int) $orden->estado_id === $estadoAnulada->id) {
+            return back()->withErrors(['error' => 'Esta orden ya fue anulada.']);
+        }
+
+        DB::transaction(function () use ($orden, $estadoAnulada) {
+            // 1) Buscar movimientos de ingreso vinculados a esta OT
+            $ingresosExistentes = Movimiento::where('orden_de_trabajo_id', $orden->id)
+                ->where('tipo', Movimiento::TIPO_INGRESO)
+                ->get();
+
+            // 2) Si existen ingresos, generar egresos de reversa
+            if ($ingresosExistentes->isNotEmpty()) {
+                $conceptoAnulacion = Concepto::where('nombre', 'Anulación OT')->first();
+
+                foreach ($ingresosExistentes as $ingreso) {
+                    Movimiento::create([
+                        'fecha' => now()->toDateString(),
+                        'monto' => $ingreso->monto,
+                        'concepto_id' => $conceptoAnulacion->id,
+                        'medio_de_pago_id' => $ingreso->medio_de_pago_id,
+                        'tipo' => Movimiento::TIPO_EGRESO,
+                        'orden_de_trabajo_id' => $orden->id,
+                    ]);
+                }
+
+                Log::info("Movimientos de reversa generados para OT #{$orden->id}: {$ingresosExistentes->count()} egresos.");
+            }
+
+            // 3) Cambiar estado a "Anulada"
+            $orden->update(['estado_id' => $estadoAnulada->id]);
+
+            // 4) Registrar en historial de estados
+            OrdenDeTrabajoHistorialEstado::create([
+                'orden_de_trabajo_id' => $orden->id,
+                'estado_id' => $estadoAnulada->id,
+                'user_id' => auth()->id(),
+            ]);
+        });
+
+        return redirect()
+            ->route('ordenes.index')
+            ->with('success', "Orden #{$orden->id} anulada correctamente ✅");
     }
 }
