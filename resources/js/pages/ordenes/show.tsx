@@ -91,7 +91,7 @@ export default function Show({
               <h1 className="text-3xl font-bold text-gray-900">Orden de Trabajo #{orden.id}</h1>
               <div className="flex items-center gap-2 mt-1 text-gray-600">
                 <Calendar className="w-4 h-4" />
-                <span>{formatDateToArgentina(orden.fecha)}</span>
+                <span>{formatDateTimeToArgentina(orden.fecha)}</span>
                 <span className="mx-1">•</span>
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${orden.estado.nombre === 'Entregado' ? 'bg-green-100 text-green-700 border-green-200' :
                   orden.estado.nombre === 'Cancelado' ? 'bg-red-100 text-red-700 border-red-200' :
@@ -318,7 +318,7 @@ export default function Show({
                             <div className="flex flex-col items-center justify-center px-3 py-2 bg-white rounded-lg border border-gray-200 shadow-sm min-w-[80px]">
                               <Calendar className="w-4 h-4 text-slate-400 mb-1" />
                               <span className="text-xs font-medium text-slate-600">
-                                {formatDateToArgentina(pago.fecha)}
+                                {formatDateTimeToArgentina(pago.fecha)}
                               </span>
                             </div>
 

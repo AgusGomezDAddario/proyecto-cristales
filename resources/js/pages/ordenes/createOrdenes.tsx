@@ -9,7 +9,8 @@ import VehiculoSection, { VehiculoSectionRef } from '@/components/ui/VehiculoSec
 import DashboardLayout from '@/layouts/DashboardLayout';
 import PagosSection from '@/components/ui/PagosSection';
 import DatePicker from '@/components/ui/DataPicker';
-import { getArgentinaToday } from '@/utils/dateFormat';
+import DateTimePicker from '@/components/ui/DateTimePicker';
+import { getArgentinaNow } from '@/utils/dateFormat';
 
 type TipoDocumento = 'OT' | 'FC';
 
@@ -106,7 +107,7 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
 
     // Defaults iniciales con fecha Argentina
     useEffect(() => {
-        const hoy = getArgentinaToday(); // Usa UTC-3
+        const hoy = getArgentinaNow(); // Usa UTC-3
 
         setData((prev: FormData) => ({
             ...prev,
@@ -315,7 +316,7 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>
                                 <label className="mb-2 block text-sm font-semibold text-gray-800">Fecha *</label>
-                                <DatePicker
+                                <DateTimePicker
                                     value={data.fecha}
                                     onChange={(date: string) => setField('fecha', date)}
                                     error={!!allErrors.fecha}
@@ -326,7 +327,7 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
 
                             <div>
                                 <label className="mb-2 block text-sm font-semibold text-gray-800">Fecha de entrega estimada *</label>
-                                <DatePicker
+                                <DateTimePicker
                                     value={data.fecha_entrega_estimada}
                                     onChange={(date: string) => setField('fecha_entrega_estimada', date)}
                                     minDate={data.fecha || undefined}

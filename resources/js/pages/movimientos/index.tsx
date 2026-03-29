@@ -5,7 +5,7 @@ import { Movimiento } from '@/types/movimiento';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import EditButton from '@/components/botones/boton-editar';
 import ViewButton from '@/components/botones/boton-ver';
-import { formatDateToArgentina } from '@/utils/dateFormat';
+import { formatDateTimeToArgentina } from '@/utils/dateFormat';
 import { Lock } from 'lucide-react';
 
 interface Props {
@@ -102,7 +102,7 @@ export default function Index({ movimientos, tipo, label }: Props) {
                                         return (
                                             <tr key={movimiento.id} className="hover:bg-gray-50 transition">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {formatDateToArgentina(movimiento.fecha)}
+                                                    {formatDateTimeToArgentina(movimiento.fecha)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                     {movimiento.concepto?.nombre || '-'}
