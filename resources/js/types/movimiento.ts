@@ -8,11 +8,7 @@ export interface Movimiento {
     comprobante?: string | null;
     orden_de_trabajo_id?: number | null; // NUEVO
     concepto_id: number;
-    medio_de_pago_id?: number | null;
-    created_at?: string;
-    updated_at?: string;
-    
-    // Relaciones
+    medio_de_pago_id: number | null;
     concepto?: {
         id: number;
         nombre: string;
@@ -21,7 +17,7 @@ export interface Movimiento {
     medio_de_pago?: {
         id: number;
         nombre: string;
-    };
+    }; // Cambiado de medioDePago a medio_de_pago
     comprobantes?: Array<{
         id: number;
         ruta_archivo: string;
@@ -31,5 +27,16 @@ export interface Movimiento {
         id: number;
         numero_orden?: string;
         fecha: string;
-    };
+    }; 
+    created_at: string;
+    updated_at: string;
+}
+
+export interface MovimientoFormData {
+    fecha: string;
+    monto: string | number;
+    concepto_id: string | number;
+    medio_de_pago_id: string | number;
+    comprobante: string;
+    comprobantes: File[];
 }

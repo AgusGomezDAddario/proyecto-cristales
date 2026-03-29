@@ -48,7 +48,6 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
         monto: '',
         concepto_id: '',
         medio_de_pago_id: '',
-        comprobante: '',
         comprobantes: [] as File[],
 
     });
@@ -196,30 +195,6 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                                     </p>
                                 )}
                             </div>
-                        </div>
-
-                        {/* Comprobante */}
-                        <div>
-                            <label htmlFor="comprobante" className="block text-sm font-semibold text-gray-800 mb-2">
-                                Número de Comprobante
-                            </label>
-                            <input
-                                id="comprobante"
-                                type="text"
-                                placeholder="Ej: 001-00123456"
-                                value={data.comprobante}
-                                onChange={(e) => setData('comprobante', e.target.value)}
-                                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-medium placeholder:text-gray-400 ${errors.comprobante ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                    }`}
-                            />
-                            {errors.comprobante && (
-                                <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                    </svg>
-                                    {errors.comprobante}
-                                </p>
-                            )}
                         </div>
 
                         {/* Comprobantes */}
