@@ -265,22 +265,22 @@ export default function Show({
 
               <div className="p-6">
                 {/* Resumen visual */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 min-w-0">
                     <p className="text-sm text-slate-600 mb-1">Total de la orden</p>
-                    <p className="text-2xl font-bold text-slate-900">${totalOrden.toLocaleString("es-AR")}</p>
+                    <p className="text-base font-bold text-slate-900 break-all">${totalOrden.toLocaleString("es-AR")}</p>
                   </div>
-                  <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                  <div className="bg-green-50 rounded-xl p-4 border border-green-200 min-w-0">
                     <p className="text-sm text-green-700 mb-1">Total cobrado</p>
-                    <p className="text-2xl font-bold text-green-600">${totalPagado.toLocaleString("es-AR")}</p>
+                    <p className="text-base font-bold text-green-600 break-all">${totalPagado.toLocaleString("es-AR")}</p>
                   </div>
-                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 min-w-0">
                     <p className="text-sm text-blue-700 mb-1">Registrado sin cobrar</p>
-                    <p className="text-2xl font-bold text-blue-600">${(totalRegistrado - totalPagado).toLocaleString("es-AR")}</p>
+                    <p className="text-base font-bold text-blue-600 break-all">${(totalRegistrado - totalPagado).toLocaleString("es-AR")}</p>
                   </div>
-                  <div className={`rounded-xl p-4 border ${saldoPendiente > 0 ? 'bg-red-50 border-red-200' : saldoPendiente < 0 ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200'}`}>
+                  <div className={`rounded-xl p-4 border min-w-0 ${saldoPendiente > 0 ? 'bg-red-50 border-red-200' : saldoPendiente < 0 ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200'}`}>
                     <p className={`text-sm mb-1 ${saldoPendiente > 0 ? 'text-red-700' : saldoPendiente < 0 ? 'text-blue-700' : 'text-green-700'}`}>Saldo pendiente</p>
-                    <p className={`text-2xl font-bold ${saldoPendiente > 0 ? 'text-red-600' : saldoPendiente < 0 ? 'text-blue-600' : 'text-green-600'}`}>
+                    <p className={`text-base font-bold break-all ${saldoPendiente > 0 ? 'text-red-600' : saldoPendiente < 0 ? 'text-blue-600' : 'text-green-600'}`}>
                       ${Math.abs(saldoPendiente).toLocaleString("es-AR")}
                     </p>
                   </div>
