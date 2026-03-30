@@ -37,7 +37,6 @@ type FormData = {
     observacion: string;
     fecha: string;
     detalles: Detalle[];
-    numero_orden_manual: boolean;
 };
 
 type Props = {
@@ -49,12 +48,6 @@ type Props = {
 };
 
 export default function CreateOrdenes({ titulares, estados, mediosDePago, articulos = [], companiasSeguros = [] }: Props) {
-    const generarNumeroOrden = (tipo: TipoDocumento) => {
-        const prefix = tipo === 'OT' ? 'OT' : 'FC';
-        const suffix = Date.now().toString().slice(-6);
-        return `${prefix}-${suffix}`;
-    };
-
     const detalleInicial: Detalle = {
         articulo_id: null,
         descripcion: '',
@@ -78,7 +71,6 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
         pagos: [],
         observacion: '',
         fecha: '',
-        numero_orden_manual: false,
         detalles: [detalleInicial],
     };
 
@@ -112,20 +104,13 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
         setData((prev: FormData) => ({
             ...prev,
             fecha: prev.fecha || hoy,
-            numero_orden: prev.numero_orden || generarNumeroOrden(prev.tipo_documento),
         }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        setData((prev: FormData) => {
-            if (prev.numero_orden_manual) return prev;
-            return {
-                ...prev,
-                numero_orden: generarNumeroOrden(prev.tipo_documento),
-            };
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // El número correlativo se asigna en el backend automáticamente basándose en 'tipo_documento'.
+        // Ya no generamos en el frontend para evitar números saltados o sucios.
     }, [data.tipo_documento]);
 
     const vehiculosDelTitular = titulares.find((t: any) => t.id === data.titular_id)?.vehiculos || [];
@@ -279,22 +264,13 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                                 </div>
 
                                 <div>
-                                    <label className="mb-2 block text-sm font-semibold text-gray-800">Número de orden *</label>
+                                    <label className="mb-2 block text-sm font-semibold text-gray-800">Número de orden</label>
                                     <input
                                         type="text"
-                                        value={data.numero_orden}
-                                        onChange={(e) => {
-                                            setData((prev: FormData) => ({
-                                                ...prev,
-                                                numero_orden: e.target.value,
-                                                numero_orden_manual: true,
-                                            }));
-                                        }}
-                                        className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none ${(errors as any).numero_orden ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                            }`}
-                                        placeholder="OT-000000 / FC-000000"
+                                        disabled
+                                        value="(Se generará automáticamente)"
+                                        className="w-full rounded-xl border-2 bg-gray-100 text-gray-500 px-4 py-3 font-medium cursor-not-allowed outline-none border-gray-200"
                                     />
-                                    {(errors as any).numero_orden && <p className="mt-2 text-sm text-red-600">{(errors as any).numero_orden}</p>}
                                 </div>
 
                                 <div className="flex items-center gap-3 pt-7">

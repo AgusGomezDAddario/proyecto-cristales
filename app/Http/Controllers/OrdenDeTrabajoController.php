@@ -272,12 +272,24 @@ class OrdenDeTrabajoController extends Controller
                 'vehiculo_id' => $data['vehiculo_id'],
             ]);
 
+            $prefix = $conFactura ? 'FC-' : 'OT-';
+            $lastOrder = OrdenDeTrabajo::where('numero_orden', 'like', $prefix . '%')
+                ->lockForUpdate()
+                ->orderByRaw('CAST(SUBSTRING(numero_orden, 4) AS UNSIGNED) DESC')
+                ->first();
+
+            $newNumber = 1;
+            if ($lastOrder && preg_match('/^' . $prefix . '(\d+)$/', $lastOrder->numero_orden, $matches)) {
+                $newNumber = (int) $matches[1] + 1;
+            }
+            $numeroCorrelativo = $prefix . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
+
             $orden = OrdenDeTrabajo::create([
                 'titular_vehiculo_id' => $pivot->id,
                 'estado_id' => $validated['estado_id'],
                 'fecha' => $validated['fecha'],
                 'fecha_entrega_estimada' => $validated['fecha_entrega_estimada'],
-                'numero_orden' => $validated['numero_orden'] ?? null,
+                'numero_orden' => $numeroCorrelativo,
                 'con_factura' => $conFactura,
                 'es_garantia' => (bool) ($validated['es_garantia'] ?? false),
                 'observacion' => $validated['observacion'] ?? null,
@@ -461,14 +473,30 @@ class OrdenDeTrabajoController extends Controller
                 'vehiculo_id' => $data['vehiculo_id'],
             ]);
 
+            $conFacturaFinal = (bool) $validated['con_factura'];
+            $prefixFinal = $conFacturaFinal ? 'FC-' : 'OT-';
+            $numeroCorrelativo = $orden->numero_orden;
+
+            if (!$numeroCorrelativo || !str_starts_with($numeroCorrelativo, $prefixFinal)) {
+                $lastOrder = OrdenDeTrabajo::where('numero_orden', 'like', $prefixFinal . '%')
+                    ->lockForUpdate()
+                    ->orderByRaw('CAST(SUBSTRING(numero_orden, 4) AS UNSIGNED) DESC')
+                    ->first();
+                $newNumber = 1;
+                if ($lastOrder && preg_match('/^' . $prefixFinal . '(\d+)$/', $lastOrder->numero_orden, $matches)) {
+                    $newNumber = (int) $matches[1] + 1;
+                }
+                $numeroCorrelativo = $prefixFinal . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
+            }
+
             $orden->update([
                 'titular_vehiculo_id' => $pivot->id,
                 'estado_id' => $validated['estado_id'],
                 'fecha' => $validated['fecha'],
                 'observacion' => $validated['observacion'] ?? null,
-                'con_factura' => (bool) $validated['con_factura'],
+                'con_factura' => $conFacturaFinal,
                 'fecha_entrega_estimada' => $validated['fecha_entrega_estimada'] ?? null,
-                'numero_orden' => $validated['numero_orden'] ?? ($orden->numero_orden ?? null),
+                'numero_orden' => $numeroCorrelativo,
                 'es_garantia' => (bool) ($validated['es_garantia'] ?? false),
                 'compania_seguro_id' => $validated['compania_seguro_id'] ?? null,
             ]);

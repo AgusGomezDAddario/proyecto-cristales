@@ -291,12 +291,10 @@ export default function Edit({
                 <label className="mb-2 block text-sm font-semibold text-gray-800">Número de orden</label>
                 <input
                   type="text"
+                  disabled
                   value={data.numero_orden}
-                  onChange={(e) => mergeForm({ numero_orden: e.target.value })}
-                  placeholder="OT-000000 / FC-000000"
-                  className="w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none border-gray-200 hover:border-gray-300"
+                  className="w-full rounded-xl border-2 bg-gray-100 px-4 py-3 font-medium text-gray-500 cursor-not-allowed outline-none border-gray-200"
                 />
-                {errors.numero_orden && <p className="mt-2 text-sm text-red-600">{errors.numero_orden}</p>}
               </div>
             </div>
 
