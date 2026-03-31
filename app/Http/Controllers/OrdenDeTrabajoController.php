@@ -231,6 +231,29 @@ class OrdenDeTrabajoController extends Controller
                 ->withInput();
         }
 
+        // --- VALIDACIÓN DE ATRIBUTOS OBLIGATORIOS ---
+        $atributoFieldErrors = [];
+        $faltantesPorArticulo = [];
+        foreach ($validated['detalles'] as $idx => $detalle) {
+            $art = Articulo::with('categorias')->find($detalle['articulo_id']);
+            if ($art) {
+                foreach ($art->categorias as $cat) {
+                    if ($cat->obligatoria && empty($detalle['atributos'][$cat->id] ?? null)) {
+                        $atributoFieldErrors["detalles.{$idx}.atributos.{$cat->id}"] = ' ';
+                        $faltantesPorArticulo[$art->nombre][] = $cat->nombre;
+                    }
+                }
+            }
+        }
+        if (!empty($atributoFieldErrors)) {
+            $partes = [];
+            foreach ($faltantesPorArticulo as $artNombre => $campos) {
+                $partes[] = 'Falta completar ' . implode(' y ', $campos) . ' del artículo ' . $artNombre;
+            }
+            return back()->withErrors($atributoFieldErrors)->withInput()->with('error', implode('. ', $partes) . '.');
+        }
+        // --- FIN VALIDACIÓN ---
+
         $data = $request->all();
 
         $faltanDatos =
@@ -481,6 +504,29 @@ class OrdenDeTrabajoController extends Controller
                     'user_id' => auth()->id()
                 ]);
             }
+
+            // --- VALIDACIÓN DE ATRIBUTOS OBLIGATORIOS ---
+            $atributoFieldErrors = [];
+            $faltantesPorArticulo = [];
+            foreach ($validated['detalles'] as $idx => $detalle) {
+                $art = Articulo::with('categorias')->find($detalle['articulo_id']);
+                if ($art) {
+                    foreach ($art->categorias as $cat) {
+                        if ($cat->obligatoria && empty($detalle['atributos'][$cat->id] ?? null)) {
+                            $atributoFieldErrors["detalles.{$idx}.atributos.{$cat->id}"] = ' ';
+                            $faltantesPorArticulo[$art->nombre][] = $cat->nombre;
+                        }
+                    }
+                }
+            }
+            if (!empty($atributoFieldErrors)) {
+                $partes = [];
+                foreach ($faltantesPorArticulo as $artNombre => $campos) {
+                    $partes[] = 'Falta completar ' . implode(' y ', $campos) . ' del artículo ' . $artNombre;
+                }
+                return back()->withErrors($atributoFieldErrors)->withInput()->with('error', implode('. ', $partes) . '.');
+            }
+            // --- FIN VALIDACIÓN ---
 
             foreach ($orden->detalles as $det) {
                 if (method_exists($det, 'atributos')) {

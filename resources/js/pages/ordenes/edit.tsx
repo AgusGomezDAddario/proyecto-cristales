@@ -66,13 +66,13 @@ type FormData = {
   nuevo_vehiculo: any | null;
   detalles: DetalleUI[];
   pagos: Array<{
-      id?: number;
-      medio_de_pago_id: number | string;
-      monto: number | string;
-      fecha: string;
-      pagado: boolean;
-      bloqueado?: boolean;
-      observacion: string;
+    id?: number;
+    medio_de_pago_id: number | string;
+    monto: number | string;
+    fecha: string;
+    pagado: boolean;
+    bloqueado?: boolean;
+    observacion: string;
   }>;
 };
 
@@ -139,13 +139,13 @@ export default function Edit({
     }) as DetalleUI[],
 
     pagos: (orden.pagos || []).map((p) => ({
-        id: p.id,
-        medio_de_pago_id: p.medio_de_pago_id,
-        monto: p.valor ?? 0,
-        fecha: p.fecha ? String(p.fecha).substring(0, 10) : getArgentinaToday(),
-        pagado: p.pagado ?? false,
-        bloqueado: p.bloqueado ?? false,
-        observacion: p.observacion ?? "",
+      id: p.id,
+      medio_de_pago_id: p.medio_de_pago_id,
+      monto: p.valor ?? 0,
+      fecha: p.fecha ? String(p.fecha).substring(0, 10) : getArgentinaToday(),
+      pagado: p.pagado ?? false,
+      bloqueado: p.bloqueado ?? false,
+      observacion: p.observacion ?? "",
     })),
   };
 
@@ -189,13 +189,41 @@ export default function Edit({
     setData((prev: FormData) => ({ ...prev, ...patch }));
   };
 
+  const [localErrors, setLocalErrors] = React.useState<Record<string, string>>({});
+  const allErrors = { ...uiErrors, ...localErrors };
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     const fe = (data as any).fecha_entrega_estimada;
 
-    if (!fe) return alert("Completá la fecha de entrega estimada.");
-    if (data.fecha && fe < data.fecha) return alert("La fecha estimada no puede ser anterior a la fecha.");
+    if (!fe) return toast.error("Completá la fecha de entrega estimada.");
+    if (data.fecha && fe < data.fecha) return toast.error("La fecha estimada no puede ser anterior a la fecha.");
+
+    // Validar atributos obligatorios
+    const errores: Record<string, string> = {};
+    let hayErrores = false;
+
+    data.detalles.forEach((d, idx) => {
+      if (d.articulo_id) {
+        const art = articulos.find((a: any) => a.id === d.articulo_id);
+        if (art?.categorias) {
+          art.categorias.forEach((cat: any) => {
+            if (cat.obligatoria && !d.atributos?.[cat.id]) {
+              errores[`detalles.${idx}.atributos.${cat.id}`] = ' ';
+              hayErrores = true;
+            }
+          });
+        }
+      }
+    });
+
+    setLocalErrors(errores);
+
+    if (hayErrores) {
+      if (Object.keys(errores).some(k => k.match(/^detalles\.\d+\.atributos\./))) toast.error('Completá los atributos del artículo que son obligatorios marcados en rojo.');
+      return;
+    }
 
     put(`/ordenes/${orden.id}`, {
       onError: (errs) => console.log("Errores:", errs),
@@ -347,7 +375,7 @@ export default function Edit({
           <DetallesSection
             detalles={data.detalles}
             articulos={articulos}
-            errors={uiErrors}
+            errors={allErrors}
             setDetalles={(nuevos: DetalleUI[]) => {
               setData((prev: FormData) => ({
                 ...prev,
@@ -359,14 +387,14 @@ export default function Edit({
           {/* Pagos */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                <PagosSection
-                    pagos={data.pagos}
-                    setPagos={(pagos) => setData((prev: FormData) => ({ ...prev, pagos }))}
-                    mediosDePago={mediosDePago}
-                    totalOrden={totalOrden}
-                    errors={errors as Record<string, string>}
-                    modoEdicion={true}
-                />
+              <PagosSection
+                pagos={data.pagos}
+                setPagos={(pagos) => setData((prev: FormData) => ({ ...prev, pagos }))}
+                mediosDePago={mediosDePago}
+                totalOrden={totalOrden}
+                errors={errors as Record<string, string>}
+                modoEdicion={true}
+              />
             </div>
 
             <div className="mt-4 flex justify-end">

@@ -180,17 +180,28 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                 errores[`detalles.${idx}.valor`] = 'Sin precio';
                 hayErrores = true;
             }
+
+            // Validar atributos obligatorios
+            if (d.articulo_id) {
+                const art = articulos.find((a: any) => a.id === d.articulo_id);
+                if (art?.categorias) {
+                    art.categorias.forEach((cat: any) => {
+                        if (cat.obligatoria && !d.atributos?.[cat.id]) {
+                            errores[`detalles.${idx}.atributos.${cat.id}`] = ' ';
+                            hayErrores = true;
+                        }
+                    });
+                }
+            }
         });
 
         setLocalErrors(errores);
 
         if (hayErrores) {
-            const mensajesError: string[] = [];
-            if (errores['fecha_entrega_estimada']) mensajesError.push('Ingresá una fecha de entrega estimada.');
-            if (errores['estado_id']) mensajesError.push('Seleccioná un estado para la orden.');
-            if (Object.keys(errores).some(k => k.startsWith('detalles.'))) mensajesError.push('Hay artículos sin precio.');
-
-            toast.error(mensajesError.join('\n'));
+            if (errores['fecha_entrega_estimada']) toast.error(errores['fecha_entrega_estimada']);
+            if (errores['estado_id']) toast.error(errores['estado_id']);
+            if (Object.keys(errores).some(k => k.match(/^detalles\.\d+\.valor$/))) toast.error('Hay artículos sin precio.');
+            if (Object.keys(errores).some(k => k.match(/^detalles\.\d+\.atributos\./))) toast.error('Completá los atributos del artículo que son obligatorios marcados en rojo.');
             return;
         }
 
