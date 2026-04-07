@@ -9,7 +9,8 @@ import VehiculoSection, { VehiculoSectionRef } from "@/components/ui/VehiculoSec
 import DetallesSection, { Detalle as DetalleUI, ArticuloDTO } from "@/components/ui/DetallesSection";
 import EstadoSection from "@/components/ui/EstadoSection";
 import PagosSection from '@/components/ui/PagosSection';
-import { getArgentinaToday } from '@/utils/dateFormat';
+import { getArgentinaToday, getArgentinaNow } from '@/utils/dateFormat';
+import DateTimePicker from '@/components/ui/DateTimePicker';
 
 type Estado = { id: number; nombre: string };
 type MedioDePago = { id: number; nombre: string };
@@ -99,9 +100,9 @@ export default function Edit({
 
   const initial: FormData = {
     estado_id: orden.estado_id ?? null,
-    fecha: orden.fecha ? String(orden.fecha).substring(0, 10) : "",
+    fecha: orden.fecha ? String(orden.fecha).replace('T', ' ').substring(0, 16) : "",
     fecha_entrega_estimada: orden.fecha_entrega_estimada
-      ? String(orden.fecha_entrega_estimada).substring(0, 10)
+      ? String(orden.fecha_entrega_estimada).replace('T', ' ').substring(0, 16)
       : "",
     observacion: orden.observacion ?? "",
     con_factura: orden.con_factura ? 1 : 0,
@@ -295,25 +296,21 @@ export default function Edit({
 
               <div>
                 <label className="mb-2 block text-sm font-semibold text-gray-800">Fecha *</label>
-                <input
-                  type="date"
+                <DateTimePicker
                   value={data.fecha}
-                  onChange={(e) => setData((prev: FormData) => ({ ...prev, fecha: e.target.value }))}
-                  className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none ${uiErrors.fecha ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                    }`}
+                  onChange={(val) => setData((prev: FormData) => ({ ...prev, fecha: val }))}
+                  error={!!uiErrors.fecha}
                 />
                 {errors.fecha && <p className="mt-2 text-sm text-red-600">{errors.fecha}</p>}
               </div>
 
               <div>
                 <label className="mb-2 block text-sm font-semibold text-gray-800">Fecha de entrega estimada *</label>
-                <input
-                  type="date"
+                <DateTimePicker
                   value={data.fecha_entrega_estimada}
-                  min={data.fecha || undefined}
-                  onChange={(e) => setData((prev: FormData) => ({ ...prev, fecha_entrega_estimada: e.target.value }))}
-                  className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none ${uiErrors.fecha_entrega_estimada ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                    }`}
+                  onChange={(val) => setData((prev: FormData) => ({ ...prev, fecha_entrega_estimada: val }))}
+                  minDate={data.fecha || undefined}
+                  error={!!uiErrors.fecha_entrega_estimada}
                 />
                 {errors.fecha_entrega_estimada && <p className="mt-2 text-sm text-red-600">{errors.fecha_entrega_estimada}</p>}
               </div>
@@ -322,12 +319,10 @@ export default function Edit({
                 <label className="mb-2 block text-sm font-semibold text-gray-800">Número de orden</label>
                 <input
                   type="text"
+                  disabled
                   value={data.numero_orden}
-                  onChange={(e) => mergeForm({ numero_orden: e.target.value })}
-                  placeholder="OT-000000 / FC-000000"
-                  className="w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none border-gray-200 hover:border-gray-300"
+                  className="w-full rounded-xl border-2 bg-gray-100 px-4 py-3 font-medium text-gray-500 cursor-not-allowed outline-none border-gray-200"
                 />
-                {errors.numero_orden && <p className="mt-2 text-sm text-red-600">{errors.numero_orden}</p>}
               </div>
             </div>
 

@@ -3,7 +3,7 @@ import { Head, Link, useForm, router, usePage } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import EditButton from "@/components/botones/boton-editar";
 import ViewButton from "@/components/botones/boton-ver";
-import { formatDateToArgentina } from "@/utils/dateFormat";
+import { formatDateTimeToArgentina } from "@/utils/dateFormat";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import ConfirmAnularModal from "@/components/ConfirmAnularModal";
 
@@ -403,7 +403,7 @@ export default function Index({ ordenes }: { ordenes: any }) {
                         className={`hover:bg-gray-50 transition ${orden.estado?.nombre === 'Anulada' ? 'opacity-60' : ''}`}
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {formatDateToArgentina(orden.fecha)}
+                          {formatDateTimeToArgentina(orden.fecha)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {orden.titular_vehiculo?.titular

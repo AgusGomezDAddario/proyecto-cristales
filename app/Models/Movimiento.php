@@ -28,7 +28,7 @@ class Movimiento extends Model
     ];
 
     protected $casts = [
-        'fecha' => 'date:Y-m-d',
+        'fecha' => 'datetime',
         'monto' => 'float',
     ];
 
