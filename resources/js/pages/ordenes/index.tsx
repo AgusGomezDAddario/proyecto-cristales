@@ -7,8 +7,6 @@ import ConfirmAnularModal from "@/components/ConfirmAnularModal";
 import EditButton from '@/components/botones/boton-editar';
 import DeleteButton from '@/components/botones/boton-eliminar';
 import ViewButton from '@/components/botones/boton-ver';
-import DashboardLayout from '@/layouts/DashboardLayout';
-import { useMemo, useState } from 'react';
 
 type Vehiculo = {
   id: number;
