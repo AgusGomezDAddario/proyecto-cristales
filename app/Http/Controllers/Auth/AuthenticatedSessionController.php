@@ -13,9 +13,6 @@ use Inertia\Response;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Show the login page.
-     */
     public function create(Request $request): Response
     {
         return Inertia::render('auth/login', [
@@ -24,24 +21,19 @@ class AuthenticatedSessionController extends Controller
         ]);
     }
 
-    /**
-     * Handle an incoming authentication request.
-     */
     public function store(LoginRequest $request): RedirectResponse
     {
-        // Autentica por name/password (LoginRequest ya lo hace con guard 'web')
         $request->authenticate();
-
-        // Fija la cookie de sesión
         $request->session()->regenerate();
+        $request->session()->forget('url.intended');
 
-        // Redirige a donde quería ir; fallback a 'ordenes'
+        if ((int) $request->user()->role_id === 3) {
+            return redirect()->route('taller.ots');
+        }
+
         return redirect()->intended(route('ordenes.index', absolute: false) ?? '/ordenes');
     }
 
-    /**
-     * Para cerrar sesión
-     */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();

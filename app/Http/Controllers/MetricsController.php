@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Movimiento;
 use App\Models\OrdenDeTrabajo;
+use App\Support\Authorization\RoleCapabilities;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,12 @@ class MetricsController extends Controller
 {
     public function index(Request $request)
     {
+        abort_unless(
+            $request->user()?->hasCapability(RoleCapabilities::VIEW_FINANCIAL_METRICS),
+            403,
+            'No autorizado'
+        );
+
         $toInput = $request->query('to');
         $fromInput = $request->query('from');
 

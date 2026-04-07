@@ -22,9 +22,45 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use App\Models\OrdenDeTrabajoHistorialEstado;
+use App\Support\Authorization\RoleCapabilities;
 
 class OrdenDeTrabajoController extends Controller
 {
+    public function pendientes()
+    {
+        $ots = OrdenDeTrabajo::with([
+                'estado',
+                'titularVehiculo.titular',
+                'titularVehiculo.vehiculo.marca',
+                'titularVehiculo.vehiculo.modelo',
+            ])
+            ->whereIn('estado_id', Estado::ESTADOS_TALLER)
+            ->get();
+
+        $estados = Estado::select('id', 'nombre')
+            ->whereIn('id', Estado::ESTADOS_CAMBIO_TALLER)
+            ->orderBy('id')
+            ->get();
+
+        return Inertia::render('taller/ordenes', [
+            'ots' => $ots,
+            'estados' => $estados,
+        ]);
+    }
+
+    public function cambiarEstadoTaller(Request $request, OrdenDeTrabajo $orden)
+    {
+        $request->validate([
+            'estado_id' => ['required', 'integer', 'in:' . implode(',', Estado::ESTADOS_CAMBIO_TALLER)],
+        ]);
+
+        $orden->update([
+            'estado_id' => $request->estado_id,
+        ]);
+
+        return redirect()->back()->with('success', 'Estado actualizado correctamente');
+    }
+
     public function index(Request $request)
     {
         $perPage = $request->integer('per_page', 10);
@@ -618,6 +654,10 @@ class OrdenDeTrabajoController extends Controller
 
     public function show(OrdenDeTrabajo $orden)
     {
+        $user = auth()->user();
+        $canViewFinancialAmounts = ($user?->hasCapability(RoleCapabilities::VIEW_FINANCIAL_AMOUNTS) ?? false)
+            || (int) ($user?->role_id ?? 0) === 3;
+
         $orden->load([
             'titularVehiculo.titular',
             'titularVehiculo.vehiculo.marca',
@@ -644,12 +684,28 @@ class OrdenDeTrabajoController extends Controller
             return $acc + $pago->valor;
         }, 0);
 
+        if (! $canViewFinancialAmounts) {
+            $orden->setRelation('detalles', $orden->detalles->map(function ($detalle) {
+                $detalle->valor = null;
+                return $detalle;
+            }));
+
+            $orden->setRelation('pagos', $orden->pagos->map(function ($pago) {
+                $pago->valor = null;
+                return $pago;
+            }));
+
+            $totalOrden = null;
+            $totalPagado = null;
+            $totalRegistrado = null;
+        }
+
         return Inertia::render('ordenes/show', [
             'orden' => $orden,
-            'totalOrden' => (float) $totalOrden,
-            'totalPagado' => (float) $totalPagado,
-            'totalRegistrado' => (float) $totalRegistrado,
-            'saldoPendiente' => (float) ($totalOrden - $totalPagado),
+            'totalOrden' => $totalOrden !== null ? (float) $totalOrden : null,
+            'totalPagado' => $totalPagado !== null ? (float) $totalPagado : null,
+            'totalRegistrado' => $totalRegistrado !== null ? (float) $totalRegistrado : null,
+            'saldoPendiente' => $totalOrden !== null && $totalPagado !== null ? (float) ($totalOrden - $totalPagado) : null,
         ]);
     }
 

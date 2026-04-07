@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureUserHasCapability;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
@@ -25,6 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // 👇 alias personalizados
         $middleware->alias([
             'is_admin' => \App\Http\Middleware\IsAdmin::class,
+            'capability' => EnsureUserHasCapability::class,
+            'rol.taller' => \App\Http\Middleware\RolTaller::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

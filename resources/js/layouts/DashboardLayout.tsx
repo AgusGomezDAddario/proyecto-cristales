@@ -1,31 +1,111 @@
+import { PERMISSIONS, useAuthorization } from '@/lib/permissions';
 import { Link, usePage } from '@inertiajs/react';
-import { PropsWithChildren, useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 
 interface Props extends PropsWithChildren {
     title?: string;
 }
 
+type NavLink = {
+    href: string;
+    label: string;
+    active: (url: string) => boolean;
+    visible: boolean;
+};
+
+type AdminLink = Omit<NavLink, 'visible'> & { visible: boolean };
+
 export default function DashboardLayout({ children, title }: Props) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
     const [moreMenuOpen, setMoreMenuOpen] = useState(false);
-    const { url } = usePage();
-    const { auth } = usePage().props as any;
+    const page = usePage();
+    const { url } = page;
+    const { auth, flash } = page.props as any;
+    const { has } = useAuthorization();
+    const roleId = Number(auth?.user?.role_id ?? 0);
 
-    const isActive = (path: string) => url.startsWith(path);
-    const isAdmin = auth?.user?.role_id === 1;
-    const isAdminSection =
-        isActive('/admin/users') ||
-        isActive('/catalogo-vehiculos') ||
-        isActive('/clientes') ||
-        isActive('/companias-seguros') ||
-        isActive('/medio-de-pago') ||
-        isActive('/conceptos') ||
-        isActive('/admin/metrics');
+    const canManageCatalogs = has(PERMISSIONS.adminCatalogsManage);
+    const canManageUsers = has(PERMISSIONS.usersManage);
+    const canViewDashboard = has(PERMISSIONS.financeDashboardView);
+    const canViewMetrics = has(PERMISSIONS.financeMetricsView);
+    const canViewMovements = has(PERMISSIONS.financeMovementsView);
+    const canViewReports = has(PERMISSIONS.financeReportsView);
+    const isTaller = roleId === 3;
+    const ordersHref = isTaller ? '/taller/ots' : '/ordenes';
 
-    /* TOAST */
-    const { flash } = usePage().props as any;
+    const mainLinks = useMemo<NavLink[]>(
+        () => [
+            {
+                href: '/admin',
+                label: 'Panel de Control',
+                active: (currentUrl) =>
+                    currentUrl.startsWith('/admin') && !currentUrl.startsWith('/admin/users') && !currentUrl.startsWith('/admin/metrics'),
+                visible: canViewDashboard,
+            },
+            {
+                href: '/egresos',
+                label: 'Egresos',
+                active: (currentUrl) => currentUrl.startsWith('/egresos'),
+                visible: canViewMovements,
+            },
+            {
+                href: '/ingresos',
+                label: 'Ingresos',
+                active: (currentUrl) => currentUrl.startsWith('/ingresos'),
+                visible: canViewMovements,
+            },
+            {
+                href: '/resumen-del-dia',
+                label: 'Resumen del día',
+                active: (currentUrl) => currentUrl.startsWith('/resumen-del-dia'),
+                visible: canViewReports,
+            },
+            {
+                href: ordersHref,
+                label: 'Órdenes de Trabajo',
+                active: (currentUrl) =>
+                    currentUrl.startsWith('/ordenes') || currentUrl.startsWith('/taller/ots') || currentUrl.startsWith('/taller/ordenes'),
+                visible: true,
+            },
+        ],
+        [canViewDashboard, canViewMovements, canViewReports, ordersHref],
+    );
+
+    const adminLinks = useMemo<AdminLink[]>(
+        () => [
+            { href: '/clientes', label: 'Clientes', active: (currentUrl) => currentUrl.startsWith('/clientes'), visible: canManageCatalogs },
+            {
+                href: '/catalogo-vehiculos',
+                label: 'Vehículos',
+                active: (currentUrl) => currentUrl.startsWith('/catalogo-vehiculos'),
+                visible: canManageCatalogs,
+            },
+            {
+                href: '/companias-seguros',
+                label: 'Seguros',
+                active: (currentUrl) => currentUrl.startsWith('/companias-seguros'),
+                visible: canManageCatalogs,
+            },
+            { href: '/articulos', label: 'Artículos', active: (currentUrl) => currentUrl.startsWith('/articulos'), visible: canManageCatalogs },
+            {
+                href: '/medio-de-pago',
+                label: 'Medios de pago',
+                active: (currentUrl) => currentUrl.startsWith('/medio-de-pago'),
+                visible: canManageCatalogs,
+            },
+            { href: '/conceptos', label: 'Conceptos', active: (currentUrl) => currentUrl.startsWith('/conceptos'), visible: canManageCatalogs },
+            { href: '/admin/metrics', label: 'Métricas', active: (currentUrl) => currentUrl.startsWith('/admin/metrics'), visible: canViewMetrics },
+            { href: '/admin/users', label: 'Usuarios', active: (currentUrl) => currentUrl.startsWith('/admin/users'), visible: canManageUsers },
+        ],
+        [canManageCatalogs, canManageUsers, canViewMetrics],
+    );
+
+    const visibleMainLinks = mainLinks.filter((link) => link.visible);
+    const visibleAdminLinks = adminLinks.filter((link) => link.visible);
+    const showAdminMenu = visibleAdminLinks.length > 0;
+    const roleLabel = auth?.user?.role ?? 'Usuario';
 
     useEffect(() => {
         if (flash?.success) toast.success(flash.success);
@@ -33,52 +113,59 @@ export default function DashboardLayout({ children, title }: Props) {
     }, [flash]);
 
     useEffect(() => {
-        if (mobileMenuOpen) setAdminDropdownOpen(false);
-    }, [mobileMenuOpen]);
+        if (!showAdminMenu) {
+            setAdminDropdownOpen(false);
+        }
+    }, [showAdminMenu]);
 
-    useEffect(() => {
-        if (!isAdmin) setAdminDropdownOpen(false);
-    }, [isAdmin]);
+    const linkClass = (active: boolean) =>
+        `rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
+            active ? 'bg-blue-50 text-blue-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
+        }`;
 
-    useEffect(() => {
-        if (moreMenuOpen) setAdminDropdownOpen(false);
-    }, [moreMenuOpen]);
+    const dropdownLinkClass = (active: boolean) =>
+        `block px-4 py-2 text-sm hover:bg-gray-50 ${active ? 'font-medium text-orange-600' : 'text-gray-700'}`;
 
-    useEffect(() => {
-        if (adminDropdownOpen) setMoreMenuOpen(false);
-    }, [adminDropdownOpen]);
+    const renderMainLinks = (compact = false) =>
+        visibleMainLinks.map((link) => (
+            <Link
+                key={link.href}
+                href={link.href}
+                className={
+                    compact
+                        ? `rounded-lg px-3 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
+                              link.active(url) ? 'bg-blue-50 text-blue-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
+                          }`
+                        : linkClass(link.active(url))
+                }
+            >
+                {compact && link.label === 'Panel de Control' ? 'Panel' : compact && link.label === 'Órdenes de Trabajo' ? 'Órdenes' : link.label}
+            </Link>
+        ));
+
+    const renderAdminLinks = (onClick?: () => void, mobile = false) =>
+        visibleAdminLinks.map((link) => (
+            <Link
+                key={link.href}
+                href={link.href}
+                onClick={onClick}
+                className={
+                    mobile
+                        ? `block rounded-lg px-4 py-2 font-semibold ${link.active(url) ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'}`
+                        : dropdownLinkClass(link.active(url))
+                }
+            >
+                {link.label}
+            </Link>
+        ));
 
     return (
         <div className="flex min-h-screen flex-col bg-gray-50 text-gray-900">
-            {/* Toast */}
-            <Toaster
-                position="bottom-right"
-                toastOptions={{
-                    duration: 5000,
-                    style: {
-                        background: '#1f2937',
-                        color: '#fff',
-                    },
-                    success: {
-                        iconTheme: {
-                            primary: '#22c55e',
-                            secondary: '#fff',
-                        },
-                    },
-                    error: {
-                        iconTheme: {
-                            primary: '#ef4444',
-                            secondary: '#fff',
-                        },
-                    },
-                }}
-            />
+            <Toaster position="bottom-right" />
 
-            {/* 🔹 NAVBAR */}
             <nav className="border-b border-gray-200 bg-white shadow-sm">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 items-center justify-between">
-                        {/* Logo + nombre */}
                         <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
                                 <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,324 +179,75 @@ export default function DashboardLayout({ children, title }: Props) {
                             </div>
                             <div className="hidden lg:block">
                                 <h1 className="text-l font-bold text-gray-900">Sistema de Gestión Integral</h1>
+                                <p className="text-xs text-gray-500">{roleLabel}</p>
                             </div>
                         </div>
 
-                        {/* Menú de navegación (desktop) */}
                         <div className="hidden items-center gap-2 lg:flex">
-                            <div className="flex items-center gap-2">
-                                <Link
-                                    href="/admin"
-                                    className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
-                                        isActive('/admin') && !isActive('/admin/users')
-                                            ? 'bg-blue-50 text-blue-700 shadow-sm'
-                                            : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
-                                >
-                                    📊 Panel de Control
-                                </Link>
+                            <div className="flex items-center gap-2">{renderMainLinks()}</div>
 
-                                <Link
-                                    href="/egresos"
-                                    className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
-                                        isActive('/egresos') ? 'bg-red-50 text-red-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
-                                >
-                                    💸 Egresos
-                                </Link>
-
-                                <Link
-                                    href="/ingresos"
-                                    className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
-                                        isActive('/ingresos') ? 'bg-green-50 text-green-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
-                                >
-                                    💰 Ingresos
-                                </Link>
-
-                                <Link
-                                    href="/resumen-del-dia"
-                                    className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
-                                        isActive('/resumen-del-dia') ? 'bg-blue-50 text-blue-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
-                                >
-                                    🧾 Resumen del día
-                                </Link>
-
-                                <Link
-                                    href="/ordenes"
-                                    className={`rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
-                                        isActive('/ordenes') ? 'bg-purple-50 text-purple-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
-                                >
-                                    🚗 Órdenes de Trabajo
-                                </Link>
-                            </div>
-
-                            {isAdmin && (
+                            {showAdminMenu && (
                                 <div className="relative">
                                     <button
                                         onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
-                                        className="flex items-center gap-1 rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold whitespace-nowrap text-gray-700 transition-all hover:bg-gray-200"
+                                        className="flex items-center gap-1 rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-200"
                                     >
-                                        ⚙️ Administración
-                                        <svg
-                                            className={`h-4 w-4 transition-transform ${adminDropdownOpen ? 'rotate-180' : ''}`}
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
+                                        Administración
                                     </button>
 
                                     {adminDropdownOpen && (
-                                        <div className="absolute top-full right-0 z-50 mt-1 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
-                                            <Link
-                                                href="/clientes"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                                                    isActive('/clientes') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                }`}
-                                            >
-                                                👥 Clientes
-                                            </Link>
-                                            <Link
-                                                href="/catalogo-vehiculos"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                                                    isActive('/catalogo-vehiculos') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                }`}
-                                            >
-                                                🚙 Vehículos
-                                            </Link>
-                                            <Link
-                                                href="/companias-seguros"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                                                    isActive('/companias-seguros') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                }`}
-                                            >
-                                                🛡️ Seguros
-                                            </Link>
-                                            <Link
-                                                href="/articulos"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                                                    isActive('/articulos') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                }`}
-                                            >
-                                                📦 Artículos
-                                            </Link>
-                                            <Link href="#" className="block cursor-not-allowed px-4 py-2 text-sm text-gray-400">
-                                                🏭 Proveedores
-                                            </Link>
-                                            <Link
-                                                href="/medio-de-pago"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                                                    isActive('/medio-de-pago') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                }`}
-                                            >
-                                                💳 Medios de pago
-                                            </Link>
-                                            {/* 🏷️ CONCEPTOS */}
-                                            <Link
-                                                href="/conceptos"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                                                    isActive('/conceptos') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                }`}
-                                            >
-                                                🏷️ Conceptos
-                                            </Link>
-                                            <Link
-                                                href="/admin/metrics"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                                                    isActive('/admin/metrics') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                }`}
-                                            >
-                                                📈 Métricas
-                                            </Link>
-                                            <div className="my-1 border-t border-gray-100"></div>
-                                            <Link
-                                                href="/admin/users"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                                                    isActive('/admin/users') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                }`}
-                                            >
-                                                👤 Usuarios
-                                            </Link>
+                                        <div className="absolute top-full right-0 z-50 mt-1 w-52 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                                            {renderAdminLinks()}
                                         </div>
                                     )}
                                 </div>
                             )}
 
-                            {/* Botón de logout */}
                             <Link
                                 href="/logout"
                                 method="post"
                                 as="button"
-                                className="ml-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold whitespace-nowrap text-red-600 transition-all hover:bg-red-50"
+                                className="ml-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-red-600 transition-all hover:bg-red-50"
                             >
-                                🚪 Salir
+                                Salir
                             </Link>
                         </div>
 
-                        {/* Menú de navegación (tablet) */}
                         <div className="hidden items-center gap-2 md:flex lg:hidden">
-                            <div className="flex items-center gap-2">
-                                <Link
-                                    href="/admin"
-                                    className={`rounded-lg px-3 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
-                                        isActive('/admin') && !isActive('/admin/users')
-                                            ? 'bg-blue-50 text-blue-700 shadow-sm'
-                                            : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
-                                >
-                                    📊 Panel de Control
-                                </Link>
+                            <div className="flex items-center gap-2">{renderMainLinks(true)}</div>
 
-                                <Link
-                                    href="/egresos"
-                                    className={`rounded-lg px-3 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
-                                        isActive('/egresos') ? 'bg-red-50 text-red-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
-                                >
-                                    💸 Egresos
-                                </Link>
-
-                                <Link
-                                    href="/ingresos"
-                                    className={`rounded-lg px-3 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
-                                        isActive('/ingresos') ? 'bg-green-50 text-green-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
-                                >
-                                    💰 Ingresos
-                                </Link>
-
-                                <Link
-                                    href="/ordenes"
-                                    className={`rounded-lg px-3 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
-                                        isActive('/ordenes') ? 'bg-purple-50 text-purple-700 shadow-sm' : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
-                                >
-                                    🚗 Órdenes de Trabajo
-                                </Link>
-                            </div>
-
-                            <div className="relative">
-                                <button
-                                    onClick={() => setMoreMenuOpen(!moreMenuOpen)}
-                                    className="flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-2 text-sm font-semibold whitespace-nowrap text-gray-700 transition-all hover:bg-gray-200"
-                                >
-                                    ➕ Más
-                                    <svg
-                                        className={`h-4 w-4 transition-transform ${moreMenuOpen ? 'rotate-180' : ''}`}
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
+                            {(showAdminMenu || canViewReports) && (
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setMoreMenuOpen(!moreMenuOpen)}
+                                        className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-200"
                                     >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
+                                        Más
+                                    </button>
 
-                                {moreMenuOpen && (
-                                    <div className="absolute top-full right-0 z-50 mt-1 w-56 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
-                                        <Link
-                                            href="/resumen-del-dia"
-                                            onClick={() => setMoreMenuOpen(false)}
-                                            className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                                                isActive('/resumen-del-dia') ? 'font-medium text-blue-700' : 'text-gray-700'
-                                            }`}
-                                        >
-                                            🧾 Resumen del día
-                                        </Link>
-                                        {isAdmin && (
-                                            <>
-                                                <div className="my-1 border-t border-gray-100"></div>
-                                                <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase">⚙️ Administración</div>
-                                                <Link
-                                                    href="/clientes"
-                                                    onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                                                        isActive('/clientes') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
-                                                >
-                                                    👥 Clientes
-                                                </Link>
-                                                <Link
-                                                    href="/catalogo-vehiculos"
-                                                    onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                                                        isActive('/catalogo-vehiculos') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
-                                                >
-                                                    🚙 Vehículos
-                                                </Link>
-                                                <Link
-                                                    href="/companias-seguros"
-                                                    onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                                                        isActive('/companias-seguros') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
-                                                >
-                                                    🛡️ Seguros
-                                                </Link>
-                                                <Link href="#" className="block cursor-not-allowed px-4 py-2 text-sm text-gray-400">
-                                                    📦 Artículos
-                                                </Link>
-                                                <Link href="#" className="block cursor-not-allowed px-4 py-2 text-sm text-gray-400">
-                                                    🏭 Proveedores
-                                                </Link>
-                                                <Link
-                                                    href="/medio-de-pago"
-                                                    onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                                                        isActive('/medio-de-pago') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
-                                                >
-                                                    💳 Medios de pago
-                                                </Link>
-                                                {/* 🏷️ CONCEPTOS */}
-                                                <Link
-                                                    href="/conceptos"
-                                                    onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                                                        isActive('/conceptos') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
-                                                >
-                                                    🏷️ Conceptos
-                                                </Link>
-                                                <Link
-                                                    href="/admin/metrics"
-                                                    onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                                                        isActive('/admin/metrics') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
-                                                >
-                                                    📈 Métricas
-                                                </Link>
-                                                <Link
-                                                    href="/admin/users"
-                                                    onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                                                        isActive('/admin/users') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
-                                                >
-                                                    👤 Usuarios
-                                                </Link>
-                                            </>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
+                                    {moreMenuOpen && (
+                                        <div className="absolute top-full right-0 z-50 mt-1 w-56 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                                            {showAdminMenu && (
+                                                <>
+                                                    <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase">Administración</div>
+                                                    {renderAdminLinks(() => setMoreMenuOpen(false))}
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             <Link
                                 href="/logout"
                                 method="post"
                                 as="button"
-                                className="rounded-lg bg-white px-3 py-2 text-sm font-semibold whitespace-nowrap text-red-600 transition-all hover:bg-red-50"
+                                className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-red-600 transition-all hover:bg-red-50"
                             >
-                                🚪 Salir
+                                Salir
                             </Link>
                         </div>
 
-                        {/* Botón de menú móvil */}
                         <div className="flex items-center md:hidden">
                             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="rounded-lg p-2 text-gray-700 hover:bg-gray-100">
                                 <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -424,139 +262,41 @@ export default function DashboardLayout({ children, title }: Props) {
                     </div>
                 </div>
 
-                {/* Menú móvil */}
                 {mobileMenuOpen && (
                     <div className="border-t border-gray-200 bg-white md:hidden">
                         <div className="space-y-1 px-4 py-2">
-                            <Link
-                                href="/admin"
-                                className={`block rounded-lg px-4 py-2 font-semibold ${
-                                    isActive('/admin') && !isActive('/admin/users') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                                }`}
-                            >
-                                📊 Panel de Control
-                            </Link>
+                            {visibleMainLinks.map((link) => (
+                                <Link
+                                    key={link.href}
+                                    href={link.href}
+                                    className={`block rounded-lg px-4 py-2 font-semibold ${link.active(url) ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`}
+                                >
+                                    {link.label}
+                                </Link>
+                            ))}
 
-                            <Link
-                                href="/egresos"
-                                className={`block rounded-lg px-4 py-2 font-semibold ${
-                                    isActive('/egresos') ? 'bg-red-50 text-red-700' : 'text-gray-700 hover:bg-gray-100'
-                                }`}
-                            >
-                                💸 Egresos
-                            </Link>
-                            <Link
-                                href="/ingresos"
-                                className={`block rounded-lg px-4 py-2 font-semibold ${
-                                    isActive('/ingresos') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-100'
-                                }`}
-                            >
-                                💰 Ingresos
-                            </Link>
-                            <Link
-                                href="/resumen-del-dia"
-                                className={`block rounded-lg px-4 py-2 font-semibold ${
-                                    isActive('/resumen-del-dia') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                                }`}
-                            >
-                                🧾 Resumen del día
-                            </Link>
-
-                            <Link
-                                href="/ordenes"
-                                className={`block rounded-lg px-4 py-2 font-semibold ${
-                                    isActive('/ordenes') ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-100'
-                                }`}
-                            >
-                                🚗 Órdenes de Trabajo
-                            </Link>
-
-                            {isAdmin && (
+                            {showAdminMenu && (
                                 <>
                                     <div className="my-2 border-t border-gray-200"></div>
-                                    <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase">⚙️ Administración</div>
-                                    <Link
-                                        href="/clientes"
-                                        className={`block rounded-lg px-4 py-2 font-semibold ${
-                                            isActive('/clientes') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
-                                        }`}
-                                    >
-                                        👥 Clientes
-                                    </Link>
-                                    <Link
-                                        href="/catalogo-vehiculos"
-                                        className={`block rounded-lg px-4 py-2 font-semibold ${
-                                            isActive('/catalogo-vehiculos') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
-                                        }`}
-                                    >
-                                        🚙 Vehículos
-                                    </Link>
-                                    <Link
-                                        href="/companias-seguros"
-                                        className={`block rounded-lg px-4 py-2 font-semibold ${
-                                            isActive('/companias-seguros') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
-                                        }`}
-                                    >
-                                        🛡️ Seguros
-                                    </Link>
-                                    <Link href="#" className="block cursor-not-allowed rounded-lg px-4 py-2 text-gray-400">
-                                        📦 Artículos
-                                    </Link>
-                                    <Link href="#" className="block cursor-not-allowed rounded-lg px-4 py-2 text-gray-400">
-                                        🏭 Proveedores
-                                    </Link>
-                                    <Link
-                                        href="/medio-de-pago"
-                                        className={`block rounded-lg px-4 py-2 font-semibold ${
-                                            isActive('/medio-de-pago') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
-                                        }`}
-                                    >
-                                        💳 Medios de pago
-                                    </Link>
-                                    {/* 🏷️ CONCEPTOS */}
-                                    <Link
-                                        href="/conceptos"
-                                        className={`block rounded-lg px-4 py-2 font-semibold ${
-                                            isActive('/conceptos') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
-                                        }`}
-                                    >
-                                        🏷️ Conceptos
-                                    </Link>
-                                    <Link
-                                        href="/admin/metrics"
-                                        className={`block rounded-lg px-4 py-2 font-semibold ${
-                                            isActive('/admin/metrics') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
-                                        }`}
-                                    >
-                                        📈 Métricas
-                                    </Link>
-                                    <Link
-                                        href="/admin/users"
-                                        className={`block rounded-lg px-4 py-2 font-semibold ${
-                                            isActive('/admin/users') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'
-                                        }`}
-                                    >
-                                        👤 Usuarios
-                                    </Link>
+                                    <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase">Administración</div>
+                                    {renderAdminLinks(undefined, true)}
                                 </>
                             )}
 
                             <div className="my-2 border-t border-gray-200"></div>
-
                             <Link
                                 href="/logout"
                                 method="post"
                                 as="button"
                                 className="block w-full rounded-lg px-4 py-2 text-left font-semibold text-red-600 hover:bg-red-50"
                             >
-                                🚪 Salir
+                                Salir
                             </Link>
                         </div>
                     </div>
                 )}
             </nav>
 
-            {/* 🔹 CONTENIDO PRINCIPAL */}
             <main className="flex-1">
                 <div className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8">
                     {title && <h2 className="mb-4 text-2xl font-bold text-gray-800">{title}</h2>}
@@ -564,7 +304,6 @@ export default function DashboardLayout({ children, title }: Props) {
                 </div>
             </main>
 
-            {/* 🔹 FOOTER */}
             <footer className="mt-auto border-t border-gray-200 bg-white">
                 <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
                     <p className="text-center text-sm text-gray-500">© 2025 Yets Solutions - Todos los derechos reservados</p>

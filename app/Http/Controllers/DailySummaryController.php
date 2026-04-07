@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Movimiento;
+use App\Support\Authorization\RoleCapabilities;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -11,6 +12,12 @@ class DailySummaryController extends Controller
 {
     public function show(Request $request)
     {
+        abort_unless(
+            $request->user()?->hasCapability(RoleCapabilities::VIEW_FINANCIAL_REPORTS),
+            403,
+            'No autorizado'
+        );
+
         $date = $request->query('date', Carbon::today()->toDateString());
 
         $totals = Movimiento::totalsForDate($date);
@@ -34,6 +41,12 @@ class DailySummaryController extends Controller
 
     public function print(Request $request)
 {
+    abort_unless(
+        $request->user()?->hasCapability(RoleCapabilities::VIEW_FINANCIAL_REPORTS),
+        403,
+        'No autorizado'
+    );
+
     $date = $request->query('date', Carbon::today()->toDateString());
 
     // KPIs
