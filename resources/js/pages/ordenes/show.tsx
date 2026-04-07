@@ -1,9 +1,10 @@
-import React from "react";
-import { Link, Head } from "@inertiajs/react";
+import React, { useState } from "react";
+import { Link, Head, router } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import { User, Phone, Mail, Car, Calendar, FileText, DollarSign, CreditCard, AlertCircle, CheckCircle, ArrowLeft, Printer, Lock } from "lucide-react";
+import { User, Phone, Mail, Car, Calendar, FileText, DollarSign, CreditCard, AlertCircle, CheckCircle, ArrowLeft, Printer, Lock, Ban } from "lucide-react";
 import PrintableODT from "@/components/print/PrintableODT";
 import { formatDateToArgentina, formatDateTimeToArgentina } from '@/utils/dateFormat';
+import ConfirmAnularModal from "@/components/ConfirmAnularModal";
 
 type Atributo = {
   id: number;
@@ -56,28 +57,50 @@ type HistorialEstado = {
   user?: { id: number; name: string } | null;
 };
 
-export default function Show({ 
-    orden, 
-    totalOrden = 0,
-    totalPagado = 0,
-    totalRegistrado = 0,
-    saldoPendiente = 0
-}: { 
-    orden: Orden;
-    totalOrden?: number;
-    totalPagado?: number;
-    totalRegistrado?: number;
-    saldoPendiente?: number;
+export default function Show({
+  orden,
+  totalOrden = 0,
+  totalPagado = 0,
+  totalRegistrado = 0,
+  saldoPendiente = 0
+}: {
+  orden: Orden;
+  totalOrden?: number;
+  totalPagado?: number;
+  totalRegistrado?: number;
+  saldoPendiente?: number;
 }) {
 
   const companiaNombre =
     (orden as any).compania_seguro?.nombre ?? "Sin seguro / Particular";
+
+  const isAnulada = orden.estado.nombre === 'Anulada';
+  const isFinalizada = orden.estado.nombre === 'Finalizada';
+  const canModify = !isAnulada && !isFinalizada;
+
+  const [showAnularModal, setShowAnularModal] = useState(false);
+
+  function handleAnular() {
+    router.delete(`/ordenes/${orden.id}`);
+    setShowAnularModal(false);
+  }
 
   return (
     <DashboardLayout>
       <Head title={`Orden #${orden.id}`} />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 print:hidden">
+        {/* Banner Anulada */}
+        {isAnulada && (
+          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-6 py-4">
+            <Ban className="w-6 h-6 text-red-500 flex-shrink-0" />
+            <div>
+              <p className="font-bold text-red-800">Orden Anulada</p>
+              <p className="text-sm text-red-600">Esta orden fue anulada. Los movimientos de reversa fueron generados automáticamente.</p>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
@@ -115,12 +138,23 @@ export default function Show({
               <Printer className="w-4 h-4" />
               Imprimir
             </button>
-            <Link
-              href={`/ordenes/${orden.id}/edit`}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition shadow-md hover:shadow-lg"
-            >
-              Editar Orden
-            </Link>
+            {canModify && (
+              <Link
+                href={`/ordenes/${orden.id}/edit`}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition shadow-md hover:shadow-lg"
+              >
+                Editar Orden
+              </Link>
+            )}
+            {canModify && (
+              <button
+                onClick={() => setShowAnularModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition shadow-md hover:shadow-lg"
+              >
+                <Ban className="w-4 h-4" />
+                Anular
+              </button>
+            )}
           </div>
         </div>
 
@@ -228,25 +262,25 @@ export default function Show({
                   </span>
                 )}
               </div>
-              
+
               <div className="p-6">
                 {/* Resumen visual */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 min-w-0">
                     <p className="text-sm text-slate-600 mb-1">Total de la orden</p>
-                    <p className="text-2xl font-bold text-slate-900">${totalOrden.toLocaleString("es-AR")}</p>
+                    <p className="text-base font-bold text-slate-900 break-all">${totalOrden.toLocaleString("es-AR")}</p>
                   </div>
-                  <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                  <div className="bg-green-50 rounded-xl p-4 border border-green-200 min-w-0">
                     <p className="text-sm text-green-700 mb-1">Total cobrado</p>
-                    <p className="text-2xl font-bold text-green-600">${totalPagado.toLocaleString("es-AR")}</p>
+                    <p className="text-base font-bold text-green-600 break-all">${totalPagado.toLocaleString("es-AR")}</p>
                   </div>
-                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 min-w-0">
                     <p className="text-sm text-blue-700 mb-1">Registrado sin cobrar</p>
-                    <p className="text-2xl font-bold text-blue-600">${(totalRegistrado - totalPagado).toLocaleString("es-AR")}</p>
+                    <p className="text-base font-bold text-blue-600 break-all">${(totalRegistrado - totalPagado).toLocaleString("es-AR")}</p>
                   </div>
-                  <div className={`rounded-xl p-4 border ${saldoPendiente > 0 ? 'bg-red-50 border-red-200' : saldoPendiente < 0 ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200'}`}>
+                  <div className={`rounded-xl p-4 border min-w-0 ${saldoPendiente > 0 ? 'bg-red-50 border-red-200' : saldoPendiente < 0 ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200'}`}>
                     <p className={`text-sm mb-1 ${saldoPendiente > 0 ? 'text-red-700' : saldoPendiente < 0 ? 'text-blue-700' : 'text-green-700'}`}>Saldo pendiente</p>
-                    <p className={`text-2xl font-bold ${saldoPendiente > 0 ? 'text-red-600' : saldoPendiente < 0 ? 'text-blue-600' : 'text-green-600'}`}>
+                    <p className={`text-base font-bold break-all ${saldoPendiente > 0 ? 'text-red-600' : saldoPendiente < 0 ? 'text-blue-600' : 'text-green-600'}`}>
                       ${Math.abs(saldoPendiente).toLocaleString("es-AR")}
                     </p>
                   </div>
@@ -262,9 +296,8 @@ export default function Show({
                   </div>
                   <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        totalPagado >= totalOrden ? 'bg-green-500' : totalPagado > 0 ? 'bg-yellow-500' : 'bg-red-500'
-                      }`}
+                      className={`h-full rounded-full transition-all duration-500 ${totalPagado >= totalOrden ? 'bg-green-500' : totalPagado > 0 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}
                       style={{ width: `${totalOrden > 0 ? Math.min((totalPagado / totalOrden) * 100, 100) : 0}%` }}
                     />
                   </div>
@@ -276,15 +309,14 @@ export default function Show({
                   {orden.pagos.length > 0 ? (
                     <div className="space-y-3">
                       {orden.pagos.map((pago) => (
-                        <div 
-                          key={pago.id} 
-                          className={`flex items-start justify-between p-4 rounded-xl border transition ${
-                            pago.bloqueado 
-                              ? 'bg-slate-50/50 border-slate-300'
-                              : pago.pagado 
-                                ? 'bg-green-50/50 border-green-200' 
-                                : 'bg-gray-50 border-gray-100 hover:border-gray-200'
-                          }`}
+                        <div
+                          key={pago.id}
+                          className={`flex items-start justify-between p-4 rounded-xl border transition ${pago.bloqueado
+                            ? 'bg-slate-50/50 border-slate-300'
+                            : pago.pagado
+                              ? 'bg-green-50/50 border-green-200'
+                              : 'bg-gray-50 border-gray-100 hover:border-gray-200'
+                            }`}
                         >
                           <div className="flex gap-4 flex-1">
                             {/* Badge de bloqueado */}
@@ -297,9 +329,8 @@ export default function Show({
 
                             {/* Estado de cobro */}
                             {!pago.bloqueado && (
-                              <div className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg border shadow-sm min-w-[90px] ${
-                                pago.pagado ? 'bg-green-100 border-green-300' : 'bg-slate-100 border-slate-300'
-                              }`}>
+                              <div className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg border shadow-sm min-w-[90px] ${pago.pagado ? 'bg-green-100 border-green-300' : 'bg-slate-100 border-slate-300'
+                                }`}>
                                 {pago.pagado ? (
                                   <>
                                     <CheckCircle className="w-5 h-5 text-green-600 mb-1" />
@@ -337,9 +368,8 @@ export default function Show({
                           </div>
 
                           {/* Monto */}
-                          <span className={`font-bold text-lg ml-4 ${
-                            Number(pago.valor) < 0 ? 'text-red-600' : 'text-gray-900'
-                          }`}>
+                          <span className={`font-bold text-lg ml-4 ${Number(pago.valor) < 0 ? 'text-red-600' : 'text-gray-900'
+                            }`}>
                             {Number(pago.valor) < 0 ? '-' : ''}${Math.abs(Number(pago.valor)).toLocaleString("es-AR")}
                           </span>
                         </div>
@@ -373,7 +403,7 @@ export default function Show({
                     <div className="flex-1">
                       <p className="text-sm font-medium text-amber-900">Pago incompleto</p>
                       <p className="text-sm text-amber-700 mt-1">
-                        Esta orden tiene un saldo pendiente de ${saldoPendiente.toLocaleString("es-AR")}. 
+                        Esta orden tiene un saldo pendiente de ${saldoPendiente.toLocaleString("es-AR")}.
                         No podrá ser finalizada hasta completar el cobro total.
                       </p>
                     </div>
@@ -407,7 +437,7 @@ export default function Show({
                   <div className="space-y-6">
                     {orden.historial_estados.map((h, index) => (
                       <div key={h.id} className="relative pl-6">
-                        
+
                         {/* Línea vertical */}
                         {index !== orden.historial_estados!.length - 1 && (
                           <div className="absolute left-2 top-4 bottom-0 w-px bg-gray-200"></div>
@@ -532,6 +562,14 @@ export default function Show({
 
       {/* Componente de impresión profesional */}
       <PrintableODT orden={orden as any} />
+
+      {/* Modal de confirmación de anulación */}
+      <ConfirmAnularModal
+        open={showAnularModal}
+        onClose={() => setShowAnularModal(false)}
+        onConfirm={handleAnular}
+        ordenId={orden.id}
+      />
     </DashboardLayout>
   );
 }

@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from "react";
 import { Head, Link, useForm, router, usePage } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import DeleteButton from "@/components/botones/boton-eliminar";
 import EditButton from "@/components/botones/boton-editar";
 import ViewButton from "@/components/botones/boton-ver";
 import { formatDateToArgentina } from "@/utils/dateFormat";
 import { CheckCircle, AlertCircle } from "lucide-react";
+import ConfirmAnularModal from "@/components/ConfirmAnularModal";
 
 type Vehiculo = {
   id: number;
@@ -71,9 +71,12 @@ export default function Index({ ordenes }: { ordenes: any }) {
   const listaOrdenes: Orden[] = ordenes?.data || [];
   const links = ordenes?.links || [];
 
-  function handleDelete(id: number) {
-    if (confirm("¿Seguro que querés eliminar esta orden?")) {
-      destroy(`/ordenes/${id}`);
+  const [anularOrdenId, setAnularOrdenId] = useState<number | null>(null);
+
+  function handleAnularConfirm() {
+    if (anularOrdenId !== null) {
+      destroy(`/ordenes/${anularOrdenId}`);
+      setAnularOrdenId(null);
     }
   }
 
@@ -397,7 +400,7 @@ export default function Index({ ordenes }: { ordenes: any }) {
                     {listaOrdenes.map((orden: Orden) => (
                       <tr
                         key={orden.id}
-                        className="hover:bg-gray-50 transition"
+                        className={`hover:bg-gray-50 transition ${orden.estado?.nombre === 'Anulada' ? 'opacity-60' : ''}`}
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {formatDateToArgentina(orden.fecha)}
@@ -413,7 +416,10 @@ export default function Index({ ordenes }: { ordenes: any }) {
                             : "Sin vehículo"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className="px-2 py-1 rounded text-white text-xs bg-blue-500">
+                          <span className={`px-2 py-1 rounded text-white text-xs ${orden.estado?.nombre === 'Anulada' ? 'bg-red-500' :
+                            orden.estado?.nombre === 'Finalizada' ? 'bg-green-500' :
+                              'bg-blue-500'
+                            }`}>
                             {orden.estado?.nombre ?? "-"}
                           </span>
                         </td>
@@ -425,12 +431,19 @@ export default function Index({ ordenes }: { ordenes: any }) {
                             <ViewButton
                               onClick={() => router.visit(`/ordenes/${orden.id}?return=${encodeURIComponent(returnUrl)}`)}
                             />
-                            <EditButton
-                              onClick={() => router.visit(`/ordenes/${orden.id}/edit?return=${encodeURIComponent(returnUrl)}`)}
-                            />
-                            <DeleteButton
-                              onClick={() => handleDelete(orden.id)}
-                            />
+                            {orden.estado?.nombre !== 'Finalizada' && orden.estado?.nombre !== 'Anulada' && (
+                              <EditButton
+                                onClick={() => router.visit(`/ordenes/${orden.id}/edit?return=${encodeURIComponent(returnUrl)}`)}
+                              />
+                            )}
+                            {orden.estado?.nombre !== 'Finalizada' && orden.estado?.nombre !== 'Anulada' && (
+                              <button
+                                onClick={() => setAnularOrdenId(orden.id)}
+                                className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100"
+                              >
+                                Anular
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -495,6 +508,16 @@ export default function Index({ ordenes }: { ordenes: any }) {
           )}
         </div>
       </div>
+
+      {/* Modal de confirmación de anulación */}
+      {anularOrdenId !== null && (
+        <ConfirmAnularModal
+          open={true}
+          onClose={() => setAnularOrdenId(null)}
+          onConfirm={handleAnularConfirm}
+          ordenId={anularOrdenId}
+        />
+      )}
     </DashboardLayout>
   );
 }
