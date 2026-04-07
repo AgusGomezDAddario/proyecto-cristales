@@ -162,29 +162,33 @@ export default function DashboardLayout({ children, title }: Props) {
                                         <div className="absolute top-full right-0 z-50 mt-1 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
                                             <Link
                                                 href="/clientes"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/clientes') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
+                                                    isActive('/clientes') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
                                             >
                                                 👥 Clientes
                                             </Link>
                                             <Link
                                                 href="/catalogo-vehiculos"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/catalogo-vehiculos') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
+                                                    isActive('/catalogo-vehiculos') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
                                             >
                                                 🚙 Vehículos
                                             </Link>
                                             <Link
                                                 href="/companias-seguros"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/companias-seguros') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
+                                                    isActive('/companias-seguros') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
                                             >
                                                 🛡️ Seguros
                                             </Link>
                                             <Link
                                                 href="/articulos"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/articulos') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
+                                                    isActive('/articulos') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
                                             >
                                                 📦 Artículos
                                             </Link>
@@ -193,31 +197,35 @@ export default function DashboardLayout({ children, title }: Props) {
                                             </Link>
                                             <Link
                                                 href="/medio-de-pago"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/medio-de-pago') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
+                                                    isActive('/medio-de-pago') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
                                             >
                                                 💳 Medios de pago
                                             </Link>
                                             {/* 🏷️ CONCEPTOS */}
                                             <Link
                                                 href="/conceptos"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/conceptos') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
+                                                    isActive('/conceptos') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
                                             >
                                                 🏷️ Conceptos
                                             </Link>
                                             <Link
                                                 href="/admin/metrics"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/admin/metrics') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
+                                                    isActive('/admin/metrics') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
                                             >
                                                 📈 Métricas
                                             </Link>
                                             <div className="my-1 border-t border-gray-100"></div>
                                             <Link
                                                 href="/admin/users"
-                                                className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/admin/users') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                    }`}
+                                                className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
+                                                    isActive('/admin/users') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                }`}
                                             >
                                                 👤 Usuarios
                                             </Link>
@@ -296,8 +304,9 @@ export default function DashboardLayout({ children, title }: Props) {
                                         <Link
                                             href="/resumen-del-dia"
                                             onClick={() => setMoreMenuOpen(false)}
-                                            className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/resumen-del-dia') ? 'font-medium text-blue-700' : 'text-gray-700'
-                                                }`}
+                                            className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
+                                                isActive('/resumen-del-dia') ? 'font-medium text-blue-700' : 'text-gray-700'
+                                            }`}
                                         >
                                             🧾 Resumen del día
                                         </Link>
@@ -308,24 +317,27 @@ export default function DashboardLayout({ children, title }: Props) {
                                                 <Link
                                                     href="/clientes"
                                                     onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/clientes') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                        }`}
+                                                    className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
+                                                        isActive('/clientes') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                    }`}
                                                 >
                                                     👥 Clientes
                                                 </Link>
                                                 <Link
                                                     href="/catalogo-vehiculos"
                                                     onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/catalogo-vehiculos') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                        }`}
+                                                    className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
+                                                        isActive('/catalogo-vehiculos') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                    }`}
                                                 >
                                                     🚙 Vehículos
                                                 </Link>
                                                 <Link
                                                     href="/companias-seguros"
                                                     onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/companias-seguros') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                        }`}
+                                                    className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
+                                                        isActive('/companias-seguros') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                    }`}
                                                 >
                                                     🛡️ Seguros
                                                 </Link>
@@ -338,8 +350,9 @@ export default function DashboardLayout({ children, title }: Props) {
                                                 <Link
                                                     href="/medio-de-pago"
                                                     onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/medio-de-pago') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                        }`}
+                                                    className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
+                                                        isActive('/medio-de-pago') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                    }`}
                                                 >
                                                     💳 Medios de pago
                                                 </Link>
@@ -347,24 +360,27 @@ export default function DashboardLayout({ children, title }: Props) {
                                                 <Link
                                                     href="/conceptos"
                                                     onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/conceptos') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                        }`}
+                                                    className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
+                                                        isActive('/conceptos') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                    }`}
                                                 >
                                                     🏷️ Conceptos
                                                 </Link>
                                                 <Link
                                                     href="/admin/metrics"
                                                     onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/admin/metrics') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                        }`}
+                                                    className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
+                                                        isActive('/admin/metrics') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                    }`}
                                                 >
                                                     📈 Métricas
                                                 </Link>
                                                 <Link
                                                     href="/admin/users"
                                                     onClick={() => setMoreMenuOpen(false)}
-                                                    className={`block px-4 py-2 text-sm hover:bg-gray-50 ${isActive('/admin/users') ? 'font-medium text-orange-600' : 'text-gray-700'
-                                                        }`}
+                                                    className={`block px-4 py-2 text-sm hover:bg-gray-200 ${
+                                                        isActive('/admin/users') ? 'font-medium text-orange-600' : 'text-gray-700'
+                                                    }`}
                                                 >
                                                     👤 Usuarios
                                                 </Link>
