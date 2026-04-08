@@ -172,9 +172,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                             <Link href="/articulos" className={`block px-4 py-2 text-sm hover:bg-gray-200 ${isActive('/articulos') ? 'font-medium text-orange-600' : 'text-gray-700'}`}>
                                                 Articulos
                                             </Link>
-                                            <Link href="#" className="block cursor-not-allowed px-4 py-2 text-sm text-gray-400">
-                                                Proveedores
-                                            </Link>
+
                                             <Link href="/medio-de-pago" className={`block px-4 py-2 text-sm hover:bg-gray-200 ${isActive('/medio-de-pago') ? 'font-medium text-orange-600' : 'text-gray-700'}`}>
                                                 Medios de pago
                                             </Link>
@@ -286,9 +284,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                                 <Link href="/articulos" onClick={() => setMoreMenuOpen(false)} className={`block px-4 py-2 text-sm hover:bg-gray-200 ${isActive('/articulos') ? 'font-medium text-orange-600' : 'text-gray-700'}`}>
                                                     Articulos
                                                 </Link>
-                                                <Link href="#" className="block cursor-not-allowed px-4 py-2 text-sm text-gray-400">
-                                                    Proveedores
-                                                </Link>
+
                                                 <Link href="/medio-de-pago" onClick={() => setMoreMenuOpen(false)} className={`block px-4 py-2 text-sm hover:bg-gray-200 ${isActive('/medio-de-pago') ? 'font-medium text-orange-600' : 'text-gray-700'}`}>
                                                     Medios de pago
                                                 </Link>
@@ -373,9 +369,7 @@ export default function DashboardLayout({ children, title }: Props) {
                                     <Link href="/articulos" className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/articulos') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'}`}>
                                         Articulos
                                     </Link>
-                                    <Link href="#" className="block cursor-not-allowed rounded-lg px-4 py-2 text-gray-400">
-                                        Proveedores
-                                    </Link>
+
                                     <Link href="/medio-de-pago" className={`block rounded-lg px-4 py-2 font-semibold ${isActive('/medio-de-pago') ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-100'}`}>
                                         Medios de pago
                                     </Link>
