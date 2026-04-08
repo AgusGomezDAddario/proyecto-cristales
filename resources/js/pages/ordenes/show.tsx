@@ -1,405 +1,374 @@
-import React from "react";
-import { Link, Head, usePage } from "@inertiajs/react";
-import DashboardLayout from "@/layouts/DashboardLayout";
+import React, { useState } from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
-  User,
-  Phone,
-  Mail,
-  Car,
-  Calendar,
-  FileText,
-  DollarSign,
-  CreditCard, AlertCircle, CheckCircle,
-  ArrowLeft,
-  Printer, Lock,
-} from "lucide-react";
-import PrintableODT from "@/components/print/PrintableODT";
-import { formatDateToArgentina, formatDateTimeToArgentina } from '@/utils/dateFormat';
+    AlertCircle,
+    ArrowLeft,
+    Ban,
+    Calendar,
+    Car,
+    CheckCircle,
+    CreditCard,
+    DollarSign,
+    FileText,
+    Mail,
+    Phone,
+    Printer,
+    User,
+} from 'lucide-react';
+import DashboardLayout from '@/layouts/DashboardLayout';
+import PrintableODT from '@/components/print/PrintableODT';
+import ConfirmAnularModal from '@/components/ConfirmAnularModal';
+import { formatDateTimeToArgentina } from '@/utils/dateFormat';
 
-/* =======================
-   TIPOS
-======================= */
-
-type Atributo = {
-  id: number;
-  categoria: { id: number; nombre: string };
-  subcategoria: { id: number; nombre: string };
+type Props = {
+    orden: any;
+    totalOrden?: number;
+    totalPagado?: number;
+    totalRegistrado?: number;
+    saldoPendiente?: number;
 };
 
-type Detalle = {
-  descripcion?: string;
-  valor: number;
-  cantidad: number;
-  colocacion_incluida: boolean;
-  articulo?: { id: number; nombre: string } | null;
-  atributos?: Atributo[];
+const getBadgeClasses = (estado: string) => {
+    if (estado === 'Anulada') return 'border-red-200 bg-red-100 text-red-700';
+    if (estado === 'Finalizada') return 'border-green-200 bg-green-100 text-green-700';
+    return 'border-yellow-200 bg-yellow-100 text-yellow-700';
 };
 
-type Pago = {
-  id: number;
-  valor: number;
-  observacion: string | null;
-  fecha: string;
-  pagado: boolean;
-  bloqueado: boolean;
-  medio_de_pago: { nombre: string };
-};
+export default function Show({ orden, totalOrden = 0, totalPagado = 0, totalRegistrado = 0, saldoPendiente = 0 }: Props) {
+    const { auth, userRoleId } = usePage().props as any;
+    const esTaller = userRoleId === 3 || auth?.user?.role_id === 3;
+    const backUrl = esTaller ? '/taller/ots' : '/ordenes';
+    const companiaNombre = orden?.compania_seguro?.nombre ?? 'Sin seguro / Particular';
+    const isAnulada = orden?.estado?.nombre === 'Anulada';
+    const isFinalizada = orden?.estado?.nombre === 'Finalizada';
+    const canManageOrder = !esTaller && !isAnulada && !isFinalizada;
+    const pagosSinCobrar = totalRegistrado - totalPagado;
+    const [showAnularModal, setShowAnularModal] = useState(false);
 
-type Orden = {
-  id: number;
-  fecha: string;
-  observacion: string | null;
-  estado: { nombre: string };
-  compania_seguro?: { nombre: string } | null;
-  titular_vehiculo: {
-    titular: {
-      nombre: string;
-      apellido: string;
-      telefono: string;
-      email: string | null;
-    };
-    vehiculo: {
-      patente: string;
-      marca?: { nombre: string } | string;
-      modelo?: { nombre: string } | string;
-      anio: number | null;
-    };
-  };
-  pagos: Pago[];
-  detalles: Detalle[];
-};
+    function handleAnular() {
+        router.delete(`/ordenes/${orden.id}`);
+        setShowAnularModal(false);
+    }
 
-/* =======================
-   COMPONENTE
-======================= */
+    return (
+        <DashboardLayout>
+            <Head title={`Orden #${orden.id}`} />
 
-export default function Show({ orden }: { orden: Orden }) {
-  const { auth } = usePage().props as any;
-
-  const esTaller = auth?.role_id === 3;
-  const backUrl = esTaller ? "/taller/ots" : "/ordenes";
-
-  const totalOrden = orden.detalles.reduce(
-    (acc, d) => acc + Number(d.valor) * Number(d.cantidad),
-    0
-  );
-
-  const totalPagado = orden.pagos.reduce(
-    (acc, p) => acc + Number(p.valor),
-    0
-  );
-
-  const saldoPendiente = totalOrden - totalPagado;
-
-  const companiaNombre =
-    orden.compania_seguro?.nombre ?? "Sin seguro / Particular";
-
-  return (
-    <DashboardLayout>
-      <Head title={`Orden #${orden.id}`} />
-
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div className="flex items-center gap-3">
-            <Link
-              href={backUrl}
-              className="p-2 rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition shadow-sm"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Orden de Trabajo #{orden.id}
-              </h1>
-
-              <div className="flex flex-wrap items-center gap-2 mt-1 text-gray-600">
-                <Calendar className="w-4 h-4" />
-                <span>
-                  {new Date(orden.fecha).toLocaleDateString("es-AR", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </span>
-
-                <span className="mx-1">•</span>
-
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 border border-yellow-200">
-                  {orden.estado.nombre}
-                </span>
-
-                {!esTaller && (
-                  <div className="ml-3">
-                    <span className="text-sm text-gray-500">
-                      Compañía de seguros
-                    </span>
-                    <div className="font-semibold text-gray-900">
-                      {companiaNombre}
+            <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 print:hidden">
+                {isAnulada && !esTaller && (
+                    <div className="mb-6 flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-6 py-4">
+                        <Ban className="h-6 w-6 text-red-500" />
+                        <div>
+                            <p className="font-bold text-red-800">Orden anulada</p>
+                            <p className="text-sm text-red-600">Esta orden fue anulada y el sistema genero los movimientos de reversa correspondientes.</p>
+                        </div>
                     </div>
-                  </div>
                 )}
-              </div>
-            </div>
-          </div>
 
-          {!esTaller && (
-            <div className="flex gap-3">
-              <button
-                onClick={() => window.print()}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 shadow-sm"
-              >
-                <Printer className="w-4 h-4" />
-                Imprimir
-              </button>
+                <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+                    <div className="flex items-center gap-3">
+                        <Link
+                            href={backUrl}
+                            className="rounded-xl border border-gray-200 bg-white p-2 text-gray-600 shadow-sm transition hover:bg-gray-50"
+                        >
+                            <ArrowLeft className="h-5 w-5" />
+                        </Link>
 
-              <Link
-                href={`/ordenes/${orden.id}/edit`}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 shadow-md"
-              >
-                Editar Orden
-              </Link>
-            </div>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* COLUMNA IZQUIERDA */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* DETALLES */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
-              <div className="px-6 py-4 border-b bg-gray-50 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-gray-500" />
-                <h2 className="font-bold text-gray-900">
-                  Detalles del Trabajo
-                </h2>
-              </div>
-
-              <div className="p-6 overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="text-xs font-semibold text-gray-500 uppercase border-b">
-                      <th className="pb-3">Descripción</th>
-                      <th className="pb-3 text-center">Cant.</th>
-                      {!esTaller && (
-                        <>
-                          <th className="pb-3 text-right">Unitario</th>
-                          <th className="pb-3 text-right">Subtotal</th>
-                        </>
-                      )}
-                    </tr>
-                  </thead>
-
-                  <tbody className="divide-y">
-                    {orden.detalles.map((d, i) => (
-                      <tr key={i} className="text-sm">
-                        <td className="py-3">
-                          <div className="font-medium text-gray-900">
-                            {d.articulo?.nombre || d.descripcion}
-                          </div>
-
-                          {d.atributos && d.atributos.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {d.atributos.map((a) => (
-                                <span
-                                  key={a.id}
-                                  className="px-2 py-0.5 text-xs rounded bg-gray-100"
-                                >
-                                  {a.categoria.nombre}:{" "}
-                                  {a.subcategoria.nombre}
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900">Orden de Trabajo #{orden.id}</h1>
+                            <div className="mt-1 flex flex-wrap items-center gap-2 text-gray-600">
+                                <Calendar className="h-4 w-4" />
+                                <span>{formatDateTimeToArgentina(orden.fecha)}</span>
+                                <span className="mx-1">•</span>
+                                <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getBadgeClasses(orden.estado.nombre)}`}>
+                                    {orden.estado.nombre}
                                 </span>
-                              ))}
+                                {!esTaller && (
+                                    <div className="ml-3">
+                                        <span className="text-sm text-gray-500">Compania de seguros</span>
+                                        <div className="font-semibold text-gray-900">{companiaNombre}</div>
+                                    </div>
+                                )}
                             </div>
-                          )}
+                        </div>
+                    </div>
 
-                          <span
-                            className={`inline-flex mt-1 px-2 py-0.5 rounded text-xs ${
-                              d.colocacion_incluida
-                                ? "bg-blue-50 text-blue-700"
-                                : "bg-orange-50 text-orange-700"
-                            }`}
-                          >
-                            {d.colocacion_incluida
-                              ? "🔧 Colocación"
-                              : "🏪 Retiro en local"}
-                          </span>
-                        </td>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => window.print()}
+                            className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-gray-700 shadow-sm transition hover:bg-gray-50"
+                        >
+                            <Printer className="h-4 w-4" />
+                            Imprimir
+                        </button>
+                        {canManageOrder && (
+                            <Link
+                                href={`/ordenes/${orden.id}/edit`}
+                                className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-white shadow-md transition hover:bg-green-700"
+                            >
+                                Editar Orden
+                            </Link>
+                        )}
+                        {canManageOrder && (
+                            <button
+                                onClick={() => setShowAnularModal(true)}
+                                className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-white shadow-md transition hover:bg-red-700"
+                            >
+                                <Ban className="h-4 w-4" />
+                                Anular
+                            </button>
+                        )}
+                    </div>
+                </div>
 
-                        <td className="py-3 text-center">{d.cantidad}</td>
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                    <div className="space-y-8 lg:col-span-2">
+                        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                            <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-6 py-4">
+                                <FileText className="h-5 w-5 text-gray-500" />
+                                <h2 className="font-bold text-gray-900">Detalles del trabajo</h2>
+                            </div>
+
+                            <div className="overflow-x-auto p-6">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="border-b text-xs font-semibold uppercase text-gray-500">
+                                            <th className="pb-3">Descripcion</th>
+                                            <th className="pb-3 text-center">Cant.</th>
+                                            {!esTaller && <th className="pb-3 text-right">Unitario</th>}
+                                            {!esTaller && <th className="pb-3 text-right">Subtotal</th>}
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {(orden.detalles || []).map((detalle: any, index: number) => (
+                                            <tr key={index} className="text-sm">
+                                                <td className="py-3">
+                                                    <div className="font-medium text-gray-900">
+                                                        {detalle.articulo?.nombre || detalle.descripcion || 'Articulo no especificado'}
+                                                    </div>
+                                                    {detalle.descripcion && detalle.articulo?.nombre && (
+                                                        <p className="mt-1 text-sm text-gray-500">{detalle.descripcion}</p>
+                                                    )}
+                                                    {Array.isArray(detalle.atributos) && detalle.atributos.length > 0 && (
+                                                        <div className="mt-1 flex flex-wrap gap-1">
+                                                            {detalle.atributos.map((atributo: any) => (
+                                                                <span key={atributo.id} className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
+                                                                    {atributo.categoria?.nombre}: {atributo.subcategoria?.nombre}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    <span className={`mt-1 inline-flex rounded px-2 py-0.5 text-xs ${detalle.colocacion_incluida ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'}`}>
+                                                        {detalle.colocacion_incluida ? 'Colocacion' : 'Retiro en local'}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 text-center">{detalle.cantidad}</td>
+                                                {!esTaller && <td className="py-3 text-right">${Number(detalle.valor).toLocaleString('es-AR')}</td>}
+                                                {!esTaller && (
+                                                    <td className="py-3 text-right font-medium">
+                                                        ${(Number(detalle.valor) * Number(detalle.cantidad)).toLocaleString('es-AR')}
+                                                    </td>
+                                                )}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                    {!esTaller && (
+                                        <tfoot>
+                                            <tr className="border-t">
+                                                <td colSpan={3} className="pt-4 text-right font-bold">Total:</td>
+                                                <td className="pt-4 text-right font-bold text-green-600">${totalOrden.toLocaleString('es-AR')}</td>
+                                            </tr>
+                                        </tfoot>
+                                    )}
+                                </table>
+                            </div>
+                        </div>
 
                         {!esTaller && (
-                          <>
-                            <td className="py-3 text-right">
-                              ${Number(d.valor).toLocaleString("es-AR")}
-                            </td>
-                            <td className="py-3 text-right font-medium">
-                              $
-                              {(
-                                Number(d.valor) * Number(d.cantidad)
-                              ).toLocaleString("es-AR")}
-                            </td>
-                          </>
+                            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                                <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-6 py-4">
+                                    <DollarSign className="h-5 w-5 text-gray-500" />
+                                    <h2 className="font-bold text-gray-900">Estado de pago</h2>
+                                </div>
+                                <div className="space-y-6 p-6">
+                                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                            <p className="text-sm text-slate-600">Total</p>
+                                            <p className="font-bold text-slate-900">${totalOrden.toLocaleString('es-AR')}</p>
+                                        </div>
+                                        <div className="rounded-xl border border-green-200 bg-green-50 p-4">
+                                            <p className="text-sm text-green-700">Cobrado</p>
+                                            <p className="font-bold text-green-600">${totalPagado.toLocaleString('es-AR')}</p>
+                                        </div>
+                                        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+                                            <p className="text-sm text-blue-700">Registrado sin cobrar</p>
+                                            <p className="font-bold text-blue-600">${pagosSinCobrar.toLocaleString('es-AR')}</p>
+                                        </div>
+                                        <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+                                            <p className="text-sm text-red-700">Saldo pendiente</p>
+                                            <p className="font-bold text-red-600">${Math.abs(saldoPendiente).toLocaleString('es-AR')}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        {(orden.pagos || []).length > 0 ? (
+                                            orden.pagos.map((pago: any) => (
+                                                <div key={pago.id} className="flex items-start justify-between rounded-xl border bg-gray-50 p-4">
+                                                    <div className="flex gap-3">
+                                                        <CreditCard className="mt-0.5 h-5 w-5 text-blue-600" />
+                                                        <div>
+                                                            <p className="font-semibold text-gray-900">{pago.medio_de_pago?.nombre}</p>
+                                                            <p className="text-sm text-gray-500">{formatDateTimeToArgentina(pago.fecha)}</p>
+                                                            {pago.observacion && <p className="text-sm text-gray-500">{pago.observacion}</p>}
+                                                            <div className="mt-1 flex gap-2">
+                                                                {pago.pagado ? (
+                                                                    <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">
+                                                                        <CheckCircle className="h-3 w-3" />
+                                                                        Cobrado
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs text-yellow-700">
+                                                                        <AlertCircle className="h-3 w-3" />
+                                                                        Pendiente
+                                                                    </span>
+                                                                )}
+                                                                {pago.bloqueado && (
+                                                                    <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-700">Bloqueado</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <span className={`font-bold ${Number(pago.valor) < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                                                        {Number(pago.valor) < 0 ? '-' : ''}${Math.abs(Number(pago.valor)).toLocaleString('es-AR')}
+                                                    </span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 py-8 text-center text-sm text-slate-500">
+                                                No hay pagos registrados
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {saldoPendiente > 0 && (
+                                        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                            <AlertCircle className="mt-0.5 h-5 w-5 text-amber-600" />
+                                            <p className="text-sm text-amber-700">La orden todavia tiene un saldo pendiente de ${saldoPendiente.toLocaleString('es-AR')}.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         )}
-                      </tr>
-                    ))}
-                  </tbody>
 
-                  {!esTaller && (
-                    <tfoot>
-                      <tr className="border-t">
-                        <td colSpan={3} className="pt-4 text-right font-bold">
-                          Total:
-                        </td>
-                        <td className="pt-4 text-right font-bold text-green-600">
-                          ${totalOrden.toLocaleString("es-AR")}
-                        </td>
-                      </tr>
-                    </tfoot>
-                  )}
-                </table>
-              </div>
-            </div>
+                        {Array.isArray(orden.historial_estados) && orden.historial_estados.length > 0 && (
+                            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                                <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-6 py-4">
+                                    <Calendar className="h-5 w-5 text-gray-500" />
+                                    <h2 className="font-bold text-gray-900">Historial de estados</h2>
+                                </div>
+                                <div className="space-y-4 p-6">
+                                    {orden.historial_estados.map((item: any) => (
+                                        <div key={item.id} className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                                            <p className="font-semibold text-gray-900">{item.estado?.nombre}</p>
+                                            <p className="text-sm text-gray-500">{formatDateTimeToArgentina(item.created_at)}</p>
+                                            <p className="text-xs text-gray-400">{item.user?.name ?? 'Sistema'}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
-            {/* PAGOS (SOLO ADMIN) */}
-            {!esTaller && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
-                <div className="px-6 py-4 border-b bg-gray-50 flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-gray-500" />
-                  <h2 className="font-bold text-gray-900">
-                    Pagos Registrados
-                  </h2>
-                </div>
+                        {orden.observacion && (
+                            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                                <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-6 py-4">
+                                    <FileText className="h-5 w-5 text-gray-500" />
+                                    <h2 className="font-bold text-gray-900">Observaciones</h2>
+                                </div>
+                                <div className="p-6 text-gray-700 whitespace-pre-wrap">{orden.observacion}</div>
+                            </div>
+                        )}
+                    </div>
 
-                <div className="p-6 space-y-4">
-                  {orden.pagos.map((p) => (
-                    <div
-                      key={p.id}
-                      className="flex justify-between p-4 bg-gray-50 rounded-xl border"
-                    >
-                      <div className="flex gap-3">
-                        <CreditCard className="w-5 h-5 text-green-600" />
-                        <div>
-                          <p className="font-semibold">
-                            {p.medio_de_pago.nombre}
-                          </p>
-                          {p.observacion && (
-                            <p className="text-sm text-gray-500">
-                              {p.observacion}
-                            </p>
-                          )}
+                    <div className="space-y-6">
+                        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                            <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-6 py-4">
+                                <User className="h-5 w-5 text-gray-500" />
+                                <h2 className="font-bold text-gray-900">Cliente</h2>
+                            </div>
+                            <div className="space-y-4 p-6">
+                                <div>
+                                    <p className="text-sm text-gray-500">Nombre completo</p>
+                                    <p className="text-lg font-semibold text-gray-900">
+                                        {orden.titular_vehiculo?.titular?.nombre} {orden.titular_vehiculo?.titular?.apellido}
+                                    </p>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <Phone className="mt-0.5 h-5 w-5 text-gray-400" />
+                                    <div>
+                                        <p className="text-sm text-gray-500">Telefono</p>
+                                        <p className="font-medium text-gray-900">{orden.titular_vehiculo?.titular?.telefono || 'No registrado'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <Mail className="mt-0.5 h-5 w-5 text-gray-400" />
+                                    <div>
+                                        <p className="text-sm text-gray-500">Email</p>
+                                        <p className="font-medium text-gray-900">{orden.titular_vehiculo?.titular?.email || 'No registrado'}</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                      </div>
 
-                      <span className="font-bold">
-                        ${Number(p.valor).toLocaleString("es-AR")}
-                      </span>
+                        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                            <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-6 py-4">
+                                <Car className="h-5 w-5 text-gray-500" />
+                                <h2 className="font-bold text-gray-900">Vehiculo</h2>
+                            </div>
+                            <div className="space-y-4 p-6">
+                                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-center">
+                                    <p className="text-xs uppercase text-gray-500">Patente</p>
+                                    <p className="text-2xl font-bold tracking-widest text-gray-900">{orden.titular_vehiculo?.vehiculo?.patente}</p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p className="text-sm text-gray-500">Marca</p>
+                                        <p className="font-medium text-gray-900">
+                                            {typeof orden.titular_vehiculo?.vehiculo?.marca === 'string'
+                                                ? orden.titular_vehiculo.vehiculo.marca
+                                                : orden.titular_vehiculo?.vehiculo?.marca?.nombre ?? '-'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-500">Modelo</p>
+                                        <p className="font-medium text-gray-900">
+                                            {typeof orden.titular_vehiculo?.vehiculo?.modelo === 'string'
+                                                ? orden.titular_vehiculo.vehiculo.modelo
+                                                : orden.titular_vehiculo?.vehiculo?.modelo?.nombre ?? '-'}
+                                        </p>
+                                    </div>
+                                </div>
+                                {orden.titular_vehiculo?.vehiculo?.anio && (
+                                    <div>
+                                        <p className="text-sm text-gray-500">Anio</p>
+                                        <p className="font-medium text-gray-900">{orden.titular_vehiculo.vehiculo.anio}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                  ))}
-
-                  <div className="text-right pt-2 border-t">
-                    <div className="text-sm">
-                      Total Pagado:{" "}
-                      <strong>
-                        ${totalPagado.toLocaleString("es-AR")}
-                      </strong>
-                    </div>
-
-                    {saldoPendiente > 0 && (
-                      <div className="text-sm text-red-600">
-                        Saldo Pendiente: $
-                        {saldoPendiente.toLocaleString("es-AR")}
-                      </div>
-                    )}
-                  </div>
                 </div>
-              </div>
+            </div>
+
+            <PrintableODT orden={orden} />
+
+            {!esTaller && (
+                <ConfirmAnularModal
+                    open={showAnularModal}
+                    onClose={() => setShowAnularModal(false)}
+                    onConfirm={handleAnular}
+                    ordenId={orden.id}
+                />
             )}
-          </div>
-
-          {/* COLUMNA DERECHA */}
-          <div className="space-y-6">
-            {/* CLIENTE */}
-            <div className="bg-white rounded-2xl shadow-sm border">
-              <div className="px-6 py-4 border-b bg-gray-50 flex items-center gap-2">
-                <User className="w-5 h-5 text-gray-500" />
-                <h2 className="font-bold">Cliente</h2>
-              </div>
-
-              <div className="p-6 space-y-4">
-                <div>
-                  <p className="text-sm text-gray-500">Nombre completo</p>
-                  <p className="font-semibold text-lg">
-                    {orden.titular_vehiculo.titular.nombre}{" "}
-                    {orden.titular_vehiculo.titular.apellido}
-                  </p>
-                </div>
-
-                <div className="flex gap-3">
-                  <Phone className="w-5 h-5 text-gray-400" />
-                  <span>
-                    {orden.titular_vehiculo.titular.telefono || "No registrado"}
-                  </span>
-                </div>
-
-                <div className="flex gap-3">
-                  <Mail className="w-5 h-5 text-gray-400" />
-                  <span>
-                    {orden.titular_vehiculo.titular.email || "No registrado"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* VEHÍCULO */}
-            <div className="bg-white rounded-2xl shadow-sm border">
-              <div className="px-6 py-4 border-b bg-gray-50 flex items-center gap-2">
-                <Car className="w-5 h-5 text-gray-500" />
-                <h2 className="font-bold">Vehículo</h2>
-              </div>
-
-              <div className="p-6 space-y-4">
-                <div className="p-4 bg-gray-50 rounded text-center">
-                  <p className="text-xs uppercase text-gray-500">Patente</p>
-                  <p className="text-2xl font-mono font-bold">
-                    {orden.titular_vehiculo.vehiculo.patente}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Marca</p>
-                    <p>
-                      {typeof orden.titular_vehiculo.vehiculo.marca === "string"
-                        ? orden.titular_vehiculo.vehiculo.marca
-                        : orden.titular_vehiculo.vehiculo.marca?.nombre ?? "-"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-gray-500">Modelo</p>
-                    <p>
-                      {typeof orden.titular_vehiculo.vehiculo.modelo === "string"
-                        ? orden.titular_vehiculo.vehiculo.modelo
-                        : orden.titular_vehiculo.vehiculo.modelo?.nombre ?? "-"}
-                    </p>
-                  </div>
-                </div>
-
-                {orden.titular_vehiculo.vehiculo.anio && (
-                  <div>
-                    <p className="text-sm text-gray-500">Año</p>
-                    <p>{orden.titular_vehiculo.vehiculo.anio}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Componente de impresión profesional */}
-      <PrintableODT orden={orden as any} />
-    </DashboardLayout>
-  );
+        </DashboardLayout>
+    );
 }

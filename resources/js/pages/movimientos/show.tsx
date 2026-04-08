@@ -3,7 +3,7 @@ import DashboardLayout from '@/layouts/DashboardLayout';
 import { Movimiento } from '@/types/movimiento';
 import ViewButton from '@/components/botones/boton-ver';
 import { FileText } from 'lucide-react';
-import { formatDateToArgentina } from '@/utils/dateFormat';
+import { formatDateTimeToArgentina } from '@/utils/dateFormat';
 
 interface Props {
     movimiento: Movimiento;
@@ -40,7 +40,7 @@ console.log('Movimiento completo:', movimiento);
                     <div>
                         <p className="text-sm text-gray-600 font-semibold mb-2">Fecha</p>
                         <p className="text-lg font-bold text-gray-900">
-                            {formatDateToArgentina(movimiento.fecha)}
+                            {formatDateTimeToArgentina(movimiento.fecha)}
                         </p>
                     </div>
 

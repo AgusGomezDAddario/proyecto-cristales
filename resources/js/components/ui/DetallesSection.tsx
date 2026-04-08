@@ -10,6 +10,7 @@ export interface SubcategoriaDTO {
 export interface CategoriaDTO {
   id: number;
   nombre: string;
+  obligatoria: boolean;
   subcategorias: SubcategoriaDTO[];
 }
 
@@ -152,13 +153,18 @@ export default function DetallesSection({ detalles, setDetalles, articulos, erro
         {detalles.map((detalle, index) => {
           const articulo = detalle.articulo_id ? articulosById.get(detalle.articulo_id) : undefined;
           const isItemConfigured = detalle.articulo_id !== null;
+          const hasAtributoErrors = articulo?.categorias?.some(
+            (cat) => cat.obligatoria && getItemError(index, `atributos.${cat.id}`)
+          );
 
           return (
             <div
               key={index}
-              className={`rounded-xl border-2 p-4 transition-all ${isItemConfigured
-                ? 'border-green-300 bg-green-50/30'
-                : 'border-gray-200 bg-white'
+              className={`rounded-xl border-2 p-4 transition-all ${hasAtributoErrors
+                ? 'border-red-400 bg-red-50/30'
+                : isItemConfigured
+                  ? 'border-green-300 bg-green-50/30'
+                  : 'border-gray-200 bg-white'
                 }`}
             >
               {/* Fila principal compacta */}
@@ -278,10 +284,11 @@ export default function DetallesSection({ detalles, setDetalles, articulos, erro
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {articulo.categorias.map((cat) => {
                       const selected = detalle.atributos?.[cat.id] ?? null;
+                      const hasError = getItemError(index, `atributos.${cat.id}`);
                       return (
                         <div key={cat.id}>
                           <label className="block text-xs text-gray-500 mb-1">
-                            {cat.nombre}
+                            {cat.nombre}{cat.obligatoria && <span className="text-red-500 ml-0.5">*</span>}
                           </label>
                           <select
                             value={selected ?? ""}
@@ -292,7 +299,8 @@ export default function DetallesSection({ detalles, setDetalles, articulos, erro
                                 e.target.value ? Number(e.target.value) : null
                               )
                             }
-                            className="w-full px-2 py-1.5 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
+                            className={`w-full px-2 py-1.5 text-sm bg-white border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${hasError ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                              }`}
                           >
                             <option value="">Seleccionar...</option>
                             {cat.subcategorias.map((sc) => (

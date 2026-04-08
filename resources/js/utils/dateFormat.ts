@@ -17,6 +17,23 @@ export function getArgentinaToday(): string {
 }
 
 /**
+ * Obtiene la fecha y hora actual en Argentina (UTC-3)
+ * Retorna en formato yyyy-mm-dd hh:mm para inputs y valores por defecto
+ */
+export function getArgentinaNow(): string {
+  const now = new Date();
+  const argDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
+  
+  const year = argDate.getFullYear();
+  const month = String(argDate.getMonth() + 1).padStart(2, '0');
+  const day = String(argDate.getDate()).padStart(2, '0');
+  const hours = String(argDate.getHours()).padStart(2, '0');
+  const minutes = String(argDate.getMinutes()).padStart(2, '0');
+  
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
+/**
  * Convierte una fecha en formato yyyy-mm-dd a dd/mm/yyyy para mostrar
  * @param dateString - Fecha en formato yyyy-mm-dd o ISO
  * @returns Fecha en formato dd/mm/yyyy

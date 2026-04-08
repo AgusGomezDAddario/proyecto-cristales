@@ -25,6 +25,7 @@ class OrdenDeTrabajo extends Model
 
     protected $casts = [
         'fecha' => 'datetime',     // en DB es datetime
+        'fecha_entrega_estimada' => 'datetime',
         'con_factura' => 'boolean',
     ];
 
