@@ -406,11 +406,11 @@ class OrdenDeTrabajoController extends Controller
             'titularVehiculo.titular',
             'titularVehiculo.vehiculo'
         ])
-        ->whereIn('estado_id', Estado::ESTADOS_TALLER)
+        ->whereIn('estado_id', Estado::idsParaTaller())
         ->get();
 
     $estados = Estado::select('id', 'nombre')
-        ->whereIn('id', Estado::ESTADOS_CAMBIO_TALLER)
+        ->whereIn('id', Estado::idsPermitidosCambioTaller())
         ->orderBy('id')
         ->get();
 
@@ -422,8 +422,7 @@ class OrdenDeTrabajoController extends Controller
 
     public function cambiarEstadoTaller(Request $request, OrdenDeTrabajo $orden)
     {
-        // Estados permitidos para taller
-        $estadosPermitidos = [1, 2, 3]; // Iniciado, Pendiente, Completada
+        $estadosPermitidos = Estado::idsPermitidosCambioTaller();
 
         $request->validate([
             'estado_id' => ['required', 'integer', 'in:' . implode(',', $estadosPermitidos)],
