@@ -383,6 +383,61 @@ class OrdenDeTrabajoController extends Controller
             ->with('success', 'Orden creada correctamente ✅ (ID: ' . $orden->id . ')');
     }
 
+ /*   public function show(OrdenDeTrabajo $orden)
+    {
+        $orden->load([
+            'estado',
+            'titularVehiculo.titular',
+            'titularVehiculo.vehiculo',
+            'detalles',
+            'pagos.medioDePago',
+        ]);
+
+        return Inertia::render('ordenes/show', [
+            'orden' => $orden,
+            'userRoleId' => auth()->user()->role_id,
+        ]);
+    }*/
+
+    public function pendientes()
+{
+    $ots = OrdenDeTrabajo::with([
+            'estado',
+            'titularVehiculo.titular',
+            'titularVehiculo.vehiculo'
+        ])
+        ->whereIn('estado_id', Estado::idsParaTaller())
+        ->get();
+
+    $estados = Estado::select('id', 'nombre')
+        ->whereIn('id', Estado::idsPermitidosCambioTaller())
+        ->orderBy('id')
+        ->get();
+
+    return Inertia::render('taller/ordenes', [
+        'ots' => $ots,
+        'estados' => $estados, // 👈 ESTO
+    ]);
+}
+
+    public function cambiarEstadoTaller(Request $request, OrdenDeTrabajo $orden)
+    {
+        $estadosPermitidos = Estado::idsPermitidosCambioTaller();
+
+        $request->validate([
+            'estado_id' => ['required', 'integer', 'in:' . implode(',', $estadosPermitidos)],
+        ]);
+
+        // Actualiza el estado
+        $orden->update([
+            'estado_id' => $request->estado_id,
+        ]);
+
+        return redirect()->back()->with('success', 'Estado actualizado correctamente');
+    }
+
+
+
     public function update(Request $request, OrdenDeTrabajo $orden)
     {
         $validated = $request->validate([
@@ -725,6 +780,7 @@ class OrdenDeTrabajoController extends Controller
             'totalPagado' => (float) $totalPagado,
             'totalRegistrado' => (float) $totalRegistrado,
             'saldoPendiente' => (float) ($totalOrden - $totalPagado),
+            'userRoleId' => auth()->user()->role_id,
         ]);
     }
 

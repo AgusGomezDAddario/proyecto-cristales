@@ -35,6 +35,14 @@ class AuthenticatedSessionController extends Controller
         // Fija la cookie de sesión
         $request->session()->regenerate();
 
+        // LIMPIAR URL INTENDED para que si se loguea como taller no le muestre el panel adminsitrador
+        $request->session()->forget('url.intended');
+
+        // 🔹 Redirección rol taller
+        if ($request->user()->role_id === 3) {
+            return redirect()->route('taller.ots');
+        }
+
         // Redirige a donde quería ir; fallback a 'ordenes'
         return redirect()->intended(route('ordenes.index', absolute: false) ?? '/ordenes');
     }

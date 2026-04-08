@@ -96,10 +96,36 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/ingresos/{id}', [IngresoController::class, 'update']);
 
     // 👉 Rutas para Órdenes de Trabajo
-    Route::resource('ordenes', OrdenDeTrabajoController::class)
-        ->parameters([
-            'ordenes' => 'orden'
-        ]);
+   Route::middleware('is_admin')->group(function () {
+        Route::resource('ordenes', OrdenDeTrabajoController::class)
+            ->except(['show'])
+            ->parameters([
+                'ordenes' => 'orden'
+            ]);
+
+        Route::get(
+            '/ordenes/{orden}',
+            [OrdenDeTrabajoController::class, 'show']
+            )->name('ordenes.show');
+    });
+
+
+    // 👉 Rutas para cuando se logue el perfil taller
+    Route::middleware(['auth', 'rol.taller'])->group(function () {
+        Route::get('/taller/ots', [OrdenDeTrabajoController::class, 'pendientes'])
+        ->name('taller.ots');
+
+        Route::get(
+            '/taller/ordenes/{orden}',
+            [OrdenDeTrabajoController::class, 'show']
+        )->name('taller.ordenes.show');
+
+        Route::patch(
+        '/taller/ordenes/{orden}/estado',
+        [OrdenDeTrabajoController::class, 'cambiarEstadoTaller']
+        )->name('taller.ordenes.estado');
+    }); 
+
 
     // 👉 Rutas API para Catálogo de Vehículos (accesibles para todos los auth)
     Route::get('api/marcas', [CatalogoVehiculoController::class, 'getMarcas'])->name('api.marcas');
