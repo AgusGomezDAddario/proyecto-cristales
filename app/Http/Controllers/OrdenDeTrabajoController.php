@@ -724,7 +724,7 @@ class OrdenDeTrabajoController extends Controller
 
                     // Crear el movimiento
                     Movimiento::create([
-                        'fecha' => $pago->fecha ?? $orden->fecha,
+                        'fecha' => now(),
                         'monto' => $montoParaGuardar,
                         'concepto_id' => $conceptoId,
                         'medio_de_pago_id' => $pago->medio_de_pago_id,
@@ -851,7 +851,7 @@ class OrdenDeTrabajoController extends Controller
 
                 foreach ($ingresosExistentes as $ingreso) {
                     Movimiento::create([
-                        'fecha' => now()->toDateString(),
+                        'fecha' => now(),
                         'monto' => $ingreso->monto,
                         'concepto_id' => $conceptoAnulacion->id,
                         'medio_de_pago_id' => $ingreso->medio_de_pago_id,
