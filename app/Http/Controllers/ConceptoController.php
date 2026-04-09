@@ -33,7 +33,7 @@ class ConceptoController extends Controller
         $totalIngresos = Concepto::where('tipo', 'ingreso')->count();
         $totalEgresos = Concepto::where('tipo', 'egreso')->count();
 
-        return Inertia::render('Conceptos/Index', [
+        return Inertia::render('conceptos/index', [
             'conceptos' => $conceptos,
             'filters' => $request->only(['search', 'tipo']),
             'stats' => [
@@ -70,6 +70,10 @@ class ConceptoController extends Controller
      */
     public function update(Request $request, Concepto $concepto)
     {
+        if ($concepto->sistema) {
+            return redirect()->back()->with('error', 'Este concepto es del sistema y no puede modificarse.');
+        }
+
         $validated = $request->validate([
             'nombre' => 'required|string|max:50|unique:concepto,nombre,' . $concepto->id,
             'tipo' => 'required|in:ingreso,egreso',
@@ -91,6 +95,10 @@ class ConceptoController extends Controller
      */
     public function destroy(Concepto $concepto)
     {
+        if ($concepto->sistema) {
+            return redirect()->back()->with('error', 'Este concepto es del sistema y no puede eliminarse.');
+        }
+
         // Verificar si tiene movimientos asociados
         if ($concepto->movimientos()->exists()) {
             return redirect()->back()->with('error', 'No se puede eliminar: el concepto tiene movimientos asociados.');

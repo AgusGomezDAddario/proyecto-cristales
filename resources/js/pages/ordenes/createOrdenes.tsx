@@ -9,7 +9,8 @@ import VehiculoSection, { VehiculoSectionRef } from '@/components/ui/VehiculoSec
 import DashboardLayout from '@/layouts/DashboardLayout';
 import PagosSection from '@/components/ui/PagosSection';
 import DatePicker from '@/components/ui/DataPicker';
-import { getArgentinaToday } from '@/utils/dateFormat';
+import DateTimePicker from '@/components/ui/DateTimePicker';
+import { getArgentinaNow } from '@/utils/dateFormat';
 
 type TipoDocumento = 'OT' | 'FC';
 
@@ -36,7 +37,6 @@ type FormData = {
     observacion: string;
     fecha: string;
     detalles: Detalle[];
-    numero_orden_manual: boolean;
 };
 
 type Props = {
@@ -48,12 +48,6 @@ type Props = {
 };
 
 export default function CreateOrdenes({ titulares, estados, mediosDePago, articulos = [], companiasSeguros = [] }: Props) {
-    const generarNumeroOrden = (tipo: TipoDocumento) => {
-        const prefix = tipo === 'OT' ? 'OT' : 'FC';
-        const suffix = Date.now().toString().slice(-6);
-        return `${prefix}-${suffix}`;
-    };
-
     const detalleInicial: Detalle = {
         articulo_id: null,
         descripcion: '',
@@ -77,7 +71,6 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
         pagos: [],
         observacion: '',
         fecha: '',
-        numero_orden_manual: false,
         detalles: [detalleInicial],
     };
 
@@ -106,25 +99,18 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
 
     // Defaults iniciales con fecha Argentina
     useEffect(() => {
-        const hoy = getArgentinaToday(); // Usa UTC-3
+        const hoy = getArgentinaNow(); // Usa UTC-3
 
         setData((prev: FormData) => ({
             ...prev,
             fecha: prev.fecha || hoy,
-            numero_orden: prev.numero_orden || generarNumeroOrden(prev.tipo_documento),
         }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        setData((prev: FormData) => {
-            if (prev.numero_orden_manual) return prev;
-            return {
-                ...prev,
-                numero_orden: generarNumeroOrden(prev.tipo_documento),
-            };
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // El número correlativo se asigna en el backend automáticamente basándose en 'tipo_documento'.
+        // Ya no generamos en el frontend para evitar números saltados o sucios.
     }, [data.tipo_documento]);
 
     const vehiculosDelTitular = titulares.find((t: any) => t.id === data.titular_id)?.vehiculos || [];
@@ -180,17 +166,28 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                 errores[`detalles.${idx}.valor`] = 'Sin precio';
                 hayErrores = true;
             }
+
+            // Validar atributos obligatorios
+            if (d.articulo_id) {
+                const art = articulos.find((a: any) => a.id === d.articulo_id);
+                if (art?.categorias) {
+                    art.categorias.forEach((cat: any) => {
+                        if (cat.obligatoria && !d.atributos?.[cat.id]) {
+                            errores[`detalles.${idx}.atributos.${cat.id}`] = ' ';
+                            hayErrores = true;
+                        }
+                    });
+                }
+            }
         });
 
         setLocalErrors(errores);
 
         if (hayErrores) {
-            const mensajesError: string[] = [];
-            if (errores['fecha_entrega_estimada']) mensajesError.push('Ingresá una fecha de entrega estimada.');
-            if (errores['estado_id']) mensajesError.push('Seleccioná un estado para la orden.');
-            if (Object.keys(errores).some(k => k.startsWith('detalles.'))) mensajesError.push('Hay artículos sin precio.');
-
-            toast.error(mensajesError.join('\n'));
+            if (errores['fecha_entrega_estimada']) toast.error(errores['fecha_entrega_estimada']);
+            if (errores['estado_id']) toast.error(errores['estado_id']);
+            if (Object.keys(errores).some(k => k.match(/^detalles\.\d+\.valor$/))) toast.error('Hay artículos sin precio.');
+            if (Object.keys(errores).some(k => k.match(/^detalles\.\d+\.atributos\./))) toast.error('Completá los atributos del artículo que son obligatorios marcados en rojo.');
             return;
         }
 
@@ -278,22 +275,13 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                                 </div>
 
                                 <div>
-                                    <label className="mb-2 block text-sm font-semibold text-gray-800">Número de orden *</label>
+                                    <label className="mb-2 block text-sm font-semibold text-gray-800">Número de orden</label>
                                     <input
                                         type="text"
-                                        value={data.numero_orden}
-                                        onChange={(e) => {
-                                            setData((prev: FormData) => ({
-                                                ...prev,
-                                                numero_orden: e.target.value,
-                                                numero_orden_manual: true,
-                                            }));
-                                        }}
-                                        className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none ${(errors as any).numero_orden ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                            }`}
-                                        placeholder="OT-000000 / FC-000000"
+                                        disabled
+                                        value="(Se generará automáticamente)"
+                                        className="w-full rounded-xl border-2 bg-gray-100 text-gray-500 px-4 py-3 font-medium cursor-not-allowed outline-none border-gray-200"
                                     />
-                                    {(errors as any).numero_orden && <p className="mt-2 text-sm text-red-600">{(errors as any).numero_orden}</p>}
                                 </div>
 
                                 <div className="flex items-center gap-3 pt-7">
@@ -315,7 +303,7 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>
                                 <label className="mb-2 block text-sm font-semibold text-gray-800">Fecha *</label>
-                                <DatePicker
+                                <DateTimePicker
                                     value={data.fecha}
                                     onChange={(date: string) => setField('fecha', date)}
                                     error={!!allErrors.fecha}
@@ -326,7 +314,7 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
 
                             <div>
                                 <label className="mb-2 block text-sm font-semibold text-gray-800">Fecha de entrega estimada *</label>
-                                <DatePicker
+                                <DateTimePicker
                                     value={data.fecha_entrega_estimada}
                                     onChange={(date: string) => setField('fecha_entrega_estimada', date)}
                                     minDate={data.fecha || undefined}

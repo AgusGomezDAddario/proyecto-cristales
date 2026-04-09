@@ -9,7 +9,8 @@ import VehiculoSection, { VehiculoSectionRef } from "@/components/ui/VehiculoSec
 import DetallesSection, { Detalle as DetalleUI, ArticuloDTO } from "@/components/ui/DetallesSection";
 import EstadoSection from "@/components/ui/EstadoSection";
 import PagosSection from '@/components/ui/PagosSection';
-import { getArgentinaToday } from '@/utils/dateFormat';
+import { getArgentinaToday, getArgentinaNow } from '@/utils/dateFormat';
+import DateTimePicker from '@/components/ui/DateTimePicker';
 
 type Estado = { id: number; nombre: string };
 type MedioDePago = { id: number; nombre: string };
@@ -66,13 +67,13 @@ type FormData = {
   nuevo_vehiculo: any | null;
   detalles: DetalleUI[];
   pagos: Array<{
-      id?: number;
-      medio_de_pago_id: number | string;
-      monto: number | string;
-      fecha: string;
-      pagado: boolean;
-      bloqueado?: boolean;
-      observacion: string;
+    id?: number;
+    medio_de_pago_id: number | string;
+    monto: number | string;
+    fecha: string;
+    pagado: boolean;
+    bloqueado?: boolean;
+    observacion: string;
   }>;
 };
 
@@ -99,9 +100,9 @@ export default function Edit({
 
   const initial: FormData = {
     estado_id: orden.estado_id ?? null,
-    fecha: orden.fecha ? String(orden.fecha).substring(0, 10) : "",
+    fecha: orden.fecha ? String(orden.fecha).replace('T', ' ').substring(0, 16) : "",
     fecha_entrega_estimada: orden.fecha_entrega_estimada
-      ? String(orden.fecha_entrega_estimada).substring(0, 10)
+      ? String(orden.fecha_entrega_estimada).replace('T', ' ').substring(0, 16)
       : "",
     observacion: orden.observacion ?? "",
     con_factura: orden.con_factura ? 1 : 0,
@@ -139,13 +140,13 @@ export default function Edit({
     }) as DetalleUI[],
 
     pagos: (orden.pagos || []).map((p) => ({
-        id: p.id,
-        medio_de_pago_id: p.medio_de_pago_id,
-        monto: p.valor ?? 0,
-        fecha: p.fecha ? String(p.fecha).substring(0, 10) : getArgentinaToday(),
-        pagado: p.pagado ?? false,
-        bloqueado: p.bloqueado ?? false,
-        observacion: p.observacion ?? "",
+      id: p.id,
+      medio_de_pago_id: p.medio_de_pago_id,
+      monto: p.valor ?? 0,
+      fecha: p.fecha ? String(p.fecha).substring(0, 10) : getArgentinaToday(),
+      pagado: p.pagado ?? false,
+      bloqueado: p.bloqueado ?? false,
+      observacion: p.observacion ?? "",
     })),
   };
 
@@ -189,13 +190,41 @@ export default function Edit({
     setData((prev: FormData) => ({ ...prev, ...patch }));
   };
 
+  const [localErrors, setLocalErrors] = React.useState<Record<string, string>>({});
+  const allErrors = { ...uiErrors, ...localErrors };
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     const fe = (data as any).fecha_entrega_estimada;
 
-    if (!fe) return alert("Completá la fecha de entrega estimada.");
-    if (data.fecha && fe < data.fecha) return alert("La fecha estimada no puede ser anterior a la fecha.");
+    if (!fe) return toast.error("Completá la fecha de entrega estimada.");
+    if (data.fecha && fe < data.fecha) return toast.error("La fecha estimada no puede ser anterior a la fecha.");
+
+    // Validar atributos obligatorios
+    const errores: Record<string, string> = {};
+    let hayErrores = false;
+
+    data.detalles.forEach((d, idx) => {
+      if (d.articulo_id) {
+        const art = articulos.find((a: any) => a.id === d.articulo_id);
+        if (art?.categorias) {
+          art.categorias.forEach((cat: any) => {
+            if (cat.obligatoria && !d.atributos?.[cat.id]) {
+              errores[`detalles.${idx}.atributos.${cat.id}`] = ' ';
+              hayErrores = true;
+            }
+          });
+        }
+      }
+    });
+
+    setLocalErrors(errores);
+
+    if (hayErrores) {
+      if (Object.keys(errores).some(k => k.match(/^detalles\.\d+\.atributos\./))) toast.error('Completá los atributos del artículo que son obligatorios marcados en rojo.');
+      return;
+    }
 
     put(`/ordenes/${orden.id}`, {
       onError: (errs) => console.log("Errores:", errs),
@@ -267,25 +296,21 @@ export default function Edit({
 
               <div>
                 <label className="mb-2 block text-sm font-semibold text-gray-800">Fecha *</label>
-                <input
-                  type="date"
+                <DateTimePicker
                   value={data.fecha}
-                  onChange={(e) => setData((prev: FormData) => ({ ...prev, fecha: e.target.value }))}
-                  className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none ${uiErrors.fecha ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                    }`}
+                  onChange={(val) => setData((prev: FormData) => ({ ...prev, fecha: val }))}
+                  error={!!uiErrors.fecha}
                 />
                 {errors.fecha && <p className="mt-2 text-sm text-red-600">{errors.fecha}</p>}
               </div>
 
               <div>
                 <label className="mb-2 block text-sm font-semibold text-gray-800">Fecha de entrega estimada *</label>
-                <input
-                  type="date"
+                <DateTimePicker
                   value={data.fecha_entrega_estimada}
-                  min={data.fecha || undefined}
-                  onChange={(e) => setData((prev: FormData) => ({ ...prev, fecha_entrega_estimada: e.target.value }))}
-                  className={`w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none ${uiErrors.fecha_entrega_estimada ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                    }`}
+                  onChange={(val) => setData((prev: FormData) => ({ ...prev, fecha_entrega_estimada: val }))}
+                  minDate={data.fecha || undefined}
+                  error={!!uiErrors.fecha_entrega_estimada}
                 />
                 {errors.fecha_entrega_estimada && <p className="mt-2 text-sm text-red-600">{errors.fecha_entrega_estimada}</p>}
               </div>
@@ -294,12 +319,10 @@ export default function Edit({
                 <label className="mb-2 block text-sm font-semibold text-gray-800">Número de orden</label>
                 <input
                   type="text"
+                  disabled
                   value={data.numero_orden}
-                  onChange={(e) => mergeForm({ numero_orden: e.target.value })}
-                  placeholder="OT-000000 / FC-000000"
-                  className="w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none border-gray-200 hover:border-gray-300"
+                  className="w-full rounded-xl border-2 bg-gray-100 px-4 py-3 font-medium text-gray-500 cursor-not-allowed outline-none border-gray-200"
                 />
-                {errors.numero_orden && <p className="mt-2 text-sm text-red-600">{errors.numero_orden}</p>}
               </div>
             </div>
 
@@ -347,7 +370,7 @@ export default function Edit({
           <DetallesSection
             detalles={data.detalles}
             articulos={articulos}
-            errors={uiErrors}
+            errors={allErrors}
             setDetalles={(nuevos: DetalleUI[]) => {
               setData((prev: FormData) => ({
                 ...prev,
@@ -359,14 +382,14 @@ export default function Edit({
           {/* Pagos */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                <PagosSection
-                    pagos={data.pagos}
-                    setPagos={(pagos) => setData((prev: FormData) => ({ ...prev, pagos }))}
-                    mediosDePago={mediosDePago}
-                    totalOrden={totalOrden}
-                    errors={errors as Record<string, string>}
-                    modoEdicion={true}
-                />
+              <PagosSection
+                pagos={data.pagos}
+                setPagos={(pagos) => setData((prev: FormData) => ({ ...prev, pagos }))}
+                mediosDePago={mediosDePago}
+                totalOrden={totalOrden}
+                errors={errors as Record<string, string>}
+                modoEdicion={true}
+              />
             </div>
 
             <div className="mt-4 flex justify-end">

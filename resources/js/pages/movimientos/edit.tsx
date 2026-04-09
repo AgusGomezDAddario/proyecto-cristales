@@ -5,6 +5,7 @@ import { Concepto, MedioDePago, Movimiento } from '@/types/movimiento';
 import DeleteButton from '@/components/botones/boton-eliminar';
 import { View } from 'lucide-react';
 import ViewButton from '@/components/botones/boton-ver';
+import DateTimePicker from '@/components/ui/DateTimePicker';
 
 interface Props {
     movimiento: Movimiento;
@@ -18,7 +19,7 @@ export default function Edit({ movimiento, conceptos, mediosDePago, tipo, label 
     const tipoPlural = tipo.endsWith("s") ? tipo : `${tipo}s`;
 
     const { data, setData, processing, errors, post } = useForm({
-        fecha: movimiento.fecha.split("T")[0],
+        fecha: movimiento.fecha ? String(movimiento.fecha).replace('T', ' ').substring(0, 16) : '',
         monto: movimiento.monto,
         concepto_id: movimiento.concepto_id,
         medio_de_pago_id: movimiento.medio_de_pago_id,
@@ -73,12 +74,10 @@ export default function Edit({ movimiento, conceptos, mediosDePago, tipo, label 
                             <label className="block text-sm font-semibold text-gray-800 mb-2">
                                 Fecha *
                             </label>
-                            <input
-                                type="date"
+                            <DateTimePicker
                                 value={data.fecha}
-                                onChange={(e) => setData("fecha", e.target.value)}
-                                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl outline-none text-gray-900 font-medium transition ${errors.fecha ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
-                                    }`}
+                                onChange={(val) => setData("fecha", val)}
+                                error={!!errors.fecha}
                             />
                             {errors.fecha && <p className="mt-2 text-sm text-red-600">{errors.fecha}</p>}
                         </div>

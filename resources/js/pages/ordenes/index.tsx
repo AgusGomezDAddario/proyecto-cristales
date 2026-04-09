@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { Head, Link, useForm, router, usePage } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import DeleteButton from "@/components/botones/boton-eliminar";
-import EditButton from "@/components/botones/boton-editar";
-import ViewButton from "@/components/botones/boton-ver";
-import { formatDateToArgentina } from "@/utils/dateFormat";
+import { formatDateTimeToArgentina } from "@/utils/dateFormat";
 import { CheckCircle, AlertCircle } from "lucide-react";
+import ConfirmAnularModal from "@/components/ConfirmAnularModal";
+import EditButton from '@/components/botones/boton-editar';
+import DeleteButton from '@/components/botones/boton-eliminar';
+import ViewButton from '@/components/botones/boton-ver';
 
 type Vehiculo = {
   id: number;
@@ -16,133 +17,151 @@ type Vehiculo = {
 };
 
 type Titular = {
-  id: number;
-  nombre: string;
-  apellido: string;
+    id: number;
+    nombre: string;
+    apellido: string;
 };
 
 type TitularVehiculo = {
-  id: number;
-  titular: Titular | null;
-  vehiculo: Vehiculo | null;
+    id: number;
+    titular: Titular | null;
+    vehiculo: Vehiculo | null;
 };
 
 type Estado = {
-  id: number;
-  nombre: string;
+    id: number;
+    nombre: string;
+};
+
+type MedioDePago = {
+    id: number;
+    nombre: string;
 };
 
 type Orden = {
-  id: number;
-  fecha: string;
-  observacion: string | null;
-  titular_vehiculo: TitularVehiculo | null;
-  estado: Estado;
-  estado_pago?: string; // Agregado desde el controller
+    id: number;
+    fecha: string;
+    observacion: string | null;
+    titular_vehiculo: TitularVehiculo | null;
+    estado: Estado;
+    estado_pago?: string; // Agregado desde el controller
+    medio_de_pago: MedioDePago;
 };
 
 type Filters = {
-  q?: string;
-  estado_id?: string | number;
-  con_factura?: string | number;
-  date_from?: string;
-  date_to?: string;
-  per_page?: number | string;
+    q?: string;
+    estado_id?: string | number;
+    con_factura?: string | number;
+    date_from?: string;
+    date_to?: string;
+    per_page?: number | string;
 };
 
 export default function Index({ ordenes }: { ordenes: any }) {
-  const { delete: destroy } = useForm();
+    const { delete: destroy } = useForm();
 
-  const page = usePage();
-  const props = page.props as any;
+    /**
+     * Requisitos para que esto funcione:
+     * - El backend debe devolver:
+     *   - filters: { q, estado_id, medio_pago_id, date_from, date_to, per_page }
+     *   - estados: [{id, nombre}] (opcional pero recomendado)
+     *   - mediosPago: [{id, nombre}] (opcional pero recomendado)
+     */
+    const page = usePage();
+    const props = page.props as any;
 
   const backendFilters: Filters = props.filters || {};
   const estados: Estado[] = props.estados || [];
 
-  const [filters, setFilters] = useState<Required<Filters>>({
-    q: backendFilters.q ?? "",
-    estado_id: (backendFilters.estado_id ?? "") as any,
-    con_factura: (backendFilters.con_factura ?? "") as any,
-    date_from: backendFilters.date_from ?? "",
-    date_to: backendFilters.date_to ?? "",
-    per_page: (backendFilters.per_page ?? 10) as any,
-  });
+    const [filters, setFilters] = useState<Required<Filters>>({
+        q: backendFilters.q ?? '',
+        estado_id: (backendFilters.estado_id ?? '') as any,
+        con_factura: (backendFilters.con_factura ?? '') as any,
+        date_from: backendFilters.date_from ?? '',
+        date_to: backendFilters.date_to ?? '',
+        per_page: (backendFilters.per_page ?? 10) as any,
+    });
 
-  const listaOrdenes: Orden[] = ordenes?.data || [];
-  const links = ordenes?.links || [];
+    const listaOrdenes: Orden[] = ordenes?.data || [];
+    const links = ordenes?.links || [];
 
-  function handleDelete(id: number) {
-    if (confirm("¿Seguro que querés eliminar esta orden?")) {
-      destroy(`/ordenes/${id}`);
+  const [anularOrdenId, setAnularOrdenId] = useState<number | null>(null);
+
+  function handleAnularConfirm() {
+    if (anularOrdenId !== null) {
+      destroy(`/ordenes/${anularOrdenId}`);
+      setAnularOrdenId(null);
     }
   }
 
-  const todayISO = useMemo(() => {
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  }, []);
+    const todayISO = useMemo(() => {
+        const d = new Date();
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    }, []);
 
-  const yesterdayISO = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  }, []);
+    const yesterdayISO = useMemo(() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 1);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    }, []);
 
-  const last7FromISO = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 6);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  }, []);
+    const last7FromISO = useMemo(() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 6); // incluye hoy => 7 días
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    }, []);
 
-  function applyFilters(next?: Partial<Filters>) {
-    const payload = {
-      ...filters,
-      ...next,
-    };
+    function applyFilters(next?: Partial<Filters>) {
+        const payload = {
+            ...filters,
+            ...next,
+        };
 
-    const cleaned: any = {};
-    Object.entries(payload).forEach(([k, v]) => {
-      if (v === null || v === undefined) return;
-      if (typeof v === "string" && v.trim() === "") return;
-      cleaned[k] = v;
-    });
+        // Limpieza: no mandar vacíos
+        const cleaned: any = {};
+        Object.entries(payload).forEach(([k, v]) => {
+            if (v === null || v === undefined) return;
+            if (typeof v === 'string' && v.trim() === '') return;
+            cleaned[k] = v;
+        });
 
-    router.get("/ordenes", cleaned, {
-      preserveState: true,
-      preserveScroll: true,
-      replace: true,
-    });
-  }
+        router.get('/ordenes', cleaned, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        });
+    }
 
-  function resetFilters() {
-    setFilters({
-      q: "",
-      estado_id: "",
-      con_factura: "",
-      date_from: "",
-      date_to: "",
-      per_page: 10,
-    });
+    function resetFilters() {
+        setFilters({
+            q: '',
+            estado_id: '',
+            // medio_pago_id: "",
+            con_factura: '',
+            date_from: '',
+            date_to: '',
+            per_page: 10,
+        });
 
-    router.get(
-      "/ordenes",
-      {},
-      {
-        preserveState: true,
-        preserveScroll: true,
-        replace: true,
-      }
-    );
-  }
+        router.get(
+            '/ordenes',
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            },
+        );
+    }
 
   const returnUrl = `${window.location.pathname}${window.location.search}`;
 
@@ -185,159 +204,155 @@ export default function Index({ ordenes }: { ordenes: any }) {
     }
   };
 
-  return (
-    <DashboardLayout>
-      <Head title="Órdenes de Trabajo" />
+    return (
+        <DashboardLayout>
+            <Head title="Órdenes de Trabajo" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Órdenes de Trabajo</h1>
-            <p className="text-gray-600 mt-2">Listado general de órdenes registradas</p>
-          </div>
-          <Link
-            href="/ordenes/create"
-            className="bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-6 rounded-lg transition shadow-lg hover:shadow-xl"
-          >
-            + Nueva Orden
-          </Link>
-        </div>
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                {/* Header */}
+                <div className="mb-6 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">Órdenes de Trabajo</h1>
+                        <p className="mt-2 text-gray-600">Listado general de órdenes registradas</p>
+                    </div>
+                    <Link
+                        href="/ordenes/create"
+                        className="rounded-lg bg-green-600 px-6 py-2.5 font-medium text-white shadow-lg transition hover:bg-green-700 hover:shadow-xl"
+                    >
+                        + Nueva Orden
+                    </Link>
+                </div>
 
-        {/* Filtros */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-            {/* Búsqueda */}
-            <div className="md:col-span-4">
-              <label className="block text-xs font-medium text-gray-600 mb-1">
-                Buscar (Patente / Titular)
-              </label>
-              <input
-                value={filters.q}
-                onChange={(e) => setFilters((p) => ({ ...p, q: e.target.value }))}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") applyFilters();
-                }}
-                placeholder="Ej: EYZ529 o Gomez"
-                className="w-full rounded-lg border-gray-300 focus:border-gray-400 focus:ring-gray-200 text-sm"
-              />
-            </div>
+                {/* Filtros */}
+                <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-lg">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
+                        {/* Búsqueda */}
+                        <div className="md:col-span-4">
+                            <label className="mb-1 block text-xs font-medium text-gray-600">Buscar (Patente / Titular)</label>
+                            <input
+                                value={filters.q}
+                                onChange={(e) => setFilters((p) => ({ ...p, q: e.target.value }))}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') applyFilters();
+                                }}
+                                placeholder="Ej: EYZ529 o Gomez"
+                                className="w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-500 focus:border-gray-500 focus:ring-gray-200"
+                            />
+                        </div>
 
-            {/* Estado */}
-            <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-gray-600 mb-1">Estado</label>
-              <select
-                value={filters.estado_id as any}
-                onChange={(e) => setFilters((p) => ({ ...p, estado_id: e.target.value }))}
-                className="w-full rounded-lg border-gray-300 focus:border-gray-400 focus:ring-gray-200 text-sm"
-              >
-                <option value="">Todos</option>
-                {estados.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
+                        {/* Estado */}
+                        <div className="md:col-span-2">
+                            <label className="mb-1 block text-xs font-medium text-gray-600">Estado</label>
+                            <select
+                                value={filters.estado_id as any}
+                                onChange={(e) => setFilters((p) => ({ ...p, estado_id: e.target.value }))}
+                                className="w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm text-gray-700 focus:border-gray-500 focus:ring-gray-200"
+                            >
+                                <option value="">Todos</option>
+                                {estados.map((e) => (
+                                    <option key={e.id} value={e.id}>
+                                        {e.nombre}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
-            {/* Factura */}
-            <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-gray-600 mb-1">Factura</label>
-              <select
-                value={filters.con_factura as any}
-                onChange={(e) => setFilters((p) => ({ ...p, con_factura: e.target.value }))}
-                className="w-full rounded-lg border-gray-300 focus:border-gray-400 focus:ring-gray-200 text-sm"
-              >
-                <option value="">Todas</option>
-                <option value="1">Con factura</option>
-                <option value="0">Sin factura</option>
-              </select>
-            </div>
+                        {/* Factura */}
+                        <div className="md:col-span-2">
+                            <label className="mb-1 block text-xs font-medium text-gray-600">Factura</label>
+                            <select
+                                value={filters.con_factura as any}
+                                onChange={(e) => setFilters((p) => ({ ...p, con_factura: e.target.value }))}
+                                className="w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm text-gray-700 focus:border-gray-500 focus:ring-gray-200"
+                            >
+                                <option value="">Todas</option>
+                                <option value="1">Con factura</option>
+                                <option value="0">Sin factura</option>
+                            </select>
+                        </div>
 
-            {/* Fecha desde */}
-            <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-gray-600 mb-1">Desde</label>
-              <input
-                type="date"
-                value={filters.date_from}
-                onChange={(e) => setFilters((p) => ({ ...p, date_from: e.target.value }))}
-                className="w-full rounded-lg border-gray-300 focus:border-gray-400 focus:ring-gray-200 text-sm"
-              />
-            </div>
+                        {/* Fecha desde */}
+                        <div className="md:col-span-2">
+                            <label className="mb-1 block text-xs font-medium text-gray-600">Desde</label>
+                            <input
+                                type="date"
+                                value={filters.date_from}
+                                onChange={(e) => setFilters((p) => ({ ...p, date_from: e.target.value }))}
+                                className="w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm text-gray-700 focus:border-gray-500 focus:ring-gray-200"
+                            />
+                        </div>
 
-            {/* Fecha hasta */}
-            <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-gray-600 mb-1">Hasta</label>
-              <input
-                type="date"
-                value={filters.date_to}
-                onChange={(e) => setFilters((p) => ({ ...p, date_to: e.target.value }))}
-                className="w-full rounded-lg border-gray-300 focus:border-gray-400 focus:ring-gray-200 text-sm"
-              />
-            </div>
+                        {/* Fecha hasta */}
+                        <div className="md:col-span-2">
+                            <label className="mb-1 block text-xs font-medium text-gray-600">Hasta</label>
+                            <input
+                                type="date"
+                                value={filters.date_to}
+                                onChange={(e) => setFilters((p) => ({ ...p, date_to: e.target.value }))}
+                                className="w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm text-gray-700 focus:border-gray-500 focus:ring-gray-200"
+                            />
+                        </div>
 
-            {/* Acciones */}
-            <div className="md:col-span-12 flex flex-col md:flex-row md:items-end gap-3 mt-2">
-              {/* Presets rápidos */}
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => applyFilters({ date_from: todayISO, date_to: todayISO })}
-                  className="px-3 py-2 rounded-lg text-sm border border-gray-200 hover:bg-gray-50"
-                >
-                  Hoy
-                </button>
-                <button
-                  type="button"
-                  onClick={() => applyFilters({ date_from: yesterdayISO, date_to: yesterdayISO })}
-                  className="px-3 py-2 rounded-lg text-sm border border-gray-200 hover:bg-gray-50"
-                >
-                  Ayer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => applyFilters({ date_from: last7FromISO, date_to: todayISO })}
-                  className="px-3 py-2 rounded-lg text-sm border border-gray-200 hover:bg-gray-50"
-                >
-                  Últimos 7 días
-                </button>
-              </div>
+                        {/* Acciones */}
+                        <div className="mt-2 flex flex-col gap-3 md:col-span-12 md:flex-row md:items-end">
+                            {/* Presets rápidos */}
+                            <div className="flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => applyFilters({ date_from: todayISO, date_to: todayISO })}
+                                    className="rounded-lg border border-gray-300 bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                >
+                                    Hoy
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => applyFilters({ date_from: yesterdayISO, date_to: yesterdayISO })}
+                                    className="rounded-lg border border-gray-300 bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                >
+                                    Ayer
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => applyFilters({ date_from: last7FromISO, date_to: todayISO })}
+                                    className="rounded-lg border border-gray-300 bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                >
+                                    Últimos 7 días
+                                </button>
+                            </div>
 
-              <div className="flex-1" />
+                            <div className="flex-1" />
 
-              {/* Per page */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-600">Filas</span>
-                <select
-                  value={filters.per_page as any}
-                  onChange={(e) =>
-                    setFilters((p) => ({ ...p, per_page: Number(e.target.value) }))
-                  }
-                  className="rounded-lg border-gray-300 focus:border-gray-400 focus:ring-gray-200 text-sm"
-                >
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                </select>
-              </div>
+                            {/* Per page */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-600">Filas</span>
+                                <select
+                                    value={filters.per_page as any}
+                                    onChange={(e) => setFilters((p) => ({ ...p, per_page: Number(e.target.value) }))}
+                                    className="rounded-lg border border-gray-400 bg-white px-2 py-2 text-sm text-gray-700 focus:border-gray-500 focus:ring-gray-200"
+                                >
+                                    <option value={10}>10</option>
+                                    <option value={25}>25</option>
+                                    <option value={50}>50</option>
+                                </select>
+                            </div>
 
-              <button
-                type="button"
-                onClick={() => applyFilters()}
-                className="bg-gray-900 hover:bg-black text-white font-medium py-2 px-4 rounded-lg transition"
-              >
-                Aplicar
-              </button>
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="bg-white hover:bg-gray-50 text-gray-900 font-medium py-2 px-4 rounded-lg border border-gray-200 transition"
-              >
-                Limpiar
-              </button>
-            </div>
-          </div>
-        </div>
+                            <button
+                                type="button"
+                                onClick={() => applyFilters()}
+                                className="rounded-lg bg-gray-900 px-4 py-2 font-medium text-white transition hover:bg-black"
+                            >
+                                Aplicar
+                            </button>
+                            <button
+                                type="button"
+                                onClick={resetFilters}
+                                className="rounded-lg border border-gray-400 bg-white px-4 py-2 font-medium text-gray-700 transition hover:bg-gray-200"
+                            >
+                                Limpiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
         {/* Tabla */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
@@ -397,10 +412,10 @@ export default function Index({ ordenes }: { ordenes: any }) {
                     {listaOrdenes.map((orden: Orden) => (
                       <tr
                         key={orden.id}
-                        className="hover:bg-gray-50 transition"
+                        className={`hover:bg-gray-50 transition ${orden.estado?.nombre === 'Anulada' ? 'opacity-60' : ''}`}
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {formatDateToArgentina(orden.fecha)}
+                          {formatDateTimeToArgentina(orden.fecha)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {orden.titular_vehiculo?.titular
@@ -413,7 +428,10 @@ export default function Index({ ordenes }: { ordenes: any }) {
                             : "Sin vehículo"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className="px-2 py-1 rounded text-white text-xs bg-blue-500">
+                          <span className={`px-2 py-1 rounded text-white text-xs ${orden.estado?.nombre === 'Anulada' ? 'bg-red-500' :
+                            orden.estado?.nombre === 'Finalizada' ? 'bg-green-500' :
+                              'bg-blue-500'
+                            }`}>
                             {orden.estado?.nombre ?? "-"}
                           </span>
                         </td>
@@ -425,12 +443,19 @@ export default function Index({ ordenes }: { ordenes: any }) {
                             <ViewButton
                               onClick={() => router.visit(`/ordenes/${orden.id}?return=${encodeURIComponent(returnUrl)}`)}
                             />
-                            <EditButton
-                              onClick={() => router.visit(`/ordenes/${orden.id}/edit?return=${encodeURIComponent(returnUrl)}`)}
-                            />
-                            <DeleteButton
-                              onClick={() => handleDelete(orden.id)}
-                            />
+                            {orden.estado?.nombre !== 'Finalizada' && orden.estado?.nombre !== 'Anulada' && (
+                              <EditButton
+                                onClick={() => router.visit(`/ordenes/${orden.id}/edit?return=${encodeURIComponent(returnUrl)}`)}
+                              />
+                            )}
+                            {orden.estado?.nombre !== 'Finalizada' && orden.estado?.nombre !== 'Anulada' && (
+                              <button
+                                onClick={() => setAnularOrdenId(orden.id)}
+                                className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100"
+                              >
+                                Anular
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -439,40 +464,29 @@ export default function Index({ ordenes }: { ordenes: any }) {
                 </table>
               </div>
 
-              {/* Paginación */}
-              {links.length > 0 && (
-                <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-t border-gray-200 bg-white">
-                  <div className="text-sm text-gray-600">
-                    Mostrando{" "}
-                    <span className="font-medium text-gray-900">
-                      {ordenes.from ?? 0}
-                    </span>{" "}
-                    a{" "}
-                    <span className="font-medium text-gray-900">
-                      {ordenes.to ?? 0}
-                    </span>{" "}
-                    de{" "}
-                    <span className="font-medium text-gray-900">
-                      {ordenes.total ?? 0}
-                    </span>
-                  </div>
+                            {/* Paginación */}
+                            {links.length > 0 && (
+                                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 bg-white px-6 py-4">
+                                    <div className="text-sm text-gray-600">
+                                        Mostrando <span className="font-medium text-gray-900">{ordenes.from ?? 0}</span> a{' '}
+                                        <span className="font-medium text-gray-900">{ordenes.to ?? 0}</span> de{' '}
+                                        <span className="font-medium text-gray-900">{ordenes.total ?? 0}</span>
+                                    </div>
 
-                  <div className="flex flex-wrap gap-1">
-                    {links.map((l: any, idx: number) => {
-                      const label = String(l.label)
-                        .replace("&laquo;", "«")
-                        .replace("&raquo;", "»");
+                                    <div className="flex flex-wrap gap-1">
+                                        {links.map((l: any, idx: number) => {
+                                            const label = String(l.label).replace('&laquo;', '«').replace('&raquo;', '»');
 
-                      if (!l.url) {
-                        return (
-                          <span
-                            key={idx}
-                            className="px-3 py-1.5 rounded-lg text-sm border border-gray-200 text-gray-400 cursor-not-allowed"
-                          >
-                            {label}
-                          </span>
-                        );
-                      }
+                                            if (!l.url) {
+                                                return (
+                                                    <span
+                                                        key={idx}
+                                                        className="cursor-not-allowed rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-400"
+                                                    >
+                                                        {label}
+                                                    </span>
+                                                );
+                                            }
 
                       return (
                         <Link
@@ -495,6 +509,16 @@ export default function Index({ ordenes }: { ordenes: any }) {
           )}
         </div>
       </div>
+
+      {/* Modal de confirmación de anulación */}
+      {anularOrdenId !== null && (
+        <ConfirmAnularModal
+          open={true}
+          onClose={() => setAnularOrdenId(null)}
+          onConfirm={handleAnularConfirm}
+          ordenId={anularOrdenId}
+        />
+      )}
     </DashboardLayout>
   );
 }

@@ -15,6 +15,7 @@ type Concepto = {
     id: number;
     nombre: string;
     tipo: "ingreso" | "egreso";
+    sistema: boolean;
     movimientos_count: number;
 };
 
@@ -286,10 +287,16 @@ export default function ConceptosIndex({ conceptos, filters, stats }: PageProps)
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <EditButton onClick={() => openEditModal(concepto)} />
-                                                    <DeleteButton onClick={() => openDeleteModal(concepto)} />
-                                                </div>
+                                                {concepto.sistema ? (
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500">
+                                                        🔒 Sistema
+                                                    </span>
+                                                ) : (
+                                                    <div className="flex justify-end gap-2">
+                                                        <EditButton onClick={() => openEditModal(concepto)} />
+                                                        <DeleteButton onClick={() => openDeleteModal(concepto)} />
+                                                    </div>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}

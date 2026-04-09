@@ -5,6 +5,7 @@ import { FormEventHandler } from 'react';
 import { Concepto, MedioDePago, MovimientoFormData } from '@/types/movimiento';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import DeleteButton from '@/components/botones/boton-eliminar';
+import DateTimePicker from '@/components/ui/DateTimePicker';
 
 interface Props {
     conceptos: Concepto[];
@@ -40,7 +41,9 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, '0');
         const day = String(now.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
     };
 
     const { data, setData, post, processing, errors } = useForm<MovimientoFormData>({
@@ -91,13 +94,10 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                             <label htmlFor="fecha" className="block text-sm font-semibold text-gray-800 mb-2">
                                 Fecha *
                             </label>
-                            <input
-                                id="fecha"
-                                type="date"
+                            <DateTimePicker
                                 value={data.fecha}
-                                onChange={(e) => setData('fecha', e.target.value)}
-                                className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 ${current.ring500} ${current.border500} focus:bg-white outline-none transition text-gray-900 font-medium ${errors.fecha ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                                    }`}
+                                onChange={(val) => setData('fecha', val)}
+                                error={!!errors.fecha}
                             />
                             {errors.fecha && (
                                 <p className={`mt-2 text-sm text-red-600 flex items-center gap-1`}>

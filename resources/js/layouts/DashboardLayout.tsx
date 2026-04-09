@@ -60,7 +60,7 @@ export default function DashboardLayout({ children, title }: Props) {
                 href: '/resumen-del-dia',
                 label: 'Resumen del día',
                 active: (currentUrl) => currentUrl.startsWith('/resumen-del-dia'),
-                visible: canViewReports,
+                visible: canViewReports && !isTaller,
             },
             {
                 href: ordersHref,
@@ -70,7 +70,7 @@ export default function DashboardLayout({ children, title }: Props) {
                 visible: true,
             },
         ],
-        [canViewDashboard, canViewMovements, canViewReports, ordersHref],
+        [canViewDashboard, canViewMovements, canViewReports, isTaller, ordersHref],
     );
 
     const adminLinks = useMemo<AdminLink[]>(
@@ -161,9 +161,17 @@ export default function DashboardLayout({ children, title }: Props) {
 
     return (
         <div className="flex min-h-screen flex-col bg-gray-50 text-gray-900">
-            <Toaster position="bottom-right" />
+            <Toaster
+                position="bottom-right"
+                toastOptions={{
+                    duration: 5000,
+                    style: { background: '#1f2937', color: '#fff' },
+                    success: { iconTheme: { primary: '#22c55e', secondary: '#fff' } },
+                    error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
+                }}
+            />
 
-            <nav className="border-b border-gray-200 bg-white shadow-sm">
+            <nav className="relative z-50 border-b border-gray-200 bg-white shadow-sm">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -216,7 +224,7 @@ export default function DashboardLayout({ children, title }: Props) {
                         <div className="hidden items-center gap-2 md:flex lg:hidden">
                             <div className="flex items-center gap-2">{renderMainLinks(true)}</div>
 
-                            {(showAdminMenu || canViewReports) && (
+                            {showAdminMenu && (
                                 <div className="relative">
                                     <button
                                         onClick={() => setMoreMenuOpen(!moreMenuOpen)}
@@ -227,12 +235,8 @@ export default function DashboardLayout({ children, title }: Props) {
 
                                     {moreMenuOpen && (
                                         <div className="absolute top-full right-0 z-50 mt-1 w-56 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
-                                            {showAdminMenu && (
-                                                <>
-                                                    <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase">Administración</div>
-                                                    {renderAdminLinks(() => setMoreMenuOpen(false))}
-                                                </>
-                                            )}
+                                            <div className="px-4 py-2 text-xs font-bold uppercase text-gray-400">Administración</div>
+                                            {renderAdminLinks(() => setMoreMenuOpen(false))}
                                         </div>
                                     )}
                                 </div>
@@ -278,7 +282,7 @@ export default function DashboardLayout({ children, title }: Props) {
                             {showAdminMenu && (
                                 <>
                                     <div className="my-2 border-t border-gray-200"></div>
-                                    <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase">Administración</div>
+                                    <div className="px-4 py-2 text-xs font-bold uppercase text-gray-400">Administración</div>
                                     {renderAdminLinks(undefined, true)}
                                 </>
                             )}

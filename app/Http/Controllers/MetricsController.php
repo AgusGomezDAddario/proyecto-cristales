@@ -141,6 +141,7 @@ class MetricsController extends Controller
     {
         $otCreadas = (int) OrdenDeTrabajo::query()
             ->whereBetween('fecha', [$from, $to])
+            ->whereHas('estado', fn($q) => $q->where('nombre', '!=', 'Anulada'))
             ->count();
 
         $otCompletadas = (int) OrdenDeTrabajo::query()

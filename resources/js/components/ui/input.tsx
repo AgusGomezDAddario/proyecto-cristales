@@ -27,10 +27,11 @@ export const Input: React.FC<InputProps> = ({
         )}
         <input
           className={`
-            w-full h-12 px-4 border rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] 
+            w-full h-12 px-4 border rounded-lg bg-white text-gray-900
+            focus:ring-2 focus:ring-[var(--color-primary)] 
             focus:border-[var(--color-primary)] transition-colors
             ${Icon ? 'pl-10' : 'pl-4'}
-            ${error ? 'border-[var(--color-error)]' : 'border-gray-300'}
+            ${error ? 'border-[var(--color-error)]' : 'border-gray-400'}
             ${className}
           `}
           {...props}
