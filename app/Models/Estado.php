@@ -13,6 +13,12 @@ class Estado extends Model
     public const INICIADO = 1;
     public const PENDIENTE = 2;
     public const COMPLETADA = 3;
+    public const ESTADOS_TALLER = [
+        self::INICIADO,
+        self::PENDIENTE,
+        self::COMPLETADA,
+    ];
+    public const ESTADOS_CAMBIO_TALLER = self::ESTADOS_TALLER;
 
     public function ordenesDeTrabajo()
     {
@@ -21,19 +27,11 @@ class Estado extends Model
 
     public static function idsParaTaller(): array
     {
-        return [
-            self::INICIADO,
-            self::PENDIENTE,
-            self::COMPLETADA,
-        ];
+        return self::ESTADOS_TALLER;
     }
 
     public static function idsPermitidosCambioTaller(): array
     {
-        return [
-            self::INICIADO,
-            self::PENDIENTE,
-            self::COMPLETADA,
-        ];
+        return self::ESTADOS_CAMBIO_TALLER;
     }
 }

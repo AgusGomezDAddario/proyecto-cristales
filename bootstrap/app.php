@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureUserHasCapability;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -10,8 +11,8 @@ use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -23,9 +24,9 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        // 👇 alias personalizados
         $middleware->alias([
             'is_admin' => \App\Http\Middleware\IsAdmin::class,
+            'capability' => EnsureUserHasCapability::class,
             'rol.taller' => \App\Http\Middleware\RolTaller::class,
             'guest.redirect' => RedirectIfAuthenticated::class,
         ]);

@@ -2,15 +2,15 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Authorization\RoleCapabilities;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class IsAdmin
 {
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->role_id == 1) {
+        if ($request->user()?->hasCapability(RoleCapabilities::MANAGE_USERS)) {
             return $next($request);
         }
 

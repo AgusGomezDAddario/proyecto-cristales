@@ -7,11 +7,20 @@ use App\Models\Movimiento;
 use App\Models\Concepto;
 use App\Models\MedioDePago;
 use App\Models\Comprobante;
+use App\Support\Authorization\RoleCapabilities;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 abstract class MovimientoController extends Controller
 {
+    protected function ensureFinancialAccess(Request $request): void
+    {
+        abort_unless(
+            $request->user()?->hasCapability(RoleCapabilities::VIEW_FINANCIAL_MOVEMENTS),
+            403,
+            'No autorizado'
+        );
+    }
 
     /**
      * Tipo de movimiento ('ingreso' o 'egreso').
@@ -34,6 +43,8 @@ abstract class MovimientoController extends Controller
      */
     public function index()
     {
+        $this->ensureFinancialAccess(request());
+
         $movimientos = Movimiento::with(['concepto', 'medioDePago'])
             ->where('tipo', $this->tipo)
             ->orderBy('fecha', 'desc')
@@ -51,6 +62,8 @@ abstract class MovimientoController extends Controller
      */
     public function create()
     {
+        $this->ensureFinancialAccess(request());
+
         $conceptos = Concepto::where('tipo', $this->tipo)->orderBy('nombre', 'asc')->get();
         $mediosDePago = MedioDePago::orderBy('nombre', 'asc')->get();
 
@@ -67,6 +80,8 @@ abstract class MovimientoController extends Controller
      */
     public function store(Request $request)
     {
+        $this->ensureFinancialAccess($request);
+
         $data = $request->validate([
             'fecha'            => 'required|date',
             'monto'            => 'required|numeric|min:0',
@@ -102,6 +117,8 @@ abstract class MovimientoController extends Controller
      */
     public function show($id)
     {
+        $this->ensureFinancialAccess(request());
+
         // Cargar el movimiento con TODAS sus relaciones
         $movimiento = Movimiento::with([
             'concepto',
@@ -125,6 +142,8 @@ abstract class MovimientoController extends Controller
      */
     public function edit($id)
     {
+        $this->ensureFinancialAccess(request());
+
         $movimiento = Movimiento::with(['concepto', 'medioDePago', 'comprobantes'])->findOrFail($id);
         $conceptos = Concepto::where('tipo', $this->tipo)->orderBy('nombre', 'asc')->get();
         $mediosDePago = MedioDePago::orderBy('nombre', 'asc')->get();
@@ -143,6 +162,8 @@ abstract class MovimientoController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $this->ensureFinancialAccess($request);
+
         $movimiento = Movimiento::findOrFail($id);
 
         $data = $request->validate([
@@ -191,6 +212,8 @@ abstract class MovimientoController extends Controller
      */
     public function destroy(Movimiento $movimiento)
     {
+        $this->ensureFinancialAccess(request());
+
         $movimiento->delete();
 
         return redirect()->route($this->ruta . '.index')

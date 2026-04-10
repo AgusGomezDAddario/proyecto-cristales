@@ -8,18 +8,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RolTaller
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || auth()->user()->role_id !== 3) {
+        if (! auth()->check() || (int) auth()->user()->role_id !== 3) {
             abort(403);
         }
 
         return $next($request);
     }
 }
-
