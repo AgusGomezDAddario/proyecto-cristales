@@ -400,26 +400,54 @@ class OrdenDeTrabajoController extends Controller
         ]);
     }*/
 
-    public function pendientes()
-{
-    $ots = OrdenDeTrabajo::with([
-            'estado',
-            'titularVehiculo.titular',
-            'titularVehiculo.vehiculo'
-        ])
-        ->whereIn('estado_id', Estado::idsParaTaller())
-        ->get();
+    public function pendientes(Request $request)
+    {
+        $ots = OrdenDeTrabajo::with([
+                'estado',
+                'titularVehiculo.titular',
+                'titularVehiculo.vehiculo.marca',
+                'titularVehiculo.vehiculo.modelo',
+            ])
+            ->whereIn('estado_id', Estado::idsParaTaller())
+            ->when($request->filled('q'), function ($query) use ($request) {
+                $q = $request->q;
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('orden_de_trabajo.id', 'like', "%{$q}%")
+                        ->orWhereHas('titularVehiculo.titular', function ($q2) use ($q) {
+                            $q2->where('nombre', 'like', "%{$q}%")
+                                ->orWhere('apellido', 'like', "%{$q}%");
+                        })
+                        ->orWhereHas('titularVehiculo.vehiculo', function ($q2) use ($q) {
+                            $q2->where('patente', 'like', "%{$q}%");
+                        });
+                });
+            })
+            ->when(
+                $request->filled('estado_id'),
+                fn($q) => $q->where('estado_id', $request->estado_id)
+            )
+            ->when(
+                $request->filled('date_from'),
+                fn($q) => $q->whereDate('fecha', '>=', $request->date_from)
+            )
+            ->when(
+                $request->filled('date_to'),
+                fn($q) => $q->whereDate('fecha', '<=', $request->date_to)
+            )
+            ->orderByDesc('orden_de_trabajo.id')
+            ->get();
 
-    $estados = Estado::select('id', 'nombre')
-        ->whereIn('id', Estado::idsPermitidosCambioTaller())
-        ->orderBy('id')
-        ->get();
+        $estados = Estado::select('id', 'nombre')
+            ->whereIn('id', Estado::idsPermitidosCambioTaller())
+            ->orderBy('id')
+            ->get();
 
-    return Inertia::render('taller/ordenes', [
-        'ots' => $ots,
-        'estados' => $estados, // 👈 ESTO
-    ]);
-}
+        return Inertia::render('taller/ordenes', [
+            'ots' => $ots,
+            'estados' => $estados,
+            'filters' => $request->only(['q', 'estado_id', 'date_from', 'date_to']),
+        ]);
+    }
 
     public function cambiarEstadoTaller(Request $request, OrdenDeTrabajo $orden)
     {
