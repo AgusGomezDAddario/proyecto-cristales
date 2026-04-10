@@ -42,23 +42,21 @@ interface Props {
     filters?: Filters;
 }
 
-// Colores bien diferenciados por estado
+// Colores semánticos del flujo de taller
 const estadoBadge: Record<string, { pill: string }> = {
-    Iniciado:    { pill: 'bg-blue-500 text-white' },
-    'En taller': { pill: 'bg-orange-500 text-white' },
-    Pendiente:   { pill: 'bg-yellow-500 text-white' },
-    Completada:  { pill: 'bg-green-500 text-white' },
-    Finalizada:  { pill: 'bg-green-500 text-white' },
-    Anulada:     { pill: 'bg-red-500 text-white' },
+    Iniciado:                { pill: 'bg-amber-500 text-white' },
+    'En taller':             { pill: 'bg-blue-500 text-white' },
+    'Completada por taller': { pill: 'bg-green-500 text-white' },
+    Finalizada:              { pill: 'bg-green-500 text-white' },
+    Anulada:                 { pill: 'bg-red-500 text-white' },
 };
 
 const estadoFilterColors: Record<string, { active: string; inactive: string }> = {
-    Iniciado:    { active: 'bg-blue-600 text-white',   inactive: 'border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100' },
-    'En taller': { active: 'bg-orange-500 text-white', inactive: 'border border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100' },
-    Pendiente:   { active: 'bg-yellow-500 text-white', inactive: 'border border-yellow-300 bg-yellow-50 text-yellow-700 hover:bg-yellow-100' },
-    Completada:  { active: 'bg-green-600 text-white',  inactive: 'border border-green-300 bg-green-50 text-green-700 hover:bg-green-100' },
-    Finalizada:  { active: 'bg-green-600 text-white',  inactive: 'border border-green-300 bg-green-50 text-green-700 hover:bg-green-100' },
-    Anulada:     { active: 'bg-red-600 text-white',    inactive: 'border border-red-300 bg-red-50 text-red-700 hover:bg-red-100' },
+    Iniciado:                { active: 'bg-amber-500 text-white',  inactive: 'border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100' },
+    'En taller':             { active: 'bg-blue-600 text-white',   inactive: 'border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100' },
+    'Completada por taller': { active: 'bg-green-600 text-white',  inactive: 'border border-green-300 bg-green-50 text-green-700 hover:bg-green-100' },
+    Finalizada:              { active: 'bg-green-600 text-white',  inactive: 'border border-green-300 bg-green-50 text-green-700 hover:bg-green-100' },
+    Anulada:                 { active: 'bg-red-600 text-white',    inactive: 'border border-red-300 bg-red-50 text-red-700 hover:bg-red-100' },
 };
 
 function getBadgePill(nombre: string) {
