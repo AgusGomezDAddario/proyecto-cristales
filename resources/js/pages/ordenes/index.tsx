@@ -428,10 +428,18 @@ export default function Index({ ordenes }: { ordenes: any }) {
                             : "Sin vehículo"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 rounded text-white text-xs ${orden.estado?.nombre === 'Anulada' ? 'bg-red-500' :
-                            orden.estado?.nombre === 'Finalizada' ? 'bg-green-500' :
-                              'bg-blue-500'
-                            }`}>
+                          <span className={`px-2 py-1 rounded text-white text-xs font-semibold ${
+                            (() => {
+                              switch (orden.estado?.nombre) {
+                                case 'Anulada': return 'bg-red-500';
+                                case 'Iniciado': return 'bg-amber-500';
+                                case 'En taller': return 'bg-blue-500';
+                                case 'Completada por taller': return 'bg-teal-500';
+                                case 'Finalizada': return 'bg-green-500';
+                                default: return 'bg-gray-500';
+                              }
+                            })()
+                          }`}>
                             {orden.estado?.nombre ?? "-"}
                           </span>
                         </td>
