@@ -90,8 +90,8 @@ export default function Show({
     const roleId = Number(page.auth?.user?.role_id ?? 0);
     const esTaller = roleId === 3;
     const { has } = useAuthorization();
-    const canViewFinancialAmounts = has(PERMISSIONS.financeAmountsView) || esTaller;
-    const showFinancialSections = has(PERMISSIONS.financeAmountsView) && !esTaller;
+    const canViewFinancialAmounts = has(PERMISSIONS.financeAmountsView);
+    const showFinancialSections = canViewFinancialAmounts;
     const canManageOrders = has(PERMISSIONS.ordersManage) && !esTaller;
     const companiaNombre = orden.compania_seguro?.nombre ?? 'Sin seguro / Particular';
     const backUrl = esTaller ? '/taller/ots' : '/ordenes';
@@ -297,7 +297,6 @@ export default function Show({
                                 </div>
                             </div>
                         ) : (
-                            esTaller || (
                                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
                                     <div className="flex items-start gap-3">
                                         <AlertCircle className="mt-0.5 h-5 w-5 text-amber-600" />
@@ -309,7 +308,6 @@ export default function Show({
                                         </div>
                                     </div>
                                 </div>
-                            )
                         )}
 
                         {orden.historial_estados && orden.historial_estados.length > 0 && (
