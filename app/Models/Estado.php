@@ -10,13 +10,15 @@ class Estado extends Model
 
     protected $fillable = ['nombre'];
 
-    public const INICIADO = 1;
-    public const PENDIENTE = 2;
-    public const COMPLETADA = 3;
+    public const ANULADA = 1;
+    public const INICIADO = 2;
+    public const EN_TALLER = 3;
+    public const COMPLETADA_TALLER = 4;
+    public const FINALIZADA = 5;
     public const ESTADOS_TALLER = [
         self::INICIADO,
-        self::PENDIENTE,
-        self::COMPLETADA,
+        self::EN_TALLER,
+        self::COMPLETADA_TALLER,
     ];
     public const ESTADOS_CAMBIO_TALLER = self::ESTADOS_TALLER;
 

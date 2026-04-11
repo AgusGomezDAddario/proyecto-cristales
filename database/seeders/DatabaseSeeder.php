@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
             CompaniasSegurosSeeder::class,
             ConceptosSeeder::class,
             MarcasModelosSeeder::class,
-            MetricsDemoSeeder::class,
+            // MetricsDemoSeeder::class,
         ]);
     }
 }
