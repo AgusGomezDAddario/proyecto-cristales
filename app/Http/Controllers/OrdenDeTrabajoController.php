@@ -28,6 +28,10 @@ class OrdenDeTrabajoController extends Controller
 {
     public function index(Request $request)
     {
+        if ($this->isTallerUser()) {
+            return redirect()->route('taller.ots');
+        }
+
         $perPage = $request->integer('per_page', 10);
 
         $ordenes = OrdenDeTrabajo::query()
@@ -115,6 +119,10 @@ class OrdenDeTrabajoController extends Controller
 
     public function create()
     {
+        if ($this->isTallerUser()) {
+            return redirect()->route('taller.ots');
+        }
+
         $titulares = Titular::with([
             'vehiculos' => function ($query) {
                 $query->select('vehiculo.id', 'patente', 'marca_id', 'modelo_id', 'anio')
@@ -149,6 +157,8 @@ class OrdenDeTrabajoController extends Controller
 
     public function store(Request $request)
     {
+        abort_if($this->isTallerUser(), 403);
+
         $validated = $request->validate([
             'estado_id' => 'required|exists:estado,id',
             'fecha' => 'required|date',
@@ -409,6 +419,7 @@ class OrdenDeTrabajoController extends Controller
                 'titularVehiculo.vehiculo.modelo',
             ])
             ->whereIn('estado_id', Estado::idsParaTaller())
+            ->when(Estado::idAnulada(), fn($query, $estadoAnuladaId) => $query->where('estado_id', '!=', $estadoAnuladaId))
             ->when($request->filled('q'), function ($query) use ($request) {
                 $q = $request->q;
                 $query->where(function ($sub) use ($q) {
@@ -469,6 +480,8 @@ class OrdenDeTrabajoController extends Controller
 
     public function update(Request $request, OrdenDeTrabajo $orden)
     {
+        abort_if($this->isTallerUser(), 403);
+
         $validated = $request->validate([
             'titular_id' => 'nullable|integer|exists:titular,id',
             'vehiculo_id' => 'nullable|integer|exists:vehiculo,id',
@@ -778,8 +791,14 @@ class OrdenDeTrabajoController extends Controller
     public function show(OrdenDeTrabajo $orden)
     {
         $user = auth()->user();
-        $canViewFinancialAmounts = ($user?->hasCapability(RoleCapabilities::VIEW_FINANCIAL_AMOUNTS) ?? false)
-            || (int) ($user?->role_id ?? 0) === 3;
+        $isTallerUser = $this->isTallerUser($user);
+        $canViewFinancialAmounts = $user?->hasCapability(RoleCapabilities::VIEW_FINANCIAL_AMOUNTS) ?? false;
+
+        if ($isTallerUser && Estado::idAnulada() !== null && (int) $orden->estado_id === Estado::idAnulada()) {
+            return redirect()
+                ->route('taller.ots')
+                ->with('error', 'Las OTs anuladas no estÃ¡n disponibles para taller.');
+        }
 
         $orden->load([
             'titularVehiculo.titular',
@@ -835,6 +854,10 @@ class OrdenDeTrabajoController extends Controller
 
     public function edit(OrdenDeTrabajo $orden)
     {
+        if ($this->isTallerUser()) {
+            return redirect()->route('taller.ordenes.show', $orden);
+        }
+
         $orden->load([
             'estado',
             'titularVehiculo.titular',
@@ -877,6 +900,8 @@ class OrdenDeTrabajoController extends Controller
     }
     public function destroy(OrdenDeTrabajo $orden)
     {
+        abort_if($this->isTallerUser(), 403);
+
         $estadoAnulada = Estado::where('nombre', 'Anulada')->first();
 
         if (!$estadoAnulada) {
@@ -925,5 +950,11 @@ class OrdenDeTrabajoController extends Controller
         return redirect()
             ->route('ordenes.index')
             ->with('success', "Orden #{$orden->id} anulada correctamente ✅");
+    }
+    private function isTallerUser($user = null): bool
+    {
+        $user ??= auth()->user();
+
+        return (int) ($user?->role_id ?? 0) === 3;
     }
 }

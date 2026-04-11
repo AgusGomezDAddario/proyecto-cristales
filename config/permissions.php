@@ -40,6 +40,7 @@ return [
             'dashboard.view',
             'admin.catalogs.manage',
             'orders.manage',
+            'finance.amounts.view',
         ],
         'taller' => [
             'dashboard.view',
