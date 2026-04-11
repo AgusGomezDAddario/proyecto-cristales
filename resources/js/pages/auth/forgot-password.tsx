@@ -1,5 +1,5 @@
 // Components
-import PasswordResetLinkController from '@/actions/App/Http/Controllers/Auth/PasswordResetLinkController';
+// import PasswordResetLinkController from '@/actions/App/Http/Controllers/Auth/PasswordResetLinkController'; comenté xq me daba un error random
 import { login } from '@/routes';
 import { Form, Head } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
@@ -9,7 +9,7 @@ import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AuthLayout from '@/layouts/auth-layout';
+import AuthLayout from '@/layouts/Auth-layout';
 
 export default function ForgotPassword({ status }: { status?: string }) {
     return (
