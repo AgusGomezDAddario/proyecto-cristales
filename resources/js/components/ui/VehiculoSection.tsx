@@ -2,7 +2,9 @@ import { Car, Plus } from "lucide-react";
 import { useState, forwardRef, useImperativeHandle, useEffect } from "react";
 import Select from "react-select";
 import axios from "axios";
+import { toast } from "react-hot-toast";
 import DeleteButton from "@/components/botones/boton-eliminar";
+import { getPatenteError, normalizePatente } from "@/utils/patente";
 
 interface Vehiculo {
   id: number;
@@ -74,7 +76,11 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
           errs.general = "Debes seleccionar o crear un vehículo.";
         } else if (formData.nuevo_vehiculo) {
           const v = formData.nuevo_vehiculo;
-          if (!v.patente?.trim()) errs["nuevo_vehiculo.patente"] = "La patente es obligatoria.";
+          const patenteError = getPatenteError(v.patente ?? "");
+          if (patenteError) {
+            errs["nuevo_vehiculo.patente"] = patenteError;
+            toast.error(patenteError);
+          }
           if (!v.marca_id) errs["nuevo_vehiculo.marca_id"] = "La marca es obligatoria.";
           if (!v.modelo_id) errs["nuevo_vehiculo.modelo_id"] = "El modelo es obligatorio.";
         }
@@ -226,16 +232,21 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
 
     const handleSaveNew = () => {
       const errs: Record<string, string> = {};
-      if (!nuevoVehiculo.patente.trim()) errs.patente = "La patente es obligatoria.";
+      const patenteError = getPatenteError(nuevoVehiculo.patente);
+      if (patenteError) errs.patente = patenteError;
       if (!nuevoVehiculo.marca_id) errs.marca_id = "La marca es obligatoria.";
       if (!nuevoVehiculo.modelo_id) errs.modelo_id = "El modelo es obligatorio.";
       setLocalErrors(errs);
-      if (Object.keys(errs).length) return;
+      if (Object.keys(errs).length) {
+        if (patenteError) toast.error(patenteError);
+        return;
+      }
 
       setFormData({
         vehiculo_id: null,
         nuevo_vehiculo: {
           ...nuevoVehiculo,
+          patente: normalizePatente(nuevoVehiculo.patente),
           marca_nombre: marcas.find(m => m.id === nuevoVehiculo.marca_id)?.nombre,
           modelo_nombre: modelos.find(m => m.id === nuevoVehiculo.modelo_id)?.nombre
         },
@@ -318,7 +329,7 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
                 className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition ${localErrors.patente ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
                   }`}
                 value={nuevoVehiculo.patente}
-                onChange={(e) => setNuevoVehiculo(prev => ({ ...prev, patente: e.target.value }))}
+                onChange={(e) => setNuevoVehiculo(prev => ({ ...prev, patente: normalizePatente(e.target.value) }))}
               />
               {localErrors.patente && <p className="mt-1 text-sm text-red-600">{localErrors.patente}</p>}
             </div>

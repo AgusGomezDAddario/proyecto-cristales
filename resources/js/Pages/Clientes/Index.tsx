@@ -7,8 +7,10 @@ import {
     Users, Car, UserCheck, UserX, Phone, Mail, ChevronDown, ChevronUp
 } from "lucide-react";
 import axios from "axios";
+import { toast } from "react-hot-toast";
 import DeleteButton from "@/components/botones/boton-eliminar";
 import EditButton from "@/components/botones/boton-editar";
+import { getPatenteError, normalizePatente } from "@/utils/patente";
 
 // ═══════════════════════════════════════════════════════════════
 // TIPOS
@@ -247,15 +249,19 @@ export default function ClientesIndex({ clientes, filters, stats, marcas }: Page
 
         // Validaciones frontend
         const errs: Record<string, string> = {};
-        if (!nuevoVehiculo.patente.trim()) errs.patente = "La patente es obligatoria.";
+        const patenteError = getPatenteError(nuevoVehiculo.patente);
+        if (patenteError) errs.patente = patenteError;
         if (!nuevoVehiculo.marca_id) errs.marca_id = "Seleccione una marca.";
         if (!nuevoVehiculo.modelo_id) errs.modelo_id = "Seleccione un modelo.";
         setVehiculoErrors(errs);
-        if (Object.keys(errs).length) return;
+        if (Object.keys(errs).length) {
+            if (patenteError) toast.error(patenteError);
+            return;
+        }
 
         setCreatingVehiculo(true);
         router.post(`/clientes/${vehiculosModalCliente.id}/vehiculos`, {
-            patente: nuevoVehiculo.patente.toUpperCase(),
+            patente: normalizePatente(nuevoVehiculo.patente),
             marca_id: nuevoVehiculo.marca_id,
             modelo_id: nuevoVehiculo.modelo_id,
             anio: nuevoVehiculo.anio ? parseInt(nuevoVehiculo.anio) : null,
@@ -729,7 +735,7 @@ export default function ClientesIndex({ clientes, filters, stats, marcas }: Page
                                                 <input
                                                     type="text"
                                                     value={nuevoVehiculo.patente}
-                                                    onChange={(e) => setNuevoVehiculo(prev => ({ ...prev, patente: e.target.value.toUpperCase() }))}
+                                                    onChange={(e) => setNuevoVehiculo(prev => ({ ...prev, patente: normalizePatente(e.target.value) }))}
                                                     placeholder="ABC123"
                                                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-100 focus:border-green-400 transition uppercase ${vehiculoErrors.patente ? "border-red-300" : "border-slate-200"}`}
                                                 />

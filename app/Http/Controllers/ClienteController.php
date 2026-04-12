@@ -183,13 +183,14 @@ class ClienteController extends Controller
     public function createAndAttachVehicle(Request $request, Titular $cliente)
     {
         $validated = $request->validate([
-            'patente' => 'required|string|max:20|unique:vehiculo,patente',
+            'patente' => 'required|string|max:20|regex:/^(?:[A-Z]{3}[0-9]{3}|[A-Z]{2}[0-9]{3}[A-Z]{2})$/|unique:vehiculo,patente',
             'marca_id' => 'required|exists:marcas,id',
             'modelo_id' => 'required|exists:modelos,id',
             'anio' => 'nullable|integer|min:1900|max:2100',
         ], [
             'patente.required' => 'La patente es obligatoria.',
             'patente.unique' => 'Ya existe un vehículo con esa patente.',
+            'patente.regex' => 'Ingresá una patente válida. Ejemplos: ABC123 o AB123CD.',
             'marca_id.required' => 'Seleccione una marca.',
             'modelo_id.required' => 'Seleccione un modelo.',
         ]);
@@ -233,4 +234,3 @@ class ClienteController extends Controller
         return redirect()->back()->with('success', 'Vehículo eliminado correctamente.');
     }
 }
-

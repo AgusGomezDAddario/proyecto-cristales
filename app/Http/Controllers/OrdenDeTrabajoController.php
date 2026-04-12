@@ -191,6 +191,10 @@ class OrdenDeTrabajoController extends Controller
             'vehiculo_id' => 'nullable|integer|exists:vehiculo,id',
             'nuevo_titular' => 'nullable|array',
             'nuevo_vehiculo' => 'nullable|array',
+            'nuevo_vehiculo.patente' => 'required_without:vehiculo_id|string|max:10|regex:/^(?:[A-Z]{3}[0-9]{3}|[A-Z]{2}[0-9]{3}[A-Z]{2})$/|unique:vehiculo,patente',
+            'nuevo_vehiculo.marca_id' => 'required_with:nuevo_vehiculo|integer|exists:marcas,id',
+            'nuevo_vehiculo.modelo_id' => 'required_with:nuevo_vehiculo|integer|exists:modelos,id',
+            'nuevo_vehiculo.anio' => 'nullable|integer|min:1900|max:' . date('Y'),
         ], [
             'estado_id.required' => 'Seleccioná un estado para la orden.',
             'fecha.required' => 'La fecha de la orden es obligatoria.',
@@ -491,9 +495,9 @@ class OrdenDeTrabajoController extends Controller
             'nuevo_titular.telefono' => 'nullable|string|max:20',
             'nuevo_titular.email' => 'nullable|email|max:48',
             'nuevo_vehiculo' => 'nullable|array',
-            'nuevo_vehiculo.patente' => 'required_without:vehiculo_id|string|max:10',
-            'nuevo_vehiculo.marca_id' => 'nullable|integer|exists:marcas,id',
-            'nuevo_vehiculo.modelo_id' => 'nullable|integer|exists:modelos,id',
+            'nuevo_vehiculo.patente' => 'required_without:vehiculo_id|string|max:10|regex:/^(?:[A-Z]{3}[0-9]{3}|[A-Z]{2}[0-9]{3}[A-Z]{2})$/|unique:vehiculo,patente',
+            'nuevo_vehiculo.marca_id' => 'required_with:nuevo_vehiculo|integer|exists:marcas,id',
+            'nuevo_vehiculo.modelo_id' => 'required_with:nuevo_vehiculo|integer|exists:modelos,id',
             'nuevo_vehiculo.anio' => 'nullable|integer|min:1900|max:' . date('Y'),
             'estado_id' => 'required|exists:estado,id',
             'fecha' => 'required|date',
@@ -958,3 +962,5 @@ class OrdenDeTrabajoController extends Controller
         return (int) ($user?->role_id ?? 0) === 3;
     }
 }
+
+
