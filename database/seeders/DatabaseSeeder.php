@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             ConceptosSeeder::class,
             MarcasModelosSeeder::class,
             // MetricsDemoSeeder::class,
+            TitularesVehiculosSeeder::class,
         ]);
     }
 }
