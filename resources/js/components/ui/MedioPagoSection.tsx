@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import DeleteButton from "@/components/botones/boton-eliminar";
+import { ordenarPorEtiqueta } from "@/lib/utils";
 
 interface MedioPago {
   id: number;
@@ -48,13 +49,14 @@ export default function MedioPagoSection({
 
   // Filtrar medios de pago: el voucher de seguros solo se muestra si hay compañía seleccionada
   const mediosFiltrados = useMemo(() => {
-    return mediosDePago.filter((m) => {
+    const filtrados = mediosDePago.filter((m) => {
       // Si es el voucher de seguros, solo mostrarlo si hay compañía de seguros seleccionada
       if (m.nombre === VOUCHER_SEGURO_NOMBRE) {
         return !!companiaSeguroId;
       }
       return true;
     });
+    return ordenarPorEtiqueta(filtrados, (m) => m.nombre);
   }, [mediosDePago, companiaSeguroId]);
 
   // Handler para cambio de medio de pago (sin autocompletado)

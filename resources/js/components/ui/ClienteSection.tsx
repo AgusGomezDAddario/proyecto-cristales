@@ -2,6 +2,7 @@ import { User, Phone, Mail, Plus } from "lucide-react";
 import { useState, forwardRef, useImperativeHandle } from "react";
 import Select from "react-select";
 import DeleteButton from '@/components/botones/boton-eliminar';
+import { ordenarPorEtiqueta } from '@/lib/utils';
 
 interface Titular {
   id: number;
@@ -48,12 +49,15 @@ const ClienteSection = forwardRef<ClienteSectionRef, Props>(
       },
     }));
 
-    const options = titulares.map((t) => ({
-      value: t.id,
-      label: `${t.nombre} ${t.apellido}`,
-      telefono: t.telefono,
-      email: t.email,
-    }));
+    const options = ordenarPorEtiqueta(
+      titulares.map((t) => ({
+        value: t.id,
+        label: `${t.nombre} ${t.apellido}`,
+        telefono: t.telefono,
+        email: t.email,
+      })),
+      (o) => o.label
+    );
 
     // === Tema oscuro/neutral para que se vea "más negro" ===
     const classNames = {

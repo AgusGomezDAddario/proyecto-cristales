@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { Plus, Trash2, DollarSign, Layers, Tag, Wrench, Store } from "lucide-react";
 import DeleteButton from "../botones/boton-eliminar";
+import { ordenarPorEtiqueta } from "@/lib/utils";
 
 export interface SubcategoriaDTO {
   id: number;
@@ -183,7 +184,7 @@ export default function DetallesSection({ detalles, setDetalles, articulos, erro
                         }`}
                     >
                       <option value="">Seleccionar artículo...</option>
-                      {articulos.map((a) => (
+                      {ordenarPorEtiqueta(articulos, (a) => a.nombre).map((a) => (
                         <option key={a.id} value={a.id}>
                           {a.nombre}
                         </option>
@@ -303,7 +304,7 @@ export default function DetallesSection({ detalles, setDetalles, articulos, erro
                               }`}
                           >
                             <option value="">Seleccionar...</option>
-                            {cat.subcategorias.map((sc) => (
+                            {ordenarPorEtiqueta(cat.subcategorias, (sc) => sc.nombre).map((sc) => (
                               <option key={sc.id} value={sc.id}>
                                 {sc.nombre}
                               </option>
