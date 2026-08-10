@@ -266,8 +266,8 @@ export default function Index({ ordenes }: { ordenes: any }) {
                                 className="w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm text-gray-700 focus:border-gray-500 focus:ring-gray-200"
                             >
                                 <option value="">Todas</option>
-                                <option value="1">Con factura</option>
-                                <option value="0">Sin factura</option>
+                                <option value="1">Con turno</option>
+                                <option value="0">Sin turno</option>
                             </select>
                         </div>
 

@@ -258,7 +258,7 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                                                 : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-100'
                                                 }`}
                                         >
-                                            Sin factura (OT)
+                                            Sin Turno (OT)
                                         </button>
                                         <button
                                             type="button"
@@ -268,7 +268,7 @@ export default function CreateOrdenes({ titulares, estados, mediosDePago, articu
                                                 : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-100'
                                                 }`}
                                         >
-                                            Con factura (FC)
+                                            Con turno (FC)
                                         </button>
                                     </div>
                                     {(errors as any).tipo_documento && <p className="mt-2 text-sm text-red-600">{(errors as any).tipo_documento}</p>}

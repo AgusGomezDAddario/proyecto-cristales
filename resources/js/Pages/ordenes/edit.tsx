@@ -275,8 +275,8 @@ export default function Edit({
                   onChange={(e) => mergeForm({ con_factura: Number(e.target.value) })}
                   className="w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none border-gray-200 hover:border-gray-300"
                 >
-                  <option value={1}>Con factura</option>
-                  <option value={0}>Sin factura</option>
+                  <option value={1}>Con turno</option>
+                  <option value={0}>Sin turno</option>
                 </select>
                 {errors.con_factura && <p className="mt-2 text-sm text-red-600">{errors.con_factura}</p>}
               </div>
