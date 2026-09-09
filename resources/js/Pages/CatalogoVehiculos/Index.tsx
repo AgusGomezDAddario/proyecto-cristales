@@ -5,6 +5,7 @@ import Select from "react-select";
 import { Search, Plus, X, AlertTriangle } from "lucide-react";
 import DeleteButton from "@/components/botones/boton-eliminar";
 import EditButton from "@/components/botones/boton-editar";
+import { compararAlfabetico, ordenarPorEtiqueta } from "@/lib/utils";
 
 // ═══════════════════════════════════════════════════════════════
 // TIPOS
@@ -147,10 +148,13 @@ export default function CatalogoVehiculos({ modelos, marcas, filters }: PageProp
         }
     };
 
-    const marcaOptions = marcas.map((m) => ({ value: m.id, label: m.nombre }));
+    const marcaOptions = ordenarPorEtiqueta(
+        marcas.map((m) => ({ value: m.id, label: m.nombre })),
+        (o) => o.label
+    );
 
     // Crear opciones de modelos (únicos) para el filtro
-    const allModeloNames = [...new Set(modelos.data.map((m) => m.nombre))].sort();
+    const allModeloNames = [...new Set(modelos.data.map((m) => m.nombre))].sort(compararAlfabetico);
     const modeloOptions = allModeloNames.map((nombre) => ({ value: nombre, label: nombre }));
 
     // ═══════════════════════════════════════════════════════════════

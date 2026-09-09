@@ -11,6 +11,7 @@ import EstadoSection from "@/components/ui/EstadoSection";
 import PagosSection from '@/components/ui/PagosSection';
 import { getArgentinaToday, getArgentinaNow } from '@/utils/dateFormat';
 import DateTimePicker from '@/components/ui/DateTimePicker';
+import { ordenarPorEtiqueta } from '@/lib/utils';
 
 type Estado = { id: number; nombre: string };
 type MedioDePago = { id: number; nombre: string };
@@ -165,12 +166,15 @@ export default function Edit({
   const catalogHasSelected =
     selectedId != null && companiasSeguros.some((c) => c.id === selectedId);
 
-  const companiasOptions: CatalogItem[] = [
-    ...(!catalogHasSelected && selectedCompania?.id
-      ? [{ id: selectedCompania.id, nombre: selectedCompania.nombre }]
-      : []),
-    ...companiasSeguros,
-  ];
+  const companiasOptions: CatalogItem[] = ordenarPorEtiqueta(
+    [
+      ...(!catalogHasSelected && selectedCompania?.id
+        ? [{ id: selectedCompania.id, nombre: selectedCompania.nombre }]
+        : []),
+      ...companiasSeguros,
+    ],
+    (c) => c.nombre
+  );
 
   const vehiculosDelTitular = (titulares || []).find((t: any) => t.id === data.titular_id)?.vehiculos || [];
 
@@ -259,7 +263,7 @@ export default function Edit({
                   className="w-full rounded-xl border-2 bg-gray-50 px-4 py-3 font-medium text-gray-900 transition outline-none border-gray-200 hover:border-gray-300"
                 >
                   <option value="">Seleccionar...</option>
-                  {estados.map((e) => (
+                  {ordenarPorEtiqueta(estados, (e) => e.nombre).map((e) => (
                     <option key={e.id} value={e.id}>
                       {e.nombre}
                     </option>

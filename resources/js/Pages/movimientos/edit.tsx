@@ -6,6 +6,7 @@ import DeleteButton from '@/components/botones/boton-eliminar';
 import { View } from 'lucide-react';
 import ViewButton from '@/components/botones/boton-ver';
 import DateTimePicker from '@/components/ui/DateTimePicker';
+import { ordenarPorEtiqueta } from '@/lib/utils';
 
 interface Props {
     movimiento: Movimiento;
@@ -113,7 +114,7 @@ export default function Edit({ movimiento, conceptos, mediosDePago, tipo, label 
                                     className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl outline-none text-gray-900 transition ${errors.concepto_id ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
                                         }`}
                                 >
-                                    {conceptos.map((concepto) => (
+                                    {ordenarPorEtiqueta(conceptos, (concepto) => concepto.nombre).map((concepto) => (
                                         <option key={concepto.id} value={concepto.id}>
                                             {concepto.nombre}
                                         </option>
@@ -134,7 +135,7 @@ export default function Edit({ movimiento, conceptos, mediosDePago, tipo, label 
                                         }`}
                                 >
                                     <option value="">Seleccione</option>
-                                    {mediosDePago.map((medio) => (
+                                    {ordenarPorEtiqueta(mediosDePago, (medio) => medio.nombre).map((medio) => (
                                         <option key={medio.id} value={medio.id}>
                                             {medio.nombre}
                                         </option>

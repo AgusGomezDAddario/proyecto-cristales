@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Calendar, CreditCard, DollarSign, AlertCircle, CheckCircle, Zap, Lock } from 'lucide-react';
 import { getArgentinaToday } from '@/utils/dateFormat';
+import { ordenarPorEtiqueta } from '@/lib/utils';
 
 type Pago = {
     id?: number; // NUEVO: Para identificar pagos existentes
@@ -270,7 +271,7 @@ export default function PagosSection({
                                             }`}
                                         >
                                             <option value="">Seleccionar...</option>
-                                            {mediosDePago.map((mp) => (
+                                            {ordenarPorEtiqueta(mediosDePago, (mp) => mp.nombre).map((mp) => (
                                                 <option key={mp.id} value={mp.id}>
                                                     {mp.nombre}
                                                 </option>

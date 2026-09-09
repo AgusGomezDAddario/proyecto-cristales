@@ -4,6 +4,7 @@ import { PageProps as InertiaPageProps } from '@inertiajs/core';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import DeleteButton from '@/components/botones/boton-eliminar';
 import EditButton from '@/components/botones/boton-editar';
+import { ordenarPorEtiqueta } from '@/lib/utils';
 
 
 // 🔹 Interfaces para tipar datos que vienen del back
@@ -114,7 +115,7 @@ export default function UsersIndex() {
                 className="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Seleccione un rol</option>
-                {roles.map((role) => (
+                {ordenarPorEtiqueta(roles, (role) => role.descripcion).map((role) => (
                   <option key={role.role_id} value={role.role_id}>
                     {role.descripcion}
                   </option>
