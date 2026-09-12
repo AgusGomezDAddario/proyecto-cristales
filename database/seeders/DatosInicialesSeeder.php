@@ -56,8 +56,8 @@ class DatosInicialesSeeder extends Seeder
         DB::table('estado')->insert([
             ['nombre' => 'Iniciado'],
             ['nombre' => 'En taller'],
-            ['nombre' => 'Completada por taller'],
-            ['nombre' => 'Finalizada'],
+            ['nombre' => 'Finalizada - Para Retirar'],
+            ['nombre' => 'Retirada'],
         ]);
     }
 }

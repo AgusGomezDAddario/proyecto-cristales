@@ -435,8 +435,8 @@ export default function Index({ ordenes }: { ordenes: any }) {
                                 case 'Anulada': return 'bg-red-500';
                                 case 'Iniciado': return 'bg-amber-500';
                                 case 'En taller': return 'bg-blue-500';
-                                case 'Completada por taller': return 'bg-teal-500';
-                                case 'Finalizada': return 'bg-green-500';
+                                case 'Finalizada - Para Retirar': return 'bg-teal-500';
+                                case 'Retirada': return 'bg-green-500';
                                 default: return 'bg-gray-500';
                               }
                             })()
@@ -452,12 +452,12 @@ export default function Index({ ordenes }: { ordenes: any }) {
                             <ViewButton
                               onClick={() => router.visit(`/ordenes/${orden.id}?return=${encodeURIComponent(returnUrl)}`)}
                             />
-                            {orden.estado?.nombre !== 'Finalizada' && orden.estado?.nombre !== 'Anulada' && (
+                            {orden.estado?.nombre !== 'Retirada' && orden.estado?.nombre !== 'Anulada' && (
                               <EditButton
                                 onClick={() => router.visit(`/ordenes/${orden.id}/edit?return=${encodeURIComponent(returnUrl)}`)}
                               />
                             )}
-                            {orden.estado?.nombre !== 'Finalizada' && orden.estado?.nombre !== 'Anulada' && (
+                            {orden.estado?.nombre !== 'Retirada' && orden.estado?.nombre !== 'Anulada' && (
                               <button
                                 onClick={() => setAnularOrdenId(orden.id)}
                                 className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100"

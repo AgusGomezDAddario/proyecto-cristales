@@ -46,10 +46,10 @@ class MetricsDemoSeeder extends Seeder
 
         $estadoIniciadoId = Estado::where('nombre', 'Iniciado')->value('id');
         $estadoEnTallerId = Estado::where('nombre', 'En taller')->value('id');
-        $estadoCompletadaId = Estado::where('nombre', 'Completada por taller')->value('id');
-        $estadoFinalizadaId = Estado::where('nombre', 'Finalizada')->value('id');
+        $estadoParaRetirarId = Estado::where('nombre', Estado::NOMBRE_FINALIZADA)->value('id');
+        $estadoRetiradaId = Estado::where('nombre', Estado::NOMBRE_RETIRADA)->value('id');
 
-        if (!$estadoIniciadoId || !$estadoEnTallerId || !$estadoCompletadaId || !$estadoFinalizadaId) {
+        if (!$estadoIniciadoId || !$estadoEnTallerId || !$estadoParaRetirarId || !$estadoRetiradaId) {
             throw new \Exception('Faltan estados requeridos para MetricsDemoSeeder');
         }
 
@@ -125,8 +125,8 @@ class MetricsDemoSeeder extends Seeder
             $titularVehiculoIds,
             $estadoIniciadoId,
             $estadoEnTallerId,
-            $estadoCompletadaId,
-            $estadoFinalizadaId,
+            $estadoParaRetirarId,
+            $estadoRetiradaId,
             &$ordenes
         ) {
             for ($i = 0; $i < 40; $i++) {
@@ -136,12 +136,12 @@ class MetricsDemoSeeder extends Seeder
                 );
 
                 $estadoId = $faker->randomElement([
-                    $estadoCompletadaId,
-                    $estadoCompletadaId,
+                    $estadoParaRetirarId,
+                    $estadoParaRetirarId,
                     $estadoEnTallerId,
                     $estadoEnTallerId,
                     $estadoIniciadoId,
-                    $estadoFinalizadaId,
+                    $estadoRetiradaId,
                 ]);
 
                 $orden = OrdenDeTrabajo::create([
@@ -174,7 +174,7 @@ class MetricsDemoSeeder extends Seeder
 
         foreach ($ordenes as $orden) {
 
-            if (!in_array($orden->estado_id, [$estadoCompletadaId, $estadoFinalizadaId], true)) {
+            if (!in_array($orden->estado_id, [$estadoParaRetirarId, $estadoRetiradaId], true)) {
                 continue;
             }
 

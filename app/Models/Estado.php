@@ -13,12 +13,11 @@ class Estado extends Model
     public const NOMBRE_ANULADA = 'Anulada';
     public const NOMBRE_INICIADO = 'Iniciado';
     public const NOMBRE_EN_TALLER = 'En taller';
-    public const NOMBRE_COMPLETADA_TALLER = 'Completada por taller';
-    public const NOMBRE_FINALIZADA = 'Finalizada';
+    public const NOMBRE_RETIRADA = 'Retirada';
+    public const NOMBRE_FINALIZADA = 'Finalizada - Para Retirar';
     public const ESTADOS_TALLER = [
         self::NOMBRE_INICIADO,
         self::NOMBRE_EN_TALLER,
-        self::NOMBRE_COMPLETADA_TALLER,
     ];
     public const ESTADOS_CAMBIO_TALLER = self::ESTADOS_TALLER;
 

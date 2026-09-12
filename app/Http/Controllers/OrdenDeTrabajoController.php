@@ -223,7 +223,7 @@ class OrdenDeTrabajoController extends Controller
         }, 0);
 
         // --- NUEVA VALIDACIÓN PARA CREACIÓN ---
-        $estadoFinalizada = Estado::where('nombre', 'Finalizada')->first();
+        $estadoFinalizada = Estado::whereIn('nombre', [Estado::NOMBRE_FINALIZADA, Estado::NOMBRE_RETIRADA])->where('id', $validated['estado_id'])->first();
 
         if ($estadoFinalizada && (int) $validated['estado_id'] === $estadoFinalizada->id) {
             // Sumamos los montos de los pagos que se están enviando como "pagado"
@@ -234,7 +234,7 @@ class OrdenDeTrabajoController extends Controller
             if ($totalPagado < $totalOrden) {
                 $falta = $totalOrden - $totalPagado;
                 return back()
-                    ->withErrors(['estado_id' => "No puedes crear una orden 'Finalizada' si no está totalmente pagada. Saldo pendiente: $" . number_format($falta, 2)])
+                    ->withErrors(['estado_id' => "La orden debe estar totalmente pagada para marcarla como finalizada o retirada. Saldo pendiente: $" . number_format($falta, 2)])
                     ->withInput();
             }
         }
@@ -534,7 +534,7 @@ class OrdenDeTrabajoController extends Controller
         }, 0);
 
         // --- NUEVA VALIDACIÓN DE ESTADO FINALIZADA ---
-        $estadoFinalizada = Estado::where('nombre', 'Finalizada')->first();
+        $estadoFinalizada = Estado::whereIn('nombre', [Estado::NOMBRE_FINALIZADA, Estado::NOMBRE_RETIRADA])->where('id', $validated['estado_id'])->first();
 
         if ($estadoFinalizada && (int) $validated['estado_id'] === $estadoFinalizada->id) {
             // Calculamos lo que ya está pagado (incluyendo los que se están enviando ahora como pagados)
@@ -545,7 +545,7 @@ class OrdenDeTrabajoController extends Controller
             if ($totalPagado < $totalOrden) {
                 $falta = $totalOrden - $totalPagado;
                 return back()
-                    ->withErrors(['estado_id' => "No se puede finalizar la OT: El saldo pendiente es de $" . number_format($falta, 2)])
+                    ->withErrors(['estado_id' => "No se puede finalizar o retirar la OT: El saldo pendiente es de $" . number_format($falta, 2)])
                     ->withInput();
             }
         }

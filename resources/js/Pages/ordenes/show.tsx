@@ -96,8 +96,8 @@ export default function Show({
     const companiaNombre = orden.compania_seguro?.nombre ?? 'Sin seguro / Particular';
     const backUrl = esTaller ? '/taller/ots' : '/ordenes';
     const isAnulada = orden.estado.nombre === 'Anulada';
-    const isFinalizada = orden.estado.nombre === 'Finalizada';
-    const canManageOrder = canManageOrders && !isAnulada && !isFinalizada;
+    const isRetirada = orden.estado.nombre === 'Retirada';
+    const canManageOrder = canManageOrders && !isAnulada && !isRetirada;
     const [showAnularModal, setShowAnularModal] = useState(false);
 
     const formatMoney = (value: number) => `$${value.toLocaleString('es-AR')}`;
@@ -139,7 +139,7 @@ export default function Show({
                                     className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
                                         isAnulada
                                             ? 'border-red-200 bg-red-100 text-red-700'
-                                            : isFinalizada
+                                            : isRetirada
                                               ? 'border-green-200 bg-green-100 text-green-700'
                                               : 'border-yellow-200 bg-yellow-100 text-yellow-700'
                                     }`}
