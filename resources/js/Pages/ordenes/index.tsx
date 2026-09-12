@@ -7,6 +7,7 @@ import ConfirmAnularModal from "@/components/ConfirmAnularModal";
 import EditButton from '@/components/botones/boton-editar';
 import DeleteButton from '@/components/botones/boton-eliminar';
 import ViewButton from '@/components/botones/boton-ver';
+import { ordenarPorEtiqueta } from '@/lib/utils';
 
 type Vehiculo = {
   id: number;
@@ -249,7 +250,7 @@ export default function Index({ ordenes }: { ordenes: any }) {
                                 className="w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm text-gray-700 focus:border-gray-500 focus:ring-gray-200"
                             >
                                 <option value="">Todos</option>
-                                {estados.map((e) => (
+                                {ordenarPorEtiqueta(estados, (e) => e.nombre).map((e) => (
                                     <option key={e.id} value={e.id}>
                                         {e.nombre}
                                     </option>
@@ -266,8 +267,8 @@ export default function Index({ ordenes }: { ordenes: any }) {
                                 className="w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm text-gray-700 focus:border-gray-500 focus:ring-gray-200"
                             >
                                 <option value="">Todas</option>
-                                <option value="1">Con factura</option>
-                                <option value="0">Sin factura</option>
+                                <option value="1">Con turno</option>
+                                <option value="0">Sin turno</option>
                             </select>
                         </div>
 

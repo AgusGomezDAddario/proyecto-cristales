@@ -6,6 +6,7 @@ import { Concepto, MedioDePago, MovimientoFormData } from '@/types/movimiento';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import DeleteButton from '@/components/botones/boton-eliminar';
 import DateTimePicker from '@/components/ui/DateTimePicker';
+import { ordenarPorEtiqueta } from '@/lib/utils';
 
 interface Props {
     conceptos: Concepto[];
@@ -151,7 +152,7 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                                         }`}
                                 >
                                     <option value="" className="text-gray-500">Seleccione un concepto</option>
-                                    {conceptos.map((concepto) => (
+                                    {ordenarPorEtiqueta(conceptos, (concepto) => concepto.nombre).map((concepto) => (
                                         <option key={concepto.id} value={concepto.id} className="text-gray-900">
                                             {concepto.nombre}
                                         </option>
@@ -180,7 +181,7 @@ export default function Create({ conceptos, mediosDePago, tipo, label }: Props) 
                                         }`}
                                 >
                                     <option value="" className="text-gray-500">Seleccione un medio</option>
-                                    {mediosDePago.map((medio) => (
+                                    {ordenarPorEtiqueta(mediosDePago, (medio) => medio.nombre).map((medio) => (
                                         <option key={medio.id} value={medio.id} className="text-gray-900">
                                             {medio.nombre}
                                         </option>

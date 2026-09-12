@@ -11,6 +11,7 @@ import { toast } from "react-hot-toast";
 import DeleteButton from "@/components/botones/boton-eliminar";
 import EditButton from "@/components/botones/boton-editar";
 import { getPatenteError, normalizePatente } from "@/utils/patente";
+import { ordenarPorEtiqueta } from "@/lib/utils";
 
 // ═══════════════════════════════════════════════════════════════
 // TIPOS
@@ -279,8 +280,14 @@ export default function ClientesIndex({ clientes, filters, stats, marcas }: Page
         });
     };
 
-    const marcaOptions = marcas.map(m => ({ value: m.id, label: m.nombre }));
-    const modeloOptions = modelos.map(m => ({ value: m.id, label: m.nombre }));
+    const marcaOptions = ordenarPorEtiqueta(
+        marcas.map(m => ({ value: m.id, label: m.nombre })),
+        (o) => o.label
+    );
+    const modeloOptions = ordenarPorEtiqueta(
+        modelos.map(m => ({ value: m.id, label: m.nombre })),
+        (o) => o.label
+    );
 
     // ═══════════════════════════════════════════════════════════════
     // RENDER

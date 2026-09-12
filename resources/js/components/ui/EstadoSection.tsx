@@ -1,4 +1,5 @@
 import React from "react";
+import { ordenarPorEtiqueta } from "@/lib/utils";
 
 interface Estado {
   id: number;
@@ -28,7 +29,7 @@ export default function EstadoSection({ estados, formData, setFormData, errors }
         }`}
       >
         <option value="" className="text-gray-500">Seleccione un estado...</option>
-        {estados.map((e) => (
+        {ordenarPorEtiqueta(estados, (e) => e.nombre).map((e) => (
           <option key={e.id} value={e.id} className="text-gray-900">
             {e.nombre}
           </option>

@@ -5,6 +5,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import DeleteButton from "@/components/botones/boton-eliminar";
 import { getPatenteError, normalizePatente } from "@/utils/patente";
+import { ordenarPorEtiqueta } from "@/lib/utils";
 
 interface Vehiculo {
   id: number;
@@ -90,26 +91,35 @@ const VehiculoSection = forwardRef<VehiculoSectionRef, Props>(
     }));
 
     // Opciones para el selector de vehículos existentes
-    const options = vehiculos.map((v) => ({
-      value: v.id,
-      label: `${v.patente} — ${v.marca?.nombre || 'Sin marca'} ${v.modelo?.nombre || 'Sin modelo'} (${v.anio})`,
-      patente: v.patente,
-      marca: v.marca?.nombre || '',
-      modelo: v.modelo?.nombre || '',
-      anio: v.anio,
-    }));
+    const options = ordenarPorEtiqueta(
+      vehiculos.map((v) => ({
+        value: v.id,
+        label: `${v.patente} — ${v.marca?.nombre || 'Sin marca'} ${v.modelo?.nombre || 'Sin modelo'} (${v.anio})`,
+        patente: v.patente,
+        marca: v.marca?.nombre || '',
+        modelo: v.modelo?.nombre || '',
+        anio: v.anio,
+      })),
+      (o) => o.label
+    );
 
     // Opciones para selector de marcas
-    const marcaOptions = marcas.map(m => ({
-      value: m.id,
-      label: m.nombre
-    }));
+    const marcaOptions = ordenarPorEtiqueta(
+      marcas.map(m => ({
+        value: m.id,
+        label: m.nombre
+      })),
+      (o) => o.label
+    );
 
     // Opciones para selector de modelos
-    const modeloOptions = modelos.map(m => ({
-      value: m.id,
-      label: m.nombre
-    }));
+    const modeloOptions = ordenarPorEtiqueta(
+      modelos.map(m => ({
+        value: m.id,
+        label: m.nombre
+      })),
+      (o) => o.label
+    );
 
     // === Estilos para react-select ===
     const classNames = {
